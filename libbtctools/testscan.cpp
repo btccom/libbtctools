@@ -9,10 +9,12 @@
 //
 
 #include "tcpclient/all.hpp"
+#include "utils/IpGenerator.hpp"
 #include <windows.h>
 
 using namespace std;
 using namespace btctools::tcpclient;
+using namespace btctools::utils;
 
 int main(int argc, char* argv[])
 {
@@ -29,12 +31,17 @@ int main(int argc, char* argv[])
 				client.run(requestConsumer, responseProductor);
 			});
 
-			char ipBuffer[16];
-
-			for (int i = 1; i < 255; i++)
+			StringConsumer ipSource(
+				[](StringProductor &ipYield)
 			{
-				sprintf(ipBuffer, "192.168.21.%d", i);
-				Request *req = new Request(ipBuffer, "4028", "{\"command\":\"summary\"}");
+				IpGenerator::genIpRange("192.168.21.1", "192.168.21.254", ipYield);
+			});
+
+			for (auto ip : ipSource)
+			{
+				cout << ip << endl;
+
+				Request *req = new Request(ip, "4028", "{\"command\":\"summary\"}");
 				req->usrdata_ = req;
 
 				requestProductor(req);
