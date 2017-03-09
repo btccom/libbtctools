@@ -11,7 +11,6 @@
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/steady_timer.hpp>
 #include <boost/asio/write.hpp>
-#include <boost/asio/spawn.hpp>
 
 #include <boost/coroutine2/all.hpp>
 
@@ -79,13 +78,10 @@ namespace btctools
 				{
 					if (!ec)
 					{
-						cout << "Wsize: " << bytes_transferred << endl;
 						readContent();
 					}
 					else // the end of stream becomes an error code `boost::asio::error::eof`
 					{
-						cout << "Wec: " << ec.value() << endl;
-
 						yield(ec);
 					}
 				});
@@ -93,22 +89,17 @@ namespace btctools
 
 			void readContent()
 			{
-				cout << "Read hello! " << endl;
-
 				socket_->async_read_some(boost::asio::buffer(buffer_, BUFFER_SIZE),
 					[&](const boost::system::error_code& ec,
 						std::size_t bytes_transferred)
 				{
 					if (!ec)
 					{
-						cout << "size: " << bytes_transferred << endl;
 						response_->content_ += string(buffer_, bytes_transferred);
 						readContent();
 					}
 					else // the end of stream becomes an error code `boost::asio::error::eof`
 					{
-						cout << "ec: " << ec.value() << endl;
-
 						yield(ec);
 					}
 				});
@@ -150,8 +141,6 @@ namespace btctools
                 while (source)
                 {
                     Request *request = source.get();
-
-                    cout << "client req: " << request->host_ << ":" << request->port_ << endl;
 
                     tcp::resolver resolver(io_service_);
                     auto endpoint_iterator = resolver.resolve({ request->host_, request->port_ });
