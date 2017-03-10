@@ -10,6 +10,7 @@
 
 #include "tcpclient/all.hpp"
 #include "utils/IpGenerator.hpp"
+#include <boost/regex.hpp>
 #include <windows.h>
 
 using namespace std;
@@ -34,14 +35,17 @@ int main(int argc, char* argv[])
 			StringConsumer ipSource(
 				[](StringProductor &ipYield)
 			{
-				IpGenerator::genIpRange("192.168.21.1", "192.168.21.254", ipYield);
+				IpGenerator::genIpRange("192.168.20.0-192.168.21.255", ipYield);
 			});
-
+			
 			for (auto ip : ipSource)
 			{
-				cout << ip << endl;
+				//cout << ip << endl;
 
-				Request *req = new Request(ip, "4028", "{\"command\":\"summary\"}");
+				// use CGMiner RPC: https://github.com/ckolivas/cgminer/blob/master/API-README
+				// the response of JSON styled calling {"command":"stats"} will be a invalid JSON
+				// string from S4, so call with plain text style.
+				Request *req = new Request(ip, "4028", "stats|");
 				req->usrdata_ = req;
 
 				requestProductor(req);
@@ -54,7 +58,22 @@ int main(int argc, char* argv[])
 
 			if (response->error_code_ == boost::asio::error::eof)
 			{
-				cout << request->host_ << ": OK" /*<<  response->content_*/ << endl;
+				string minerType = "Unknown";
+
+				// Only Antminer has the field.
+				boost::regex expression(",Type=([^\\|]+)\\|");
+				boost::smatch what;
+
+				if (boost::regex_search(response->content_, what, expression))
+				{
+					minerType = what[1];
+				}
+				/*else
+				{
+					minerType = response->content_;
+				}*/
+
+				cout << request->host_ << "£º" << minerType << endl;
 			}
 			else
 			{

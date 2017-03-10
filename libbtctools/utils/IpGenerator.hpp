@@ -43,18 +43,18 @@ namespace btctools
 				struct in_addr currentIp;
 
 				// to host endian
-				begin.S_un.S_addr = ntohl(begin.S_un.S_addr);
-				end.S_un.S_addr = ntohl(end.S_un.S_addr);
+				begin.s_addr = ntohl(begin.s_addr);
+				end.s_addr = ntohl(end.s_addr);
 
-				if (begin.S_un.S_addr > end.S_un.S_addr)
+				if (begin.s_addr > end.s_addr)
 				{
 					boost::swap(begin, end);
 				}
 
-				for (auto i = begin.S_un.S_addr; i <= end.S_un.S_addr; i++)
+				for (auto i = begin.s_addr; i <= end.s_addr; i++)
 				{
 					// to network endian
-					currentIp.S_un.S_addr = htonl(i);
+					currentIp.s_addr = htonl(i);
 					yield(std::move(currentIp));
 				}
 			}
@@ -65,8 +65,8 @@ namespace btctools
 				struct in_addr endInAddr;
 
 				// use inet_addr() for XP compatibility
-				beginInAddr.S_un.S_addr = inet_addr(begin.c_str());
-				endInAddr.S_un.S_addr = inet_addr(end.c_str());
+				beginInAddr.s_addr = inet_addr(begin.c_str());
+				endInAddr.s_addr = inet_addr(end.c_str());
 
 				InAddrConsumer source(
 					[&](InAddrProductor &inAddrYield)
@@ -78,6 +78,40 @@ namespace btctools
 				{
 					// use inet_ntoa() for XP compatibility
 					yield(string(inet_ntoa(inAddr)));
+				}
+			}
+
+			static void genIpRange(string ipRange, StringProductor &yield)
+			{
+				size_t pos;
+
+				// TODO: reg replace [^0-9.-] -> ''
+				
+				pos = ipRange.find('-');
+
+				if (pos != string::npos)
+				{
+					string begin = ipRange.substr(0, pos);
+					string end = ipRange.substr(pos + 1);
+
+					genIpRange(begin, end, yield);
+
+					return;
+				}
+
+				pos = ipRange.find('*');
+
+				if (pos != string::npos)
+				{
+					// TODO: reg replace: begin: \*+ -> 0
+					// TODO: reg replace: end: \*+ ->255
+					return;
+				}
+
+				// just a single IP
+				{
+					genIpRange(ipRange, ipRange, yield);
+					return;
 				}
 			}
 		};
