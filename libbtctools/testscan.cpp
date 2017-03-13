@@ -21,7 +21,7 @@ int main(int argc, char* argv[])
 {
 	try
 	{
-		Client client;
+		Client client(5);
 
 		ResponseConsumer responseConsumer(
 			[&](ResponseProductor & responseProductor)
@@ -43,8 +43,8 @@ int main(int argc, char* argv[])
 				//cout << ip << endl;
 
 				// use CGMiner RPC: https://github.com/ckolivas/cgminer/blob/master/API-README
-				// the response of JSON styled calling {"command":"stats"} will be a invalid JSON
-				// string from S4, so call with plain text style.
+				// the response of JSON styled calling {"command":"stats"} will responsed
+				// a invalid JSON string from Antminer S9, so call with plain text style.
 				Request *req = new Request(ip, "4028", "stats|");
 				req->usrdata_ = req;
 
@@ -80,7 +80,7 @@ int main(int argc, char* argv[])
 				cout << request->host_ << ": " << boost::system::system_error(response->error_code_).what() << endl;
 			}
 
-			delete request;
+			//delete request;
 			delete response;
 		}
 
