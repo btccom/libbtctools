@@ -25,10 +25,10 @@ namespace btctools
     namespace utils
     {
 
-		typedef boost::coroutines2::coroutine<in_addr> coro_in_addr_t;
+		typedef boost::coroutines2::coroutine<uint32_t> coro_ip_long_t;
 
-		typedef coro_in_addr_t::push_type InAddrProductor;
-		typedef coro_in_addr_t::pull_type InAddrConsumer;
+		typedef coro_ip_long_t::push_type IpLongProductor;
+		typedef coro_ip_long_t::pull_type IpLongConsumer;
 
 		typedef boost::coroutines2::coroutine<string> coro_string_t;
 
@@ -38,68 +38,106 @@ namespace btctools
 		class IpGenerator
 		{
 		public:
-			static void genIpRange(struct in_addr begin, struct in_addr end, InAddrProductor &yield)
+			IpGenerator(const string &ipRange, int stepSize)
 			{
-				struct in_addr currentIp;
+				string begin;
+				string end;
 
-				// to host endian
-				begin.s_addr = ntohl(begin.s_addr);
-				end.s_addr = ntohl(end.s_addr);
+				splitIpRange(ipRange, begin, end);
 
-				if (begin.s_addr > end.s_addr)
+				ipLongBegin_ = ip2long(begin);
+				ipLongEnd_ = ip2long(end);
+
+				if (ipLongBegin_ > ipLongEnd_)
 				{
-					boost::swap(begin, end);
+					boost::swap(ipLongBegin_, ipLongEnd_);
 				}
 
-				for (auto i = begin.s_addr; i <= end.s_addr; i++)
+				// the loop at below will cannot end if ipLongEnd_ is "255.255.255.255"
+				if (ipLongEnd_ == 0xffffffff)
 				{
-					// to network endian
-					currentIp.s_addr = htonl(i);
-					yield(std::move(currentIp));
+					// truncate it to "255.255.255.254" so the loop will end correctly
+					ipLongEnd_ = 0xfffffffe;
+				}
+
+				stepSize_ = stepSize;
+			}
+
+			void genIpRange(StringProductor &yield)
+			{
+				int i = 0;
+
+				assert(ipLongEnd_ < 0xffffffff);
+
+				while (i < stepSize_ && ipLongBegin_ <= ipLongEnd_)
+				{
+					yield(long2ip(ipLongBegin_));
+
+					i++;
+					ipLongBegin_++;
 				}
 			}
 
-			static void genIpRange(string begin, string end, StringProductor &yield)
+			bool hasNext()
 			{
-				struct in_addr beginInAddr;
-				struct in_addr endInAddr;
-
-				// use inet_addr() for XP compatibility
-				beginInAddr.s_addr = inet_addr(begin.c_str());
-				endInAddr.s_addr = inet_addr(end.c_str());
-
-				InAddrConsumer source(
-					[&](InAddrProductor &inAddrYield)
-				{
-					genIpRange(std::move(beginInAddr), std::move(endInAddr), inAddrYield);
-				});
-
-				for (auto inAddr : source)
-				{
-					// use inet_ntoa() for XP compatibility
-					yield(string(inet_ntoa(inAddr)));
-				}
+				return ipLongBegin_ <= ipLongEnd_;
 			}
 
-			static void genIpRange(string ipRange, StringProductor &yield)
+			string getLastIp()
+			{
+				return long2ip(ipLongBegin_ - 1);
+			}
+
+			string getNextIp()
+			{
+				return long2ip(ipLongBegin_);
+			}
+
+			string getEndIp()
+			{
+				return long2ip(ipLongEnd_);
+			}
+
+		private:
+			uint32_t ipLongBegin_;
+			uint32_t ipLongEnd_;
+			int stepSize_;
+
+			/********************** static functions at below **********************/
+		public:
+
+			static uint32_t ip2long(const string &ipString)
+			{
+				// use inet_addr() instead of inet_pton() for XP compatibility
+				return ntohl(inet_addr(ipString.c_str()));
+			}
+
+			static string long2ip(const uint32_t &ipLong)
+			{
+				struct in_addr addr;
+				addr.s_addr = htonl(ipLong);
+
+				// use inet_ntoa() instead of inet_ntop() for XP compatibility
+				return string(inet_ntoa(std::move(addr)));
+			}
+
+			static void splitIpRange(const string &ipRangeString, string &begin, string &end)
 			{
 				size_t pos;
 
+				// TODO: replace ~ -> -
 				// TODO: reg replace [^0-9.-] -> ''
-				
-				pos = ipRange.find('-');
+
+				pos = ipRangeString.find('-');
 
 				if (pos != string::npos)
 				{
-					string begin = ipRange.substr(0, pos);
-					string end = ipRange.substr(pos + 1);
-
-					genIpRange(begin, end, yield);
-
+					begin = ipRangeString.substr(0, pos);
+					end = ipRangeString.substr(pos + 1);
 					return;
 				}
 
-				pos = ipRange.find('*');
+				pos = ipRangeString.find('*');
 
 				if (pos != string::npos)
 				{
@@ -110,11 +148,12 @@ namespace btctools
 
 				// just a single IP
 				{
-					genIpRange(ipRange, ipRange, yield);
+					begin = ipRangeString;
+					end = ipRangeString;
 					return;
 				}
 			}
-		};
+		}; // end of class
 
     } // namespace utils
 } // namespace btctools
