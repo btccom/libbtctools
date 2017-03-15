@@ -17,24 +17,27 @@ using namespace std;
 using namespace btctools::tcpclient;
 using namespace btctools::utils;
 
-void run(IpGenerator &ips)
+void setNextWork(IpGenerator &ips, Request *req, Client &client)
 {
-	Client client(5);
-
-	ResponseConsumer responseConsumer(
-		[&](ResponseProductor & responseProductor)
+	if (ips.hasNext())
 	{
-		RequestProductor requestProductor(
-			[&](RequestConsumer &requestConsumer)
-		{
-			client.run(requestConsumer, responseProductor);
-		});
+		req->host_ = ips.next();
 
-		StringConsumer ipSource(
-			[&](StringProductor &ipYield)
-		{
-			ips.genIpRange(ipYield);
-		});
+		//cout << "New Work: " << req->host_ << endl;
+
+		client.addWork(req);
+	}
+	else
+	{
+		delete req;
+	}
+}
+
+void run(IpGenerator &ips, int sessionTimeout)
+{
+	RequestConsumer requestConsumer([&ips](RequestProductor &requestProductor)
+	{
+		StringConsumer ipSource = ips.genIpRange(256);
 
 		for (auto ip : ipSource)
 		{
@@ -50,12 +53,17 @@ void run(IpGenerator &ips)
 		}
 	});
 
+	Client client(sessionTimeout);
+	ResponseConsumer responseConsumer = client.run(requestConsumer);
+
 	for (auto response : responseConsumer)
 	{
 		Request *request = (Request *)response->usrdata_;
 
 		if (response->error_code_ == boost::asio::error::eof)
 		{
+			//cout << "Response: " << response->content_ << endl;
+
 			string minerType = "Unknown";
 
 			// Only Antminer has the field.
@@ -65,20 +73,26 @@ void run(IpGenerator &ips)
 			if (boost::regex_search(response->content_, what, expression))
 			{
 				minerType = what[1];
-			}
-			/*else
-			{
-			minerType = response->content_;
-			}*/
 
-			cout << request->host_ << "£º" << minerType << endl;
+				cout << request->host_ << "£º" << minerType << endl;
+
+				request->content_ = "pools|";
+				client.addWork(request);
+			}
+			else
+			{
+				cout << request->host_ << "£º" << minerType << endl;
+
+				setNextWork(ips, request, client);
+			}
 		}
 		else
 		{
 			//cout << request->host_ << ": " << boost::system::system_error(response->error_code_).what() << endl;
+
+			setNextWork(ips, request, client);
 		}
 
-		delete request;
 		delete response;
 	}
 }
@@ -87,13 +101,8 @@ int main(int argc, char* argv[])
 {
 	try
 	{
-		IpGenerator ips("192.168.10.0-192.168.30.255", 256);
-
-		while (ips.hasNext())
-		{
-			run(ips);
-			cout << "process: " << ips.getLastIp() << " finished" << endl;
-		}
+		IpGenerator ips("192.168.10.0-192.168.21.255");
+		run(ips, 1);
 	}
 	catch (std::exception& e)
 	{

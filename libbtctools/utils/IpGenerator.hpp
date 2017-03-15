@@ -38,7 +38,7 @@ namespace btctools
 		class IpGenerator
 		{
 		public:
-			IpGenerator(const string &ipRange, int stepSize)
+			IpGenerator(const string &ipRange)
 			{
 				string begin;
 				string end;
@@ -59,28 +59,34 @@ namespace btctools
 					// truncate it to "255.255.255.254" so the loop will end correctly
 					ipLongEnd_ = 0xfffffffe;
 				}
-
-				stepSize_ = stepSize;
 			}
 
-			void genIpRange(StringProductor &yield)
+			StringConsumer genIpRange(int stepSize)
 			{
-				int i = 0;
-
-				assert(ipLongEnd_ < 0xffffffff);
-
-				while (i < stepSize_ && ipLongBegin_ <= ipLongEnd_)
+				return StringConsumer([this, stepSize](StringProductor &yield)
 				{
-					yield(long2ip(ipLongBegin_));
+					int i = 0;
 
-					i++;
-					ipLongBegin_++;
-				}
+					assert(ipLongEnd_ < 0xffffffff);
+
+					while (i < stepSize && ipLongBegin_ <= ipLongEnd_)
+					{
+						yield(long2ip(ipLongBegin_));
+
+						i++;
+						ipLongBegin_++;
+					}
+				});
 			}
 
 			bool hasNext()
 			{
 				return ipLongBegin_ <= ipLongEnd_;
+			}
+
+			string next()
+			{
+				return long2ip(ipLongBegin_++);
 			}
 
 			string getLastIp()
@@ -101,7 +107,6 @@ namespace btctools
 		private:
 			uint32_t ipLongBegin_;
 			uint32_t ipLongEnd_;
-			int stepSize_;
 
 			/********************** static functions at below **********************/
 		public:
