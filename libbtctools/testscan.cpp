@@ -19,6 +19,8 @@ using namespace btctools::utils;
 
 void setNextWork(IpGenerator &ips, Request *req, Client &client)
 {
+	static int counter = 0;
+
 	if (ips.hasNext())
 	{
 		req->host_ = ips.next();
@@ -26,6 +28,11 @@ void setNextWork(IpGenerator &ips, Request *req, Client &client)
 		//cout << "New Work: " << req->host_ << endl;
 
 		client.addWork(req);
+
+		if (counter++ % 100 == 0)
+		{
+			cout << counter << ": " << req->host_ << endl;
+		}
 	}
 	else
 	{
@@ -33,11 +40,11 @@ void setNextWork(IpGenerator &ips, Request *req, Client &client)
 	}
 }
 
-void run(IpGenerator &ips, int sessionTimeout)
+void run(IpGenerator &ips, int sessionTimeout, int stepSize)
 {
-	RequestConsumer requestConsumer([&ips](RequestProductor &requestProductor)
+	RequestConsumer requestConsumer([&ips, &stepSize](RequestProductor &requestProductor)
 	{
-		StringConsumer ipSource = ips.genIpRange(256);
+		StringConsumer ipSource = ips.genIpRange(stepSize);
 
 		for (auto ip : ipSource)
 		{
@@ -101,8 +108,8 @@ int main(int argc, char* argv[])
 {
 	try
 	{
-		IpGenerator ips("192.168.10.0-192.168.21.255");
-		run(ips, 1);
+		IpGenerator ips("192.168.20.0-192.168.255.255");
+		run(ips, 1, 256);
 	}
 	catch (std::exception& e)
 	{
