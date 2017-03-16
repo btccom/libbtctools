@@ -8,54 +8,26 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#include "tcpclient/all.hpp"
-#include <windows.h>
+#include "miner/all.hpp"
 
 using namespace std;
-using namespace btctools::tcpclient;
+using namespace btctools::miner;
 
 int main(int argc, char* argv[])
 {
     try
     {
-        Client client;
+		MinerScanner scanner("192.168.21.35-192.168.21.35", 256);
 
-        ResponseConsumer responseConsumer(
-            [&](ResponseProductor & responseProductor)
-        {
-            RequestProductor requestProductor(
-                [&](RequestConsumer &requestConsumer)
-            {
-                client.run(requestConsumer, responseProductor);
-            });
+		ScanResultConsumer source([&](ScanResultProductor &yield)
+		{
+			scanner.run(yield, 1);
+		});
 
-            for (int i = 0; i < 5; i++)
-            {
-                Request *req = new Request("127.0.0.1", "80", "GET / HTTP/1.1\r\nHost: 127.0.0.1\r\nUser-Agent: BTC Tools v0.0.1\r\nConnection: close\r\n\r\n");
-				req->usrdata_ = req;
-
-                requestProductor(req);
-            }
-
-			for (int i = 0; i < 50; i++)
-			{
-				Request *req = new Request("127.0.0.1", "81", "GET / HTTP/1.1\r\nHost: 127.0.0.1\r\nUser-Agent: BTC Tools v0.0.1\r\nConnection: close\r\n\r\n");
-				req->usrdata_ = req;
-
-				requestProductor(req);
-			}
-        });
-
-        for (auto response : responseConsumer)
-        {
-            cout << "errc: " << response->error_code_.value() << endl;
-			cout << "size: " << response->content_.size() << endl;
-
-			Request *request = (Request *)response->usrdata_;
-			delete request;
-			delete response;
-        }
-
+		for (auto result : source)
+		{
+			cout << result->miner_.ip_ << ": ok" << endl;
+		}
     }
     catch (std::exception& e)
     {

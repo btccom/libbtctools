@@ -1,16 +1,17 @@
 #pragma once
 
+#include "../tcpclient/all.hpp"
+#include "../utils/IpGenerator.hpp"
+
 #include <iostream>
 #include <sstream>
 #include <memory>
 #include <string>
 #include <vector>
+#include <list>
 
 #include <boost/coroutine2/all.hpp>
 #include <boost/regex.hpp>
-
-#include "../tcpclient/all.hpp"
-#include "../utils/IpGenerator.hpp"
 
 using namespace std;
 using namespace btctools::utils;
@@ -72,10 +73,10 @@ namespace btctools
 			ScanResult *result_;
 		};
 
-		typedef boost::coroutines2::coroutine<const ScanResult *> coro_scanrequest_t;
+		typedef boost::coroutines2::coroutine<const ScanResult *> coro_scanresult_t;
 
-		typedef coro_scanrequest_t::push_type ScanRequestProductor;
-		typedef coro_scanrequest_t::pull_type ScanRequestConsumer;
+		typedef coro_scanresult_t::push_type ScanResultProductor;
+		typedef coro_scanresult_t::pull_type ScanResultConsumer;
 
 		class MinerScanner
 		{
@@ -84,26 +85,10 @@ namespace btctools
 				:ips_(ipRange), stepSize_(stepSize), yield_(nullptr), client_(nullptr)
 			{}
 
-			void setRequestFindType(btctools::tcpclient::Request *req, const string &ip)
+			void run(ScanResultProductor &yield, int sessionTimeout)
 			{
-				req->host_ = ip;
-				req->port_ = 4028;
+				yield_ = &yield;
 
-				// use CGMiner RPC: https://github.com/ckolivas/cgminer/blob/master/API-README
-				// the response of JSON styled calling {"command":"stats"} will responsed
-				// a invalid JSON string from Antminer S9, so call with plain text style.
-				req->content_ = "stat|";
-			}
-
-			void setRequestFindPools(btctools::tcpclient::Request *req, const string &ip)
-			{
-				req->host_ = ip;
-				req->port_ = 4028;
-				req->content_ = "pools|";
-			}
-
-			void run(ScanRequestProductor &yield, int sessionTimeout)
-			{
 				btctools::tcpclient::RequestConsumer requestConsumer(
 					[this](btctools::tcpclient::RequestProductor &requestProductor)
 				{
@@ -150,6 +135,25 @@ namespace btctools
 				client_ = nullptr;
 			}
 
+		protected:
+			static void setRequestFindType(btctools::tcpclient::Request *req, const string &ip)
+			{
+				req->host_ = ip;
+				req->port_ = "4028";
+
+				// use CGMiner RPC: https://github.com/ckolivas/cgminer/blob/master/API-README
+				// the response of JSON styled calling {"command":"stats"} will responsed
+				// a invalid JSON string from Antminer S9, so call with plain text style.
+				req->content_ = "stat|";
+			}
+
+			static void setRequestFindPools(btctools::tcpclient::Request *req, const string &ip)
+			{
+				req->host_ = ip;
+				req->port_ = "4028";
+				req->content_ = "{\"command\":\"pools\"}";
+			}
+
 			void doFindType(ScanRequestData *reqData, btctools::tcpclient::Response *response)
 			{
 				if (response->error_code_ == boost::asio::error::eof)
@@ -167,20 +171,22 @@ namespace btctools
 						minerTypeStr = what[1];
 					}
 
-					auto *result = new ScanResult;
+					ScanResult *result = new ScanResult;
 
 					result->action_ = ScanAction::FOUND_TYPE;
 					result->miner_.ip_ = reqData->request_->host_;
 					result->miner_.type_ = minerType;
 					result->miner_.typestr_ = minerTypeStr;
 
-					results_.insert(result);
+					// TODO: add result to list
 					yield(result);
 
 					// step 2: find pools
 					setRequestFindPools(reqData->request_, reqData->request_->host_);
 					reqData->type_ = ScanRequestType::FIND_POOLS;
 					reqData->result_ = result;
+
+					ScanRequestData *data = (ScanRequestData *)reqData->request_->usrdata_;
 					
 					client_->addWork(reqData->request_);
 				}
@@ -193,10 +199,16 @@ namespace btctools
 
 			void doFindPools(ScanRequestData *reqData, btctools::tcpclient::Response *response)
 			{
-				assert(reqData->request_ != nullptr);
+				assert(reqData->result_ != nullptr);
 
 				if (response->error_code_ == boost::asio::error::eof)
 				{
+					ScanResult *result = reqData->result_;
+
+					cout << reqData->request_->host_ << ": " << response->content_ << endl;
+
+					result->action_ = ScanAction::FOUND_POOLS;
+					yield(result);
 				}
 				else
 				{
@@ -213,6 +225,7 @@ namespace btctools
 				if (ips_.hasNext())
 				{
 					setRequestFindType(request, ips_.next());
+					reqData->type_ = ScanRequestType::FIND_TYPE;
 					reqData->result_ = nullptr;
 					client_->addWork(request);
 				}
@@ -254,8 +267,7 @@ namespace btctools
 			btctools::tcpclient::Client *client_;
 			IpGenerator ips_;
 			int stepSize_;
-			ScanRequestProductor *yield_;
-			vector<ScanResult *> results_;
+			ScanResultProductor *yield_;
 		};
 
 	} // namespace tcpclient
