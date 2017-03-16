@@ -88,14 +88,14 @@ namespace btctools
 				// use CGMiner RPC: https://github.com/ckolivas/cgminer/blob/master/API-README
 				// the response of JSON styled calling {"command":"stats"} will responsed
 				// a invalid JSON string from Antminer S9, so call with plain text style.
-				req->content_ = "stat|";
+				req->content_ = "stats|";
 			}
 
 			static void setRequestFindPools(btctools::tcpclient::Request *req, const string &ip)
 			{
 				req->host_ = ip;
 				req->port_ = "4028";
-				req->content_ = "{\"command\":\"pools\"}";
+				req->content_ = "{\"command\":\"stats\"}";
 			}
 
 			void doFindType(ScanRequestData *reqData, btctools::tcpclient::Response *response)
@@ -104,7 +104,7 @@ namespace btctools
 				{
 
 					string minerTypeStr = "Unknown";
-					MinerType minerType = MinerType::UNKNOWN;
+					//MinerType minerType = MinerType::UNKNOWN;
 
 					// Only Antminer has the field.
 					boost::regex expression(",Type=([^\\|]+)\\|");
@@ -121,8 +121,8 @@ namespace btctools
 
 					result->action_ = ScanAction::FOUND_TYPE;
 					result->miner_.ip_ = reqData->request_->host_;
-					result->miner_.type_ = minerType;
-					result->miner_.typestr_ = minerTypeStr;
+					//result->miner_.type_ = minerType;
+					result->miner_.fullTypeStr_ = minerTypeStr;
 
 					/// TODO: add result to a list
 					yield(result);
@@ -151,7 +151,9 @@ namespace btctools
 				{
 					ScanResult *result = reqData->result_;
 
-					cout << reqData->request_->host_ << ": " << response->content_ << endl;
+					//cout << reqData->request_->host_ << ": " << response->content_ << endl;
+
+					DataParser::parseMinerStat(response->content_, reqData->result_->miner_);
 
 					result->action_ = ScanAction::FOUND_POOLS;
 					yield(result);

@@ -28,17 +28,11 @@ namespace btctools
 			string passwd_;
 		};
 
-		enum class MinerType
-		{
-			UNKNOWN,
-			Antminer_S9,
-		};
-
 		struct Miner
 		{
 			string ip_;
-			MinerType type_;
-			string typestr_;
+			string type_;
+			string fullTypeStr_;
 
 			Pool pool1_;
 			Pool pool2_;
@@ -81,4 +75,5 @@ namespace btctools
 	} // namespace tcpclient
 } // namespace btctools
 
+#include "DataParser.hpp"
 #include "MinerScanner.hpp"
