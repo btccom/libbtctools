@@ -1,5 +1,3 @@
-print ("hello!!!")
-
 -- load library
 json = require ("lua.scripts.dkjson")
 utils = require ("lua.scripts.utils")
