@@ -17,7 +17,7 @@ int main(int argc, char* argv[])
 {
     try
     {
-		MinerScanner scanner("192.168.20.1-192.168.21.255", 256);
+		MinerScanner scanner("192.168.20.0-192.168.21.255", 256);
 
 		MinerConsumer source([&](MinerProductor &yield)
 		{
@@ -26,7 +26,7 @@ int main(int argc, char* argv[])
 
 		for (auto miner : source)
 		{
-			cout << miner.ip_ << "\t" << miner.stat_ << "\t\t" << miner.fullTypeStr_ << endl;
+			cout << miner.ip_ << "\t" << miner.stat_ << "\t\t" << miner.fullTypeStr_ << "\t" << miner.pool1_.url_ << "\t" << miner.pool1_.worker_ << endl;
 		}
     }
     catch (std::exception& e)

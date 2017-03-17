@@ -15,4 +15,15 @@ function utils.regularTypeStr(fullTypeStr)
     return typeStr
 end
 
+function utils.trimJsonStr(jsonStr)
+    -- Fix the invalid JSON struct from Antminer S9
+    jsonStr = string.gsub(jsonStr, '"}{"', '"},{"')
+    
+    -- Remove possible garbage at begin & end
+    jsonStr = string.gsub(jsonStr, '^[^{]+{', '{')
+    jsonStr = string.gsub(jsonStr, '}[^}]+$', '}')
+    
+    return jsonStr
+end
+
 return utils

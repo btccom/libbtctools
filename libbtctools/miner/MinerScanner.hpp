@@ -29,6 +29,17 @@ namespace btctools
 				:ips_(ipRange), stepSize_(stepSize), yield_(nullptr), client_(nullptr)
 			{}
 
+			ScanContext *newContext(string ip)
+			{
+				ScanContext *context = new ScanContext;
+				context->stepName_ = "begin";
+				context->miner_.ip_ = std::move(ip);
+				context->canYield_ = false;
+				context->request_.usrdata_ = context;
+
+				return context;
+			}
+
 			void run(MinerProductor &yield, int sessionTimeout)
 			{
 				yield_ = &yield;
@@ -40,12 +51,7 @@ namespace btctools
 
 					for (auto ip : ipSource)
 					{
-						ScanContext *context = new ScanContext;
-						context->stepName_ = "begin";
-						context->miner_.ip_ = ip;
-						context->canYield_ = false;
-						context->request_.usrdata_ = context;
-
+						ScanContext *context = newContext(ip);
 						scannerHelper_.makeRequest(context);
 
 						requestProductor(&context->request_);
@@ -68,7 +74,8 @@ namespace btctools
 
 					if (context->stepName_ == string("end"))
 					{
-						doNextWork(context);
+						delete context;
+						doNextWork();
 					}
 					else
 					{
@@ -84,93 +91,15 @@ namespace btctools
 			}
 
 		protected:
-			/*static void setRequestFindType(btctools::tcpclient::Request *req, const string &ip)
+
+			void doNextWork()
 			{
-				req->host_ = ip;
-				req->port_ = "4028";
-
-				// use CGMiner RPC: https://github.com/ckolivas/cgminer/blob/master/API-README
-				// the response of JSON styled calling {"command":"stats"} will responsed
-				// a invalid JSON string from Antminer S9, so call with plain text style.
-				req->content_ = "{\"command\":\"stats\"}";
-			}
-
-			static void setRequestFindPools(btctools::tcpclient::Request *req, const string &ip)
-			{
-				req->host_ = ip;
-				req->port_ = "4028";
-				req->content_ = "{\"command\":\"pools\"}";
-			}
-
-			void doFindType(ScanRequestData *reqData, btctools::tcpclient::Response *response)
-			{
-				if (response->error_code_ == boost::asio::error::eof)
-				{
-
-					ScanResult *result = new ScanResult;
-
-					result->action_ = ScanAction::FOUND_TYPE;
-					result->miner_.ip_ = reqData->request_->host_;
-					
-					dataParser_.parseMinerPools(response->content_, result->miner_);
-
-					yield(result);
-
-					// step 2: find pools
-					setRequestFindPools(reqData->request_, reqData->request_->host_);
-					reqData->type_ = ScanRequestType::FIND_POOLS;
-					reqData->result_ = result;
-
-					ScanRequestData *data = (ScanRequestData *)reqData->request_->usrdata_;
-					
-					client_->addWork(reqData->request_);
-				}
-				else
-				{
-					yieldError(ScanResult(), reqData->request_->host_, response->error_code_);
-					doNextWork(reqData);
-				}
-			}
-
-			void doFindPools(ScanRequestData *reqData, btctools::tcpclient::Response *response)
-			{
-				assert(reqData->result_ != nullptr);
-
-				ScanResult *result = reqData->result_;
-
-				if (response->error_code_ == boost::asio::error::eof)
-				{
-					dataParser_.parseMinerStat(response->content_, reqData->result_->miner_);
-
-					result->action_ = ScanAction::FOUND_POOLS;
-					yield(result);
-				}
-				else
-				{
-					yieldError(*result, reqData->request_->host_, response->error_code_);
-				}
-
-				//delete result;
-				doNextWork(reqData);
-			}*/
-			
-			void doNextWork(ScanContext *context)
-			{
-				auto request = context->request_;
-
 				if (ips_.hasNext())
 				{
-					context->stepName_ = "begin";
-					context->miner_.ip_ = ips_.next();
-					context->canYield_ = false;
-
+					ScanContext *context = newContext(ips_.next());
 					scannerHelper_.makeRequest(context);
 
 					client_->addWork(&context->request_);
-				}
-				else
-				{
-					delete context;
 				}
 			}
 
