@@ -31,7 +31,33 @@ namespace btctools
 				:socket_(nullptr), request_(nullptr), response_(nullptr),
 				running_(false), session_timer_(nullptr), buffer_(nullptr),
 				io_service_(io_service), responseProductor_(responseProductor)
-			{}
+			{
+				buffer_ = new char[BUFFER_SIZE];
+			}
+
+			~Session()
+			{
+				// release them at the end
+				// avoid access error from ASIO proactor.
+
+				if (session_timer_ != nullptr)
+				{
+					delete session_timer_;
+					session_timer_ = nullptr;
+				}
+
+				if (socket_ != nullptr)
+				{
+					delete socket_;
+					socket_ = nullptr;
+				}
+
+				if (buffer_ != nullptr)
+				{
+					delete buffer_;
+					buffer_ = nullptr;
+				}
+			}
 
 			void run(Request *request, int session_timeout = 0)
 			{
@@ -61,7 +87,6 @@ namespace btctools
 
 					if (!ec)
 					{
-						buffer_ = new char[BUFFER_SIZE];
 						writeContent();
 					}
 					else
@@ -147,26 +172,11 @@ namespace btctools
 				if (session_timer_ != nullptr)
 				{
 					session_timer_->cancel();
-
-					delete session_timer_;
-					session_timer_ = nullptr;
 				}
 
-				if (socket_ != nullptr)
+				if (socket_ != nullptr && socket_->is_open())
 				{
-					if (socket_->is_open())
-					{
-						socket_->close();
-					}
-
-					delete socket_;
-					socket_ = nullptr;
-				}
-
-				if (buffer_ != nullptr)
-				{
-					delete buffer_;
-					buffer_ = nullptr;
+					socket_->close();
 				}
 			}
 
