@@ -88,14 +88,14 @@ namespace btctools
 				// use CGMiner RPC: https://github.com/ckolivas/cgminer/blob/master/API-README
 				// the response of JSON styled calling {"command":"stats"} will responsed
 				// a invalid JSON string from Antminer S9, so call with plain text style.
-				req->content_ = "stats|";
+				req->content_ = "{\"command\":\"stats\"}";
 			}
 
 			static void setRequestFindPools(btctools::tcpclient::Request *req, const string &ip)
 			{
 				req->host_ = ip;
 				req->port_ = "4028";
-				req->content_ = "{\"command\":\"stats\"}";
+				req->content_ = "{\"command\":\"pools\"}";
 			}
 
 			void doFindType(ScanRequestData *reqData, btctools::tcpclient::Response *response)
@@ -103,28 +103,13 @@ namespace btctools
 				if (response->error_code_ == boost::asio::error::eof)
 				{
 
-					string minerTypeStr = "Unknown";
-					//MinerType minerType = MinerType::UNKNOWN;
-
-					// Only Antminer has the field.
-					boost::regex expression(",Type=([^\\|]+)\\|");
-					boost::smatch what;
-
-					if (boost::regex_search(response->content_, what, expression))
-					{
-						minerTypeStr = what[1];
-					}
-
-					/// TODO: set minerType from minerTypeStrs
-
 					ScanResult *result = new ScanResult;
 
 					result->action_ = ScanAction::FOUND_TYPE;
 					result->miner_.ip_ = reqData->request_->host_;
-					//result->miner_.type_ = minerType;
-					result->miner_.fullTypeStr_ = minerTypeStr;
+					
+					dataParser_.parseMinerPools(response->content_, result->miner_);
 
-					/// TODO: add result to a list
 					yield(result);
 
 					// step 2: find pools
@@ -147,22 +132,21 @@ namespace btctools
 			{
 				assert(reqData->result_ != nullptr);
 
+				ScanResult *result = reqData->result_;
+
 				if (response->error_code_ == boost::asio::error::eof)
 				{
-					ScanResult *result = reqData->result_;
-
-					//cout << reqData->request_->host_ << ": " << response->content_ << endl;
-
-					DataParser::parseMinerStat(response->content_, reqData->result_->miner_);
+					dataParser_.parseMinerStat(response->content_, reqData->result_->miner_);
 
 					result->action_ = ScanAction::FOUND_POOLS;
 					yield(result);
 				}
 				else
 				{
-					yieldError(*reqData->result_, reqData->request_->host_, response->error_code_);
+					yieldError(*result, reqData->request_->host_, response->error_code_);
 				}
 
+				//delete result;
 				doNextWork(reqData);
 			}
 
@@ -216,6 +200,7 @@ namespace btctools
 			IpGenerator ips_;
 			int stepSize_;
 			ScanResultProductor *yield_;
+			DataParser dataParser_;
 		};
 
 	} // namespace tcpclient

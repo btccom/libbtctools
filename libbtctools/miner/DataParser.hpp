@@ -23,40 +23,44 @@ namespace btctools
 		class DataParser
 		{
 		public:
-			static void parseMinerStat(string jsonStr, Miner &miner)
+			DataParser()
 			{
-				OOLUA::Script script;
-				assert(script.run_file("./lua/scripts/parseMinerStat.lua"));
-				script.call("parseMinerStat", jsonStr);
+				bool success = script_.run_file("./lua/scripts/DataParserHelper.lua");
 
-				/*miner.fullTypeStr_ = "Unknown";
-
-				// Fix the invalid JSON struct from Antminer S9
-				boost::replace_all(jsonStr, "\"}{\"", "\"},{\"");
-				// Remove blanks at top and bottom, or read_json() will throw an exception.
-				int pos = jsonStr.find_first_of('{');
-				int len = jsonStr.find_last_of('}') - pos + 1;
-				jsonStr = jsonStr.substr(pos, len);
-
-				stringstream jsonStream;
-				jsonStream << jsonStr;
-
-				ptree json;
-				read_json(jsonStream, json);
-				
-				if (json.count("STATS"))
+				if (!success)
 				{
-					ptree jsonStats = json.get_child("STATS");
-					
-					for (auto item : jsonStats)
-					{
-						if (item.second.count("Type"))
-						{
-							miner.fullTypeStr_ = item.second.get<string>("Type");
-						}
-					}
-				}*/
+					throw runtime_error(OOLUA::get_last_error(script_));
+				}
 			}
+
+			void parseMinerStat(string jsonStr, Miner &miner)
+			{
+				OOLUA::Table minerTable;
+				OOLUA::new_table(script_, minerTable);
+
+				script_.call("parseMinerStat", jsonStr, minerTable);
+
+				minerTable.at("typeStr", miner.type_);
+				minerTable.at("fullTypeStr", miner.fullTypeStr_);
+
+				cout << miner.type_ << " / " << miner.fullTypeStr_ << endl;
+			}
+
+			void parseMinerPools(string jsonStr, Miner &miner)
+			{
+				OOLUA::Table minerTable;
+				OOLUA::new_table(script_, minerTable);
+
+				script_.call("parseMinerStat", jsonStr, minerTable);
+
+				minerTable.at("typeStr", miner.type_);
+				minerTable.at("fullTypeStr", miner.fullTypeStr_);
+
+				cout << miner.type_ << " / " << miner.fullTypeStr_ << endl;
+			}
+
+		private:
+			OOLUA::Script script_;
 		};
 
 	} // namespace tcpclient
