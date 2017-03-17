@@ -1,29 +1,30 @@
-function parseMinerStat(jsonStr, miner)
-
+function parseMinerStat(jsonStr, miner, stat)
     -- Init miner table
     local typeStr = 'Unknown'
     local fullTypeStr = 'Unknown'
     
-    -- Fix the invalid JSON struct from Antminer S9
-    jsonStr = string.gsub(jsonStr, '"}{"', '"},{"')
-    
-    -- Remove possible garbage at begin & end
-    jsonStr = string.gsub(jsonStr, '^[^{]+{', '{')
-    jsonStr = string.gsub(jsonStr, '}[^}]+$', '}')
-    
-    local obj, pos, err = json.decode (jsonStr)
-    
-    if not err then
-        local stat = obj.STATS
+    if (stat == "success") then
+        -- Fix the invalid JSON struct from Antminer S9
+        jsonStr = string.gsub(jsonStr, '"}{"', '"},{"')
         
-        if (type(stat) == "table" and type(stat[1]) == "table" and type(stat[1].Type) == "string") then
-            fullTypeStr = stat[1].Type
+        -- Remove possible garbage at begin & end
+        jsonStr = string.gsub(jsonStr, '^[^{]+{', '{')
+        jsonStr = string.gsub(jsonStr, '}[^}]+$', '}')
+        
+        local obj, pos, err = json.decode (jsonStr)
+        
+        if not err then
+            local stat = obj.STATS
+            
+            if (type(stat) == "table" and type(stat[1]) == "table" and type(stat[1].Type) == "string") then
+                fullTypeStr = stat[1].Type
+            end
+            
+            typeStr = utils.regularTypeStr(fullTypeStr)
         end
-        
-        typeStr = utils.regularTypeStr(fullTypeStr)
     end
     
+    miner:setStat(stat)
     miner:setType(typeStr)
     miner:setFullTypeStr(fullTypeStr)
-    
 end

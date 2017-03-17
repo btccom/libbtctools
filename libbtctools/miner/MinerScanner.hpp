@@ -29,7 +29,7 @@ namespace btctools
 				:ips_(ipRange), stepSize_(stepSize), yield_(nullptr), client_(nullptr)
 			{}
 
-			void run(ScanResultProductor &yield, int sessionTimeout)
+			void run(MinerProductor &yield, int sessionTimeout)
 			{
 				yield_ = &yield;
 
@@ -40,18 +40,15 @@ namespace btctools
 
 					for (auto ip : ipSource)
 					{
-						auto *req = new btctools::tcpclient::Request;
-						auto *reqData = new ScanRequestData;
+						ScanContext *context = new ScanContext;
+						context->stepName_ = "begin";
+						context->miner_.ip_ = ip;
+						context->canYield_ = false;
+						context->request_.usrdata_ = context;
 
-						setRequestFindType(req, ip);
+						scannerHelper_.makeRequest(context);
 
-						reqData->type_ = ScanRequestType::FIND_TYPE;
-						reqData->request_ = req;
-						reqData->result_ = nullptr;
-
-						req->usrdata_ = reqData;
-
-						requestProductor(req);
+						requestProductor(&context->request_);
 					}
 				});
 
@@ -60,16 +57,23 @@ namespace btctools
 
 				for (auto response : responseConsumer)
 				{
-					ScanRequestData *reqData = (ScanRequestData *)response->usrdata_;
+					ScanContext *context = (ScanContext *)response->usrdata_;
 
-					switch (reqData->type_)
+					scannerHelper_.makeResult(context, response);
+
+					if (context->canYield_)
 					{
-					case ScanRequestType::FIND_TYPE:
-						doFindType(reqData, response);
-						break;
-					case ScanRequestType::FIND_POOLS:
-						doFindPools(reqData, response);
-						break;
+						yield(context->miner_);
+					}
+
+					if (context->stepName_ == string("end"))
+					{
+						doNextWork(context);
+					}
+					else
+					{
+						scannerHelper_.makeRequest(context);
+						client_->addWork(&context->request_);
 					}
 
 					delete response;
@@ -80,7 +84,7 @@ namespace btctools
 			}
 
 		protected:
-			static void setRequestFindType(btctools::tcpclient::Request *req, const string &ip)
+			/*static void setRequestFindType(btctools::tcpclient::Request *req, const string &ip)
 			{
 				req->host_ = ip;
 				req->port_ = "4028";
@@ -148,59 +152,39 @@ namespace btctools
 
 				//delete result;
 				doNextWork(reqData);
-			}
-
-			void doNextWork(ScanRequestData *reqData)
+			}*/
+			
+			void doNextWork(ScanContext *context)
 			{
-				auto request = reqData->request_;
+				auto request = context->request_;
 
 				if (ips_.hasNext())
 				{
-					setRequestFindType(request, ips_.next());
-					reqData->type_ = ScanRequestType::FIND_TYPE;
-					reqData->result_ = nullptr;
-					client_->addWork(request);
+					context->stepName_ = "begin";
+					context->miner_.ip_ = ips_.next();
+					context->canYield_ = false;
+
+					scannerHelper_.makeRequest(context);
+
+					client_->addWork(&context->request_);
 				}
 				else
 				{
-					delete request;
-					delete reqData;
+					delete context;
 				}
 			}
 
-			void yieldError(ScanResult &scanRes, const string &ip, boost::system::error_code ec)
+			void yield(const Miner &miner)
 			{
-				scanRes.miner_.ip_ = ip;
-
-				switch (ec.value())
-				{
-				case boost::asio::error::timed_out:
-					scanRes.action_ = ScanAction::CONN_TIMEOUT;
-					break;
-
-				case boost::asio::error::connection_refused:
-					scanRes.action_ = ScanAction::CONN_REFUSED;
-					break;
-
-				default:
-					scanRes.action_ = ScanAction::UNKNOWN_ERROR;
-					break;
-				}
-
-				yield(&scanRes);
-			}
-
-			void yield(const ScanResult *scanRes)
-			{
-				(*yield_)(scanRes);
+				(*yield_)(miner);
 			}
 
 		private:
 			btctools::tcpclient::Client *client_;
 			IpGenerator ips_;
 			int stepSize_;
-			ScanResultProductor *yield_;
-			DataParser dataParser_;
+			MinerProductor *yield_;
+			ScannerHelper scannerHelper_;
 		};
 
 	} // namespace tcpclient

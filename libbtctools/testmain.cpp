@@ -17,22 +17,26 @@ int main(int argc, char* argv[])
 {
     try
     {
-		MinerScanner scanner("192.168.21.35-192.168.21.35", 256);
+		MinerScanner scanner("192.168.20.1-192.168.21.255", 256);
 
-		ScanResultConsumer source([&](ScanResultProductor &yield)
+		MinerConsumer source([&](MinerProductor &yield)
 		{
 			scanner.run(yield, 1);
 		});
 
-		for (auto result : source)
+		for (auto miner : source)
 		{
-			cout << result->miner_.ip_ << ": ok" << endl;
+			cout << miner.ip_ << "\t" << miner.stat_ << "\t\t" << miner.fullTypeStr_ << endl;
 		}
     }
     catch (std::exception& e)
     {
         std::cerr << "Exception: " << e.what() << "\n";
     }
+	catch (...)
+	{
+		cerr << "Unknown error!" << endl;
+	}
 
     std::cout << "\nDone" << std::endl;
 

@@ -29,15 +29,15 @@ namespace btctools
 
 			//-------------- used by lua scripts --------------
 
-			string getUrl() const
+			string& url()
 			{
 				return url_;
 			}
-			string getWorker() const
+			string& worker()
 			{
 				return worker_;
 			}
-			string getPasswd() const
+			string& passwd()
 			{
 				return passwd_;
 			}
@@ -59,6 +59,7 @@ namespace btctools
 		struct Miner
 		{
 			string ip_;
+			string stat_;
 			string type_;
 			string fullTypeStr_;
 
@@ -68,27 +69,31 @@ namespace btctools
 
 			//-------------- used by lua scripts --------------
 
-			string getIp() const
+			string& ip()
 			{
 				return ip_;
 			}
-			string getType() const
+			string& stat()
+			{
+				return stat_;
+			}
+			string& type()
 			{
 				return type_;
 			}
-			string getFullTypeStr() const
+			string& fullTypeStr()
 			{
 				return fullTypeStr_;
 			}
-			Pool getPool1() const
+			Pool& pool1()
 			{
 				return pool1_;
 			}
-			Pool getPool2() const
+			Pool& pool2()
 			{
 				return pool2_;
 			}
-			Pool getPool3() const
+			Pool& pool3()
 			{
 				return pool3_;
 			}
@@ -96,6 +101,10 @@ namespace btctools
 			void setIp(string ip)
 			{
 				ip_ = std::move(ip);
+			}
+			void setStat(string stat)
+			{
+				stat_ = std::move(stat);
 			}
 			void setType(string type)
 			{
@@ -119,41 +128,72 @@ namespace btctools
 			}
 		};
 
-		enum class ScanAction
+		struct ScanContext
 		{
-			UNKNOWN_ERROR,
-			CONN_TIMEOUT,
-			CONN_REFUSED,
-			FOUND_TYPE,
-			FOUND_POOLS,
-		};
-
-		struct ScanResult
-		{
-			ScanAction action_;
+			string stepName_;
+			btctools::tcpclient::Request request_;
 			Miner miner_;
+			bool canYield_;
+
+			//-------------- used by lua scripts --------------
+			string& stepName()
+			{
+				return stepName_;
+			}
+			Miner& miner()
+			{
+				return miner_;
+			}
+			bool& canYield()
+			{
+				return canYield_;
+			}
+			string& requestHost()
+			{
+				return request_.host_;
+			}
+			string& requestPort()
+			{
+				return request_.port_;
+			}
+			string& requestContent()
+			{
+				return request_.content_;
+			}
+
+			void setStepName(string stepName)
+			{
+				stepName_ = std::move(stepName);
+			}
+			void setMiner(Miner miner)
+			{
+				miner_ = std::move(miner);
+			}
+			void setCanYield(bool canYield)
+			{
+				canYield_ = std::move(canYield);
+			}
+			void setRequestHost(string host)
+			{
+				request_.host_ = std::move(host);
+			}
+			void setRequestPort(string port)
+			{
+				request_.port_ = std::move(port);
+			}
+			void setRequestContent(string content)
+			{
+				request_.content_ = std::move(content);
+			}
 		};
 
-		enum class ScanRequestType
-		{
-			FIND_TYPE,
-			FIND_POOLS,
-		};
+		typedef boost::coroutines2::coroutine<const Miner &> coro_miner_t;
 
-		struct ScanRequestData
-		{
-			ScanRequestType type_;
-			btctools::tcpclient::Request *request_;
-			ScanResult *result_;
-		};
-
-		typedef boost::coroutines2::coroutine<const ScanResult *> coro_scanresult_t;
-
-		typedef coro_scanresult_t::push_type ScanResultProductor;
-		typedef coro_scanresult_t::pull_type ScanResultConsumer;
+		typedef coro_miner_t::push_type MinerProductor;
+		typedef coro_miner_t::pull_type MinerConsumer;
 
 	} // namespace tcpclient
 } // namespace btctools
 
-#include "DataParser.hpp"
+#include "ScannerHelper.hpp"
 #include "MinerScanner.hpp"
