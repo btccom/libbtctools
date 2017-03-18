@@ -8,6 +8,27 @@ require ("lua.scripts.parseScanResponse")
 print ("hello")
 
 function makeRequest(context)
+	local _, err = pcall (doMakeRequest, context)
+	
+	if (err) then
+		context:setStepName("end")
+		context:miner():setStat(err)
+		context:setCanYield(true)
+	end
+	
+end
+
+function makeResult(context, response, stat)
+	local _, err = pcall (doMakeResult, context, response, stat)
+	
+	if (err) then
+		context:setStepName("end")
+		context:miner():setStat(err)
+		context:setCanYield(true)
+	end
+end
+
+function doMakeRequest(context)
     local step = context:stepName()
     local ip = context:miner():ip()
     
@@ -25,10 +46,15 @@ function makeRequest(context)
         
         context:setStepName("doFindPools")
         context:setRequestContent(content)
+		
+	else
+		context:setStepName("end")
+		context:miner():setStat("inner error: unknown step name")
+		context:setCanYield(true)
     end
 end
 
-function makeResult(context, response, stat)
+function doMakeResult(context, response, stat)
     local step = context:stepName()
     
     if (step == "doFindStats") then
@@ -43,14 +69,18 @@ function makeResult(context, response, stat)
         context:setCanYield(true)
         
         local canYield = parseMinerStats(response, context:miner(), stat)
-        context:setCanYield(canYield)
+		context:setCanYield(canYield)
         
     elseif (step == "doFindPools") then
         context:setStepName("end")
         context:setCanYield(false)
         
         local canYield = parseMinerPools(response, context:miner(), stat)
-        
-        context:setCanYield(canYield)
+		context:setCanYield(canYield)
+		
+	else
+		context:setStepName("end")
+		context:miner():setStat("inner error: unknown step name")
+		context:setCanYield(true)
     end
 end
