@@ -5,11 +5,14 @@
 #include <string>
 
 #include "all.hpp"
+#include "../utils/Crypto.hpp"
 #include "../lua/oolua/oolua.h"
 
 using namespace std;
 using namespace btctools::miner;
+using namespace btctools::utils;
 
+/** struct Pool */
 OOLUA_PROXY(Pool)
 	OOLUA_MFUNC(url)
 	OOLUA_MFUNC(worker)
@@ -21,6 +24,7 @@ OOLUA_PROXY_END
 OOLUA_EXPORT_FUNCTIONS(Pool, url, worker, passwd, setUrl, setWorker, setPasswd)
 OOLUA_EXPORT_FUNCTIONS_CONST(Pool)
 
+/** struct Miner */
 OOLUA_PROXY(Miner)
 	OOLUA_MFUNC(ip)
 	OOLUA_MFUNC(stat)
@@ -41,6 +45,7 @@ OOLUA_EXPORT_FUNCTIONS(Miner, ip, stat, type, fullTypeStr, pool1, pool2, pool3,
 			setIp, setStat, setType, setFullTypeStr, setPool1, setPool2, setPool3)
 OOLUA_EXPORT_FUNCTIONS_CONST(Miner)
 
+/** struct WorkContext */
 OOLUA_PROXY(WorkContext)
 	OOLUA_MFUNC(stepName)
 	OOLUA_MFUNC(miner)
@@ -58,3 +63,11 @@ OOLUA_PROXY_END
 OOLUA_EXPORT_FUNCTIONS(WorkContext, stepName, miner, canYield, requestHost, requestPort, requestContent,
 	setStepName, setMiner, setCanYield, setRequestHost, setRequestPort, setRequestContent)
 OOLUA_EXPORT_FUNCTIONS_CONST(WorkContext)
+
+/** class Crypto */
+OOLUA_PROXY(Crypto)
+	OOLUA_TAGS(No_public_constructors)
+	OOLUA_SFUNC(md5)
+OOLUA_PROXY_END
+OOLUA_EXPORT_FUNCTIONS(Crypto)
+OOLUA_EXPORT_FUNCTIONS_CONST(Crypto)

@@ -9,6 +9,7 @@
 
 using namespace std;
 using namespace btctools::miner;
+using namespace btctools::utils;
 
 namespace btctools
 {
@@ -22,6 +23,8 @@ namespace btctools
 				script_.register_class<Pool>();
 				script_.register_class<Miner>();
 				script_.register_class<WorkContext>();
+				script_.register_class<Crypto>();
+				script_.register_class_static<Crypto>("md5", &OOLUA::Proxy_class<Crypto>::md5);
 
 				bool success = script_.run_file("./lua/scripts/ScannerHelper.lua");
 

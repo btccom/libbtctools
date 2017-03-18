@@ -5,7 +5,7 @@ utils = require ("lua.scripts.utils")
 -- load functions
 require ("lua.scripts.parseScanResponse")
 
-print ("hello")
+print ("hello", Crypto.md5("hello"))
 
 function makeRequest(context)
 	local _, err = pcall (doMakeRequest, context)
