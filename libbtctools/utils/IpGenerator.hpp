@@ -27,13 +27,13 @@ namespace btctools
 
 		typedef boost::coroutines2::coroutine<uint32_t> coro_ip_long_t;
 
-		typedef coro_ip_long_t::push_type IpLongProductor;
-		typedef coro_ip_long_t::pull_type IpLongConsumer;
+		typedef coro_ip_long_t::push_type IpLongYield;
+		typedef coro_ip_long_t::pull_type IpLongSource;
 
 		typedef boost::coroutines2::coroutine<string> coro_string_t;
 
-		typedef coro_string_t::push_type StringProductor;
-		typedef coro_string_t::pull_type StringConsumer;
+		typedef coro_string_t::push_type StringYield;
+		typedef coro_string_t::pull_type StringSource;
 
 		class IpGenerator
 		{
@@ -61,9 +61,27 @@ namespace btctools
 				}
 			}
 
-			StringConsumer genIpRange(int stepSize)
+			StringSource genIpRange()
 			{
-				return StringConsumer([this, stepSize](StringProductor &yield)
+				return StringSource([this](StringYield &yield)
+				{
+					int i = 0;
+
+					assert(ipLongEnd_ < 0xffffffff);
+
+					while (ipLongBegin_ <= ipLongEnd_)
+					{
+						yield(long2ip(ipLongBegin_));
+
+						i++;
+						ipLongBegin_++;
+					}
+				});
+			}
+
+			StringSource genIpRange(int stepSize)
+			{
+				return StringSource([this, stepSize](StringYield &yield)
 				{
 					int i = 0;
 

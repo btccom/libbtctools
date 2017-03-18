@@ -13,6 +13,8 @@
 #include <boost/coroutine2/all.hpp>
 #include <boost/regex.hpp>
 
+#include "../lua/oolua/oolua.h"
+
 using namespace std;
 using namespace btctools::utils;
 
@@ -128,7 +130,7 @@ namespace btctools
 			}
 		};
 
-		struct ScanContext
+		struct WorkContext
 		{
 			string stepName_;
 			btctools::tcpclient::Request request_;
@@ -189,11 +191,14 @@ namespace btctools
 
 		typedef boost::coroutines2::coroutine<const Miner &> coro_miner_t;
 
-		typedef coro_miner_t::push_type MinerProductor;
-		typedef coro_miner_t::pull_type MinerConsumer;
+		typedef coro_miner_t::push_type MinerYield;
+		typedef coro_miner_t::pull_type MinerSource;
 
 	} // namespace tcpclient
 } // namespace btctools
 
+#include "ooluaExport.hpp"
 #include "ScannerHelper.hpp"
+#include "ConfiguratorHelper.hpp"
 #include "MinerScanner.hpp"
+#include "MinerConfigurator.hpp"

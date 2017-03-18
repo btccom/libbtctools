@@ -41,11 +41,11 @@ namespace btctools
         typedef boost::coroutines2::coroutine<Request*> coro_request_t;
         typedef boost::coroutines2::coroutine<Response*> coro_response_t;
 
-        typedef coro_request_t::push_type RequestProductor;
-        typedef coro_request_t::pull_type RequestConsumer;
+        typedef coro_request_t::push_type RequestYield;
+        typedef coro_request_t::pull_type RequestSource;
 
-        typedef coro_response_t::push_type ResponseProductor;
-        typedef coro_response_t::pull_type ResponseConsumer;
+        typedef coro_response_t::push_type ResponseYield;
+        typedef coro_response_t::pull_type ResponseSource;
 
     } // namespace tcpclient
 } // namespace btctools

@@ -27,10 +27,10 @@ namespace btctools
 		class Session : public std::enable_shared_from_this<Session>
 		{
 		public:
-			Session(boost::asio::io_service &io_service, ResponseProductor &responseProductor)
+			Session(boost::asio::io_service &io_service, ResponseYield &responseYield)
 				:socket_(nullptr), request_(nullptr), response_(nullptr),
 				running_(false), session_timer_(nullptr), buffer_(nullptr),
-				io_service_(io_service), responseProductor_(responseProductor)
+				io_service_(io_service), responseYield_(responseYield)
 			{
 				buffer_ = new char[BUFFER_SIZE];
 			}
@@ -184,7 +184,7 @@ namespace btctools
 			{
 				clean();
 				response_->error_code_ = ec;
-				responseProductor_(response_);
+				responseYield_(response_);
 			}
 
 		private:
@@ -200,7 +200,7 @@ namespace btctools
 			boost::asio::deadline_timer *session_timer_;
 
 			boost::asio::io_service &io_service_;
-			ResponseProductor &responseProductor_;
+			ResponseYield &responseYield_;
 		};
 
     } // namespace tcpclient

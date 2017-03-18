@@ -17,9 +17,11 @@ int main(int argc, char* argv[])
 {
     try
     {
-		MinerScanner scanner("192.168.20.0-192.168.21.255", 256);
+		auto ips = btctools::utils::IpGenerator("192.168.20.0-192.168.21.255");
+		StringSource ipSource = ips.genIpRange();
+		MinerScanner scanner(ipSource, 256);
 
-		MinerConsumer source([&](MinerProductor &yield)
+		MinerSource source([&](MinerYield &yield)
 		{
 			scanner.run(yield, 1);
 		});

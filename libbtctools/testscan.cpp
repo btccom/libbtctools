@@ -42,9 +42,9 @@ void setNextWork(IpGenerator &ips, Request *req, Client &client)
 
 void run(IpGenerator &ips, int sessionTimeout, int stepSize)
 {
-	RequestConsumer requestConsumer([&ips, &stepSize](RequestProductor &requestProductor)
+	RequestSource requestSource([&ips, &stepSize](RequestYield &requestYield)
 	{
-		StringConsumer ipSource = ips.genIpRange(stepSize);
+		StringSource ipSource = ips.genIpRange(stepSize);
 
 		for (auto ip : ipSource)
 		{
@@ -56,14 +56,14 @@ void run(IpGenerator &ips, int sessionTimeout, int stepSize)
 			Request *req = new Request(ip, "4028", "stats|");
 			req->usrdata_ = req;
 
-			requestProductor(req);
+			requestYield(req);
 		}
 	});
 
 	Client client(sessionTimeout);
-	ResponseConsumer responseConsumer = client.run(requestConsumer);
+	ResponseSource responseSource = client.run(requestSource);
 
-	for (auto response : responseConsumer)
+	for (auto response : responseSource)
 	{
 		Request *request = (Request *)response->usrdata_;
 

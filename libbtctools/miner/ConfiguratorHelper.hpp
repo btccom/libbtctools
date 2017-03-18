@@ -14,16 +14,16 @@ namespace btctools
 {
 	namespace miner
 	{
-		class ScannerHelper
+		class ConfiguratorHelper
 		{
 		public:
-			ScannerHelper()
+			ConfiguratorHelper()
 			{
 				script_.register_class<Pool>();
 				script_.register_class<Miner>();
 				script_.register_class<WorkContext>();
 
-				bool success = script_.run_file("./lua/scripts/ScannerHelper.lua");
+				bool success = script_.run_file("./lua/scripts/ConfiguratorHelper.lua");
 
 				if (!success)
 				{

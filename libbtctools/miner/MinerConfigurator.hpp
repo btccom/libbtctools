@@ -22,18 +22,18 @@ namespace btctools
 {
 	namespace miner
 	{
-		class MinerScanner
+		class MinerConfigurator
 		{
 		public:
-			MinerScanner(StringSource &ipSource, int stepSize)
-				:ipSource_(ipSource), stepSize_(stepSize), yield_(nullptr), client_(nullptr)
+			MinerConfigurator(MinerSource &minerSource, int stepSize)
+				:minerSource_(minerSource), stepSize_(stepSize), yield_(nullptr), client_(nullptr)
 			{}
 
-			WorkContext *newContext(string ip)
+			WorkContext *newContext(Miner miner)
 			{
 				WorkContext *context = new WorkContext;
 				context->stepName_ = "begin";
-				context->miner_.ip_ = std::move(ip);
+				context->miner_ = std::move(miner);
 				context->canYield_ = false;
 				context->request_.usrdata_ = context;
 
@@ -55,11 +55,12 @@ namespace btctools
 				btctools::tcpclient::RequestSource requestSource(
 					[this](btctools::tcpclient::RequestYield &requestYield)
 				{
-					for (int i=0; i<stepSize_ && ipSource_; i++)
+
+					for (int i = 0; i<stepSize_ && minerSource_; i++)
 					{
-						auto ip = ipSource_.get();
-						WorkContext *context = newContext(std::move(ip));
-						scannerHelper_.makeRequest(context);
+						auto miner = minerSource_.get();
+						WorkContext *context = newContext(std::move(miner));
+						configuratorHelper_.makeRequest(context);
 
 						if (context->stepName_ == string("end"))
 						{
@@ -76,7 +77,7 @@ namespace btctools
 							requestYield(&context->request_);
 						}
 
-						ipSource_();
+						minerSource_();
 					}
 				});
 
@@ -87,7 +88,7 @@ namespace btctools
 				{
 					WorkContext *context = (WorkContext *)response->usrdata_;
 
-					scannerHelper_.makeResult(context, response);
+					configuratorHelper_.makeResult(context, response);
 
 					if (context->canYield_)
 					{
@@ -101,7 +102,7 @@ namespace btctools
 					}
 					else
 					{
-						scannerHelper_.makeRequest(context);
+						configuratorHelper_.makeRequest(context);
 						client_->addWork(&context->request_);
 					}
 
@@ -116,11 +117,11 @@ namespace btctools
 
 			void doNextWork()
 			{
-				if (ipSource_)
+				if (minerSource_)
 				{
-					auto ip = ipSource_.get();
-					WorkContext *context = newContext(std::move(ip));
-					scannerHelper_.makeRequest(context);
+					auto miner = minerSource_.get();
+					WorkContext *context = newContext(std::move(miner));
+					configuratorHelper_.makeRequest(context);
 
 					if (context->stepName_ == string("end"))
 					{
@@ -130,13 +131,13 @@ namespace btctools
 						}
 
 						delete context;
-						ipSource_();
+						minerSource_();
 						doNextWork();
 					}
 					else
 					{
 						client_->addWork(&context->request_);
-						ipSource_();
+						minerSource_();
 					}
 				}
 			}
@@ -148,10 +149,10 @@ namespace btctools
 
 		private:
 			btctools::tcpclient::Client *client_;
-			StringSource &ipSource_;
 			int stepSize_;
+			MinerSource &minerSource_;
 			MinerYield *yield_;
-			ScannerHelper scannerHelper_;
+			ConfiguratorHelper configuratorHelper_;
 		};
 
 	} // namespace tcpclient

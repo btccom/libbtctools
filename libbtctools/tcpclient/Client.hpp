@@ -32,7 +32,7 @@ namespace btctools
 				yield_(nullptr)
             {}
 
-			void addWork(Request *request, ResponseProductor &yield)
+			void addWork(Request *request, ResponseYield &yield)
 			{
 				std::make_shared<Session>(io_service_, yield)->run(request, session_timeout_);
 
@@ -51,7 +51,7 @@ namespace btctools
 				io_service_.run();
 			}
 
-            void run(RequestConsumer &source, ResponseProductor &yield)
+            void run(RequestSource &source, ResponseYield &yield)
             {
                 while (source)
                 {
@@ -65,9 +65,9 @@ namespace btctools
 				run();
             }
 
-			ResponseConsumer run(RequestConsumer &source)
+			ResponseSource run(RequestSource &source)
 			{
-				return ResponseConsumer([this, &source](ResponseProductor &yield)
+				return ResponseSource([this, &source](ResponseYield &yield)
 				{
 					run(source, yield);
 				});
@@ -86,7 +86,7 @@ namespace btctools
         private:
             boost::asio::io_service io_service_;
 			int session_timeout_;
-			ResponseProductor *yield_;
+			ResponseYield *yield_;
         };
 
     } // namespace tcpclient
