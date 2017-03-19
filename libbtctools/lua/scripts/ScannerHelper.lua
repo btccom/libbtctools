@@ -1,6 +1,7 @@
 -- load library
 json = require ("lua.scripts.dkjson")
 utils = require ("lua.scripts.utils")
+http = require ("lua.scripts.http")
 
 -- load functions
 require ("lua.scripts.parseScanResponse")
