@@ -1,11 +1,11 @@
 -- load library
 json = require ("lua.scripts.dkjson")
 utils = require ("lua.scripts.utils")
+http = require ("lua.scripts.http")
 
 -- load functions
-require ("lua.scripts.parseScanResponse")
-
-print ("hello")
+--require ("lua.scripts.httpTest")
+minerTest = require ("lua.scripts.miner.test")
 
 function makeRequest(context)
 	local _, err = pcall (doMakeRequest, context)
@@ -29,58 +29,32 @@ function makeResult(context, response, stat)
 end
 
 function doMakeRequest(context)
-    local step = context:stepName()
-    local ip = context:miner():ip()
-    
-    if (step == "begin") then
-        local port = "4028"
-        local content = '{"command":"stats"}'
-        
-        context:setStepName("doFindStats")
-        context:setRequestHost(ip)
-        context:setRequestPort(port)
-        context:setRequestContent(content)
-        
-    elseif (step == "findPools") then
-        local content = '{"command":"pools"}'
-        
-        context:setStepName("doFindPools")
-        context:setRequestContent(content)
-		
+	local typeStr = context:miner():typeStr()
+	
+    if (typeStr == "test") then
+		minerTest.doMakeRequest(context)
 	else
 		context:setStepName("end")
-		context:miner():setStat("inner error: unknown step name")
+		context:miner():setStat("Don't support: " .. typeStr)
 		context:setCanYield(true)
     end
 end
 
 function doMakeResult(context, response, stat)
-    local step = context:stepName()
-    
-    if (step == "doFindStats") then
-    
-        if (stat == "success") then
-            step = "findPools"
-        else
-            step = "end"
-        end
-        
-        context:setStepName(step)
-        context:setCanYield(true)
-        
-        local canYield = parseMinerStats(response, context:miner(), stat)
-		context:setCanYield(canYield)
-        
-    elseif (step == "doFindPools") then
+    local typeStr = context:miner():typeStr()
+	
+	if not (stat == "success") then
         context:setStepName("end")
-        context:setCanYield(false)
-        
-        local canYield = parseMinerPools(response, context:miner(), stat)
-		context:setCanYield(canYield)
-		
+		context:miner():setStat(stat)
+		context:setCanYield(true)
+		return
+    end
+	
+    if (typeStr == "test") then
+		minerTest.doMakeResult(context, response, stat)
 	else
 		context:setStepName("end")
-		context:miner():setStat("inner error: unknown step name")
+		context:miner():setStat("Don't support: " .. typeStr)
 		context:setCanYield(true)
     end
 end

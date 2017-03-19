@@ -19,7 +19,7 @@ function parseMinerStats(jsonStr, miner, stat)
     end
     
     miner:setStat(stat)
-    miner:setType(typeStr)
+    miner:setTypeStr(typeStr)
     miner:setFullTypeStr(fullTypeStr)
     
     return true

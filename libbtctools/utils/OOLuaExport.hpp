@@ -28,21 +28,21 @@ OOLUA_EXPORT_FUNCTIONS_CONST(Pool)
 OOLUA_PROXY(Miner)
 	OOLUA_MFUNC(ip)
 	OOLUA_MFUNC(stat)
-	OOLUA_MFUNC(type)
+	OOLUA_MFUNC(typeStr)
 	OOLUA_MFUNC(fullTypeStr)
 	OOLUA_MFUNC(pool1)
 	OOLUA_MFUNC(pool2)
 	OOLUA_MFUNC(pool3)
 	OOLUA_MFUNC(setIp)
 	OOLUA_MFUNC(setStat)
-	OOLUA_MFUNC(setType)
+	OOLUA_MFUNC(setTypeStr)
 	OOLUA_MFUNC(setFullTypeStr)
 	OOLUA_MFUNC(setPool1)
 	OOLUA_MFUNC(setPool2)
 	OOLUA_MFUNC(setPool3)
 OOLUA_PROXY_END
-OOLUA_EXPORT_FUNCTIONS(Miner, ip, stat, type, fullTypeStr, pool1, pool2, pool3,
-			setIp, setStat, setType, setFullTypeStr, setPool1, setPool2, setPool3)
+OOLUA_EXPORT_FUNCTIONS(Miner, ip, stat, typeStr, fullTypeStr, pool1, pool2, pool3,
+			setIp, setStat, setTypeStr, setFullTypeStr, setPool1, setPool2, setPool3)
 OOLUA_EXPORT_FUNCTIONS_CONST(Miner)
 
 /** struct WorkContext */

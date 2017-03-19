@@ -62,7 +62,7 @@ namespace btctools
 		{
 			string ip_;
 			string stat_;
-			string type_;
+			string typeStr_;
 			string fullTypeStr_;
 
 			Pool pool1_;
@@ -79,9 +79,9 @@ namespace btctools
 			{
 				return stat_;
 			}
-			string& type()
+			string& typeStr()
 			{
-				return type_;
+				return typeStr_;
 			}
 			string& fullTypeStr()
 			{
@@ -108,9 +108,9 @@ namespace btctools
 			{
 				stat_ = std::move(stat);
 			}
-			void setType(string type)
+			void setTypeStr(string typeStr)
 			{
-				type_ = std::move(type);
+				typeStr_ = std::move(typeStr);
 			}
 			void setFullTypeStr(string fullTypeStr)
 			{

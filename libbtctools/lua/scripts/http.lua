@@ -33,23 +33,15 @@ local parseHttpMessage = function(httpMessage)
 	return headers, body
 end
 
---[[
-	headerArray = {
-		{key, value},
-		{key, value},
-		...
-	}
-	
+--[[-----------------------------
 	headerMap = {
-		key1 = value1,
-		key2 = value2,
+		key1 = { value1 },
+		key2 = { value21, value22 },
 		...
 	}
-	
 	key = string.lower(key)
-]]
+--------------------------------]]
 local parseHttpHeaders = function(headers)
-	local headerArray = {}
 	local headerMap = {}
 	
 	for i=2,#headers do
@@ -57,11 +49,14 @@ local parseHttpHeaders = function(headers)
 		local key = string.lower(string.sub(headers[i], 1, splitBegin - 1))
 		local value = string.sub(headers[i], splitEnd + 1)
 		
-		table.insert(headerArray, {key, value})
-		headerMap[key] = value
+		if (headerMap[key] == nil) then
+			headerMap[key] = { value }
+		else
+			table.insert(headerMap[key], value)
+		end
 	end
 	
-	return headerArray, headerMap
+	return headerMap
 end
 
 local parseHttpRequestLine = function(requestLine)
@@ -78,7 +73,7 @@ end
 
 function http.parseRequest(httpMessage)
 	local headers, body = parseHttpMessage(httpMessage)
-	local headerArray, headerMap = parseHttpHeaders(headers)
+	local headerMap = parseHttpHeaders(headers)
 	
 	assert(headers[1], "Empty HTTP request line")
 	local method, path, protocol = parseHttpRequestLine(headers[1])
@@ -87,15 +82,14 @@ function http.parseRequest(httpMessage)
 		method = method,
 		path = path,
 		protocol = protocol,
-		headerArray = headerArray,
-		headerMap = headerMap,
+		headers = headerMap,
 		body = body
 	}
 end
 
 function http.parseResponse(httpMessage)
 	local headers, body = parseHttpMessage(httpMessage)
-	local headerArray, headerMap = parseHttpHeaders(headers)
+	local headerMap = parseHttpHeaders(headers)
 	
 	assert(headers[1], "Empty HTTP response line")
 	local statCode, statMsg, protocol = parseHttpResponseLine(headers[1])
@@ -104,8 +98,7 @@ function http.parseResponse(httpMessage)
 		statCode = statCode,
 		statMsg = statMsg,
 		protocol = protocol,
-		headerArray = headerArray,
-		headerMap = headerMap,
+		headers = headerMap,
 		body = body
 	}
 end
@@ -115,10 +108,7 @@ end
 -- https://github.com/catwell/lua-http-digest/blob/master/http-digest.lua
 
 local hash = function(...)
-	local x = table.concat({...}, ":")
-    local y = Crypto.md5(x)
-	print (y, x)
-	return y
+	return Crypto.md5(table.concat({...}, ":"))
 end
 
 local parse_header = function(h)
@@ -143,48 +133,131 @@ local make_digest_header = function(t)
     return "Digest " .. table.concat(s, ', ')
 end
 
-local make_digest_request = function(httpRequest, httpResponse, user, password)
+local make_basic_auth = function(httpRequest, httpResponse, user, password)
+	return Crypto.base64Encode(user .. ':' .. password)
+end
 
-	if (httpResponse.statCode == "401") and httpResponse.headerMap["www-authenticate"] then
+local make_digest_auth = function(httpRequest, httpResponse, user, password)
+    local ht = parse_header(httpResponse.headers["www-authenticate"][1])
+    assert(ht.realm and ht.nonce and ht.opaque, "Digest fields missing: " .. httpResponse.headers["www-authenticate"][1])
 	
-        local ht = parse_header(httpResponse.headerMap["www-authenticate"])
-        assert(ht.realm and ht.nonce and ht.opaque, "Digest fields missing: " .. httpResponse.headerMap["www-authenticate"])
+    if ht.qop ~= "auth" then
+        return nil, string.format("unsupported qop: %s", tostring(ht.qop))
+    end
+	
+    if ht.algorithm and (ht.algorithm:lower() ~= "md5") then
+        return nil, string.format("unsupported algorithm: %s", tostring(ht.algorithm))
+    end
+	
+    local cnonce = string.format("%08x", os.time())
+	local nc = "00000001"
+    local uri = httpRequest.path
+    local method = httpRequest.method
+    local response = hash(
+        hash(user, ht.realm, password),
+        ht.nonce,
+        nc,
+        cnonce,
+        "auth",
+        hash(method, uri)
+    )
+    
+    local authorization = make_digest_header{
+        {"username", user},
+        {"realm", ht.realm},
+        {"nonce", ht.nonce},
+        {"uri", uri},
+        {"cnonce", cnonce},
+        {"nc", nc, unquote=true},
+        {"qop", "auth"},
+        {"algorithm", "MD5"},
+        {"response", response},
+        {"opaque", ht.opaque},
+    }
+	
+	return authorization
+end
+
+--[[-------------------------
+    httpRequest = {
+		method = 'POST',
+		host = 'localhost',
+		path = '/post.do',
+		headers = {
+			'Accept' = 'text/html, text/plain, */*',
+			'Content-Type' = 'application/x-www-form-urlencoded',
+			'Test' = { 'a', 'b', 'c' }
+		},
+		body = "a=1&b=2&c=3"
+	}
+-----------------------------]]
+function http.makeRequest(httpRequest)
+	if (httpRequest.method == nil) then
+		if (string.len(httpRequest.body) > 0) then
+			httpRequest.method = 'POST'
+		else
+			httpRequest.method = 'GET'
+		end
+	end
+	
+	if (httpRequest.headers == nil) then
+		httpRequest.headers = {}
+	end
+	
+	if (httpRequest.body == nil) then
+		httpRequest.body = ""
+	end
+
+	local line = httpRequest.method .. ' ' .. httpRequest.path .. ' HTTP/1.1'
+	local headers = { line }
+	
+	httpRequest.headers['user-agent'] = { 'BTC Tools v0.1' };
+	httpRequest.headers['connection'] = { 'close' };
+	httpRequest.headers['accept-encoding'] = nil;
+	httpRequest.headers['keep-alive'] = nil;
+	
+	if not (httpRequest.host == nil) then
+		httpRequest.headers['host'] = httpRequest.host
+	end
+	
+	if (string.len(httpRequest.body) > 0) then
+		httpRequest.headers['content-length'] = { string.len(httpRequest.body) };
+	end
+	
+	for key, arr in pairs(httpRequest.headers) do
+		key = key:gsub("^%l", string.upper)
+		key = key:gsub("-%l", string.upper)
+	
+		if not (type(arr) == 'table') then
+			arr = { arr }
+		end
+	
+		for i=1, #arr do
+			line = key .. ': ' .. arr[i]
+			table.insert(headers, line)
+		end
+	end
+	
+	headers = table.concat(headers, "\r\n")
+	
+	return headers .. "\r\n\r\n" .. httpRequest.body
+end
+
+function http.makeAuthRequest(httpRequest, httpResponse, user, password)
+	if (httpResponse.statCode == "401") and httpResponse.headers["www-authenticate"] then
+		local authLine = httpResponse.headers["www-authenticate"][1]
 		
-        if ht.qop ~= "auth" then
-            return nil, string.format("unsupported qop: %s", tostring(ht.qop))
-        end
+		if (string.match(authLine, "^[Bb]asic")) then
+			authLine = make_basic_auth(httpRequest, httpResponse, user, password)
+		elseif (string.match(authLine, "^[Dd]igest")) then
+			authLine = make_digest_auth(httpRequest, httpResponse, user, password)
+		else
+			return nil, string.format("Unsupported auth method: %s", authLine)
+		end
 		
-        if ht.algorithm and (ht.algorithm:lower() ~= "md5") then
-            return nil, string.format("unsupported algorithm: %s", tostring(ht.algorithm))
-        end
+		httpRequest.headers["authorization"] = { authLine }
 		
-        local cnonce = string.format("%08x", os.time())
-		local nc = "00000001"
-        local uri = httpRequest.path
-        local method = httpRequest.method
-        local response = hash(
-            hash(user, ht.realm, password),
-            ht.nonce,
-            nc,
-            cnonce,
-            "auth",
-            hash(method, uri)
-        )
-        
-        local authorization = make_digest_header{
-            {"username", user},
-            {"realm", ht.realm},
-            {"nonce", ht.nonce},
-            {"uri", uri},
-            {"cnonce", cnonce},
-            {"nc", nc, unquote=true},
-            {"qop", "auth"},
-            {"algorithm", "MD5"},
-            {"response", response},
-            {"opaque", ht.opaque},
-        }
-		
-		return authorization
+		return http.makeRequest(httpRequest)
 	else
 		return nil, string.format("auth not needed: %s %s %s", httpResponse.statCode, httpResponse.statMsg, httpResponse.protocol)
 	end

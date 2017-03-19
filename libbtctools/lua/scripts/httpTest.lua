@@ -1,8 +1,9 @@
+local http = require ("lua.scripts.http")
 
 ---------------- Test codes ----------------
 
 local httpReq = [[
-GET /0.php HTTP/1.1
+POST /0.php HTTP/1.1
 Host: localhost
 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:52.0) Gecko/20100101 Firefox/52.0
 Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
@@ -11,7 +12,7 @@ Accept-Encoding: gzip, deflate
 Connection: keep-alive
 Upgrade-Insecure-Requests: 1
 
-]]
+sdfadfasdfasd]]
 
 local httpRes = [[
 HTTP/1.1 401 Unauthorized
@@ -24,12 +25,13 @@ Keep-Alive: timeout=5, max=100
 Connection: Keep-Alive
 Content-Type: text/html; charset=UTF-8
 
-]]
+sdfadfsdafsdafsda]]
 
 local res = http.parseRequest(string.gsub(httpReq, "\n", "\r\n"))
 local req = http.parseResponse(string.gsub(httpRes, "\n", "\r\n"))
 
-local auth, err = make_digest_request(res, req, "root", "root")
+local auth, err = http.makeAuthRequest(res, req, "root", "root")
 
-print (auth, err)
-
+print (auth)
+print ('-----------------')
+print (err)
