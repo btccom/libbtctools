@@ -6,7 +6,9 @@ http = require ("lua.scripts.http")
 -- load functions
 require ("lua.scripts.parseScanResponse")
 
-print ("hello", Crypto.md5("hello"))
+local a = Crypto.base64Encode("hello------------------454545454545454545454545454545454545454545454545454545454545454545454545454545454545refsdaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabc")
+print ("hello", a)
+print ("hello", Crypto.base64Decode(a))
 
 function makeRequest(context)
 	local _, err = pcall (doMakeRequest, context)

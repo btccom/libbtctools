@@ -4,7 +4,7 @@
 #include <sstream>
 #include <string>
 
-#include "all.hpp"
+#include "../miner/all.hpp"
 #include "../utils/Crypto.hpp"
 #include "../lua/oolua/oolua.h"
 
@@ -68,6 +68,32 @@ OOLUA_EXPORT_FUNCTIONS_CONST(WorkContext)
 OOLUA_PROXY(Crypto)
 	OOLUA_TAGS(No_public_constructors)
 	OOLUA_SFUNC(md5)
+	OOLUA_SFUNC(base64Encode)
+	OOLUA_SFUNC(base64Decode)
 OOLUA_PROXY_END
 OOLUA_EXPORT_FUNCTIONS(Crypto)
 OOLUA_EXPORT_FUNCTIONS_CONST(Crypto)
+
+
+namespace btctools
+{
+	namespace utils
+	{
+
+		class OOLuaExport
+		{
+		public:
+			static void exportAll(OOLUA::Script &script)
+			{
+				script.register_class<Pool>();
+				script.register_class<Miner>();
+				script.register_class<WorkContext>();
+				script.register_class<Crypto>();
+				script.register_class_static<Crypto>("md5", &OOLUA::Proxy_class<Crypto>::md5);
+				script.register_class_static<Crypto>("base64Encode", &OOLUA::Proxy_class<Crypto>::base64Encode);
+				script.register_class_static<Crypto>("base64Decode", &OOLUA::Proxy_class<Crypto>::base64Decode);
+			}
+		}; // class end
+
+	} // namespace utils
+} // namespace btctools

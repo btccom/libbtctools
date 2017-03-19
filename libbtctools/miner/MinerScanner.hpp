@@ -25,7 +25,7 @@ namespace btctools
 		class MinerScanner
 		{
 		public:
-			MinerScanner(StringSource &ipSource, int stepSize)
+			MinerScanner(IpStrSource &ipSource, int stepSize)
 				:ipSource_(ipSource), stepSize_(stepSize), yield_(nullptr), client_(nullptr)
 			{}
 
@@ -148,7 +148,7 @@ namespace btctools
 
 		private:
 			btctools::tcpclient::Client *client_;
-			StringSource &ipSource_;
+			IpStrSource &ipSource_;
 			int stepSize_;
 			MinerYield *yield_;
 			ScannerHelper scannerHelper_;

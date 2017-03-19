@@ -32,8 +32,8 @@ namespace btctools
 
 		typedef boost::coroutines2::coroutine<string> coro_string_t;
 
-		typedef coro_string_t::push_type StringYield;
-		typedef coro_string_t::pull_type StringSource;
+		typedef coro_string_t::push_type IpStrYield;
+		typedef coro_string_t::pull_type IpStrSource;
 
 		class IpGenerator
 		{
@@ -61,9 +61,9 @@ namespace btctools
 				}
 			}
 
-			StringSource genIpRange()
+			IpStrSource genIpRange()
 			{
-				return StringSource([this](StringYield &yield)
+				return IpStrSource([this](IpStrYield &yield)
 				{
 					int i = 0;
 
@@ -79,9 +79,9 @@ namespace btctools
 				});
 			}
 
-			StringSource genIpRange(int stepSize)
+			IpStrSource genIpRange(int stepSize)
 			{
-				return StringSource([this, stepSize](StringYield &yield)
+				return IpStrSource([this, stepSize](IpStrYield &yield)
 				{
 					int i = 0;
 

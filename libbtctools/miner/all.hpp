@@ -197,7 +197,7 @@ namespace btctools
 	} // namespace tcpclient
 } // namespace btctools
 
-#include "ooluaExport.hpp"
+#include "../utils/OOLuaExport.hpp"
 #include "ScannerHelper.hpp"
 #include "ConfiguratorHelper.hpp"
 #include "MinerScanner.hpp"

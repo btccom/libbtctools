@@ -5,7 +5,6 @@
 #include <string>
 
 #include "all.hpp"
-#include "../lua/oolua/oolua.h"
 
 using namespace std;
 using namespace btctools::miner;
@@ -20,11 +19,7 @@ namespace btctools
 		public:
 			ScannerHelper()
 			{
-				script_.register_class<Pool>();
-				script_.register_class<Miner>();
-				script_.register_class<WorkContext>();
-				script_.register_class<Crypto>();
-				script_.register_class_static<Crypto>("md5", &OOLUA::Proxy_class<Crypto>::md5);
+				OOLuaExport::exportAll(script_);
 
 				bool success = script_.run_file("./lua/scripts/ScannerHelper.lua");
 
