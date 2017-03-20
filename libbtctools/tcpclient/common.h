@@ -1,10 +1,7 @@
 #pragma once
 
 #include <iostream>
-#include <sstream>
-#include <memory>
 #include <string>
-#include <vector>
 
 #include <boost/asio.hpp>
 #include <boost/asio/io_service.hpp>
@@ -15,13 +12,11 @@
 #include <boost/coroutine2/all.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
-using namespace std;
-using boost::asio::ip::tcp;
-
 namespace btctools
 {
     namespace tcpclient
     {
+        using string = std::string;
 
         struct Request
         {
@@ -38,17 +33,14 @@ namespace btctools
             const void *usrdata_;
         };
 
-        typedef boost::coroutines2::coroutine<Request*> coro_request_t;
-        typedef boost::coroutines2::coroutine<Response*> coro_response_t;
+        using coro_request_t = boost::coroutines2::coroutine<Request*>;
+        using coro_response_t = boost::coroutines2::coroutine<Response*>;
 
-        typedef coro_request_t::push_type RequestYield;
-        typedef coro_request_t::pull_type RequestSource;
+        using RequestYield = coro_request_t::push_type;
+        using RequestSource = coro_request_t::pull_type;
 
-        typedef coro_response_t::push_type ResponseYield;
-        typedef coro_response_t::pull_type ResponseSource;
+        using ResponseYield = coro_response_t::push_type;
+        using ResponseSource = coro_response_t::pull_type;
 
     } // namespace tcpclient
 } // namespace btctools
-
-#include "Session.hpp"
-#include "Client.hpp"

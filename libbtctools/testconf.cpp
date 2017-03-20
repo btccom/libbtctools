@@ -9,7 +9,9 @@
 //
 
 #include <cryptopp/md5.h>
-#include "miner/all.hpp"
+#include "miner/common.h"
+#include "miner/MinerScanner.h"
+#include "miner/MinerConfigurator.h"
 
 using namespace std;
 using namespace btctools::miner;
