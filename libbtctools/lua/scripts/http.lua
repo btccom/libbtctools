@@ -116,6 +116,13 @@ local parse_header = function(h)
     for k,v in (h .. ','):gmatch("(%w+)=\"([^\"]*)\"") do
 		r[k:lower()] = v
     end
+    
+    local nc = string.match(h, '[^%w]nc=([0-9a-fA-F]+)')
+
+    if (nc) then
+        r.nc = nc
+    end
+    
     return r
 end
 
@@ -139,18 +146,23 @@ end
 
 local make_digest_auth = function(httpRequest, httpResponse, user, password)
     local ht = parse_header(httpResponse.headers["www-authenticate"][1])
-    assert(ht.realm and ht.nonce and ht.opaque, "Digest fields missing: " .. httpResponse.headers["www-authenticate"][1])
+    assert(ht.realm and ht.nonce and ht.qop, "Digest fields missing: " .. httpResponse.headers["www-authenticate"][1])
 	
-    if ht.qop ~= "auth" then
+    if not string.match(ht.qop:lower(), "auth") then
         return nil, string.format("unsupported qop: %s", tostring(ht.qop))
     end
 	
-    if ht.algorithm and (ht.algorithm:lower() ~= "md5") then
+    if ht.algorithm and not string.match(ht.algorithm:lower(), "md5") then
         return nil, string.format("unsupported algorithm: %s", tostring(ht.algorithm))
     end
 	
-    local cnonce = string.format("%08x", os.time())
 	local nc = "00000001"
+    
+    if (ht.nc) then
+        nc = string.format("%08x", ('0x' .. ht.nc) + 1)
+    end
+    
+    local cnonce = string.format("%08x", os.time())
     local uri = httpRequest.path
     local method = httpRequest.method
     local response = hash(
@@ -172,7 +184,7 @@ local make_digest_auth = function(httpRequest, httpResponse, user, password)
         {"qop", "auth"},
         {"algorithm", "MD5"},
         {"response", response},
-        {"opaque", ht.opaque},
+        {"opaque", ht.opaque or ""},
     }
 	
 	return authorization
@@ -208,13 +220,11 @@ function http.makeRequest(httpRequest)
 		httpRequest.body = ""
 	end
 
-	local line = httpRequest.method .. ' ' .. httpRequest.path .. ' HTTP/1.1'
+	local line = httpRequest.method .. ' ' .. httpRequest.path .. ' HTTP/1.0'
 	local headers = { line }
 	
 	httpRequest.headers['user-agent'] = { 'BTC Tools v0.1' };
 	httpRequest.headers['connection'] = { 'close' };
-	httpRequest.headers['accept-encoding'] = nil;
-	httpRequest.headers['keep-alive'] = nil;
 	
 	if not (httpRequest.host == nil) then
 		httpRequest.headers['host'] = httpRequest.host
@@ -250,6 +260,21 @@ function http.makeAuthRequest(httpRequest, httpResponse, user, password)
 		if (string.match(authLine, "^[Bb]asic")) then
 			authLine = make_basic_auth(httpRequest, httpResponse, user, password)
 		elseif (string.match(authLine, "^[Dd]igest")) then
+			authLine = make_digest_auth(httpRequest, httpResponse, user, password)
+		else
+			return nil, string.format("Unsupported auth method: %s", authLine)
+		end
+		
+		httpRequest.headers["authorization"] = { authLine }
+		
+		return http.makeRequest(httpRequest)
+    elseif (httpRequest.headers["authorization"]) then
+        local authLine = httpRequest.headers["authorization"][1]
+        
+        if (string.match(authLine, "^[Bb]asic")) then
+			-- the authLine not change
+		elseif (string.match(authLine, "^[Dd]igest")) then
+            httpResponse.headers["www-authenticate"] = { authLine }
 			authLine = make_digest_auth(httpRequest, httpResponse, user, password)
 		else
 			return nil, string.format("Unsupported auth method: %s", authLine)

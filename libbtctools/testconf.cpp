@@ -23,22 +23,24 @@ int main(int argc, char* argv[])
 		{
 			MinerConfigurator config(minerSource, 2);
 
-			auto source = config.run(1);
+			auto source = config.run(0);
 
 			for (auto miner : source)
 			{
-				cout << miner.ip_ << "\t\t" << miner.stat_ << "\t\t" << miner.fullTypeStr_ << "\t\t" << miner.pool1_.url_ << "\t\t" << miner.pool1_.worker_ << endl;
+				cout << miner.ip_ << "\t\t|" << miner.stat_ << "|\t\t" << miner.fullTypeStr_ << "\t\t" << miner.pool1_.url_ << "\t\t" << miner.pool1_.worker_ << endl;
 			}
 		});
 
-		for (int i = 0; i < 10; i++)
+		for (int i = 0; i < 1; i++)
 		{
 			Miner *miner = new Miner;
-			miner->ip_ = "127.0.0.1";
-			miner->fullTypeStr_ = "test";
-			miner->typeStr_ = "test";
-			miner->pool1_.url_ = "127.0.0.1:3333";
-			miner->pool1_.worker_ = "test.t1";
+			miner->ip_ = "192.168.21.35";
+			miner->fullTypeStr_ = "Antminer S9";
+			miner->typeStr_ = "antminer-s9";
+			miner->pool1_.url_ = "eu.ss.btc.com:3333";
+			miner->pool1_.worker_ = "eu001.bj_office_s9";
+			miner->pool1_.passwd_ = "p1";
+			miner->pool2_.worker_ = "test2";
 
 			minerYield(*miner);
 		}

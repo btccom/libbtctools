@@ -1,9 +1,6 @@
--- load library
-json = require ("lua.scripts.dkjson")
-utils = require ("lua.scripts.utils")
 
--- load functions
-require ("lua.scripts.parseScanResponse")
+local scanner = require ("lua.scripts.miner.common-scanner")
+
 
 function makeRequest(context)
 	local _, err = pcall (doMakeRequest, context)
@@ -66,14 +63,14 @@ function doMakeResult(context, response, stat)
         context:setStepName(step)
         context:setCanYield(true)
         
-        local canYield = parseMinerStats(response, context:miner(), stat)
+        local canYield = scanner.parseMinerStats(response, context:miner(), stat)
 		context:setCanYield(canYield)
         
     elseif (step == "doFindPools") then
         context:setStepName("end")
         context:setCanYield(false)
         
-        local canYield = parseMinerPools(response, context:miner(), stat)
+        local canYield = scanner.parseMinerPools(response, context:miner(), stat)
 		context:setCanYield(canYield)
 		
 	else

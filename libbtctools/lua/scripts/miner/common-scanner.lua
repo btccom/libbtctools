@@ -1,11 +1,33 @@
-function parseMinerStats(jsonStr, miner, stat)
+local scanner = {}
 
-    local typeStr = 'Unknown'
+local json = require ("lua.scripts.dkjson")
+local utils = require ("lua.scripts.utils")
+
+
+local regularTypeStr = function(fullTypeStr)
+    local typeStr = 'unknown'
+    local typeLowerStr = string.lower(fullTypeStr)
+    
+    if (string.match(typeLowerStr, 'antminer')) then
+        typeStr = 'antminer'
+        
+        if (string.match(typeLowerStr, 's9')) then
+            typeStr = typeStr .. '-s9'
+        else
+            typeStr = 'unknown'
+        end
+    end
+    
+    return typeStr
+end
+
+function scanner.parseMinerStats(jsonStr, miner, stat)
+
+    local typeStr = 'unknown'
     local fullTypeStr = 'Unknown'
     
     if (stat == "success") then
-        jsonStr = utils.trimJsonStr(jsonStr)
-        local obj, pos, err = json.decode (jsonStr)
+        local obj, pos, err = utils.jsonDecode (jsonStr)
         
         if not err then
             local stat = obj.STATS
@@ -14,7 +36,7 @@ function parseMinerStats(jsonStr, miner, stat)
                 fullTypeStr = stat[1].Type
             end
             
-            typeStr = utils.regularTypeStr(fullTypeStr)
+            typeStr = regularTypeStr(fullTypeStr)
         end
     end
     
@@ -25,7 +47,7 @@ function parseMinerStats(jsonStr, miner, stat)
     return true
 end
 
-function parseMinerPools(jsonStr, miner, stat)
+function scanner.parseMinerPools(jsonStr, miner, stat)
 
     local pool1 = miner:pool1()
     local pool2 = miner:pool2()
@@ -63,3 +85,5 @@ function parseMinerPools(jsonStr, miner, stat)
     
     return findSuccess
 end
+
+return scanner

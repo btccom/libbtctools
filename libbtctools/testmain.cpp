@@ -18,7 +18,7 @@ int main(int argc, char* argv[])
     try
     {
 		auto ips = btctools::utils::IpGenerator("192.168.20.0-192.168.21.255");
-		StringSource ipSource = ips.genIpRange();
+		IpStrSource ipSource = ips.genIpRange();
 		MinerScanner scanner(ipSource, 256);
 
 		MinerSource source([&](MinerYield &yield)
@@ -28,7 +28,7 @@ int main(int argc, char* argv[])
 
 		for (auto miner : source)
 		{
-			cout << miner.ip_ << "\t" << miner.stat_ << "\t\t" << miner.fullTypeStr_ << "\t" << miner.pool1_.url_ << "\t" << miner.pool1_.worker_ << endl;
+			cout << miner.ip_ << "\t" << miner.stat_ << "\t" << miner.typeStr_ << "\t" << miner.fullTypeStr_ << "\t" << miner.pool1_.url_ << "\t" << miner.pool1_.worker_ << endl;
 		}
     }
     catch (std::exception& e)

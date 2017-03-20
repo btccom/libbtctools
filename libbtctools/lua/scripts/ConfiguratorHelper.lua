@@ -1,11 +1,3 @@
--- load library
-json = require ("lua.scripts.dkjson")
-utils = require ("lua.scripts.utils")
-http = require ("lua.scripts.http")
-
--- load functions
---require ("lua.scripts.httpTest")
-minerTest = require ("lua.scripts.miner.test")
 
 function makeRequest(context)
 	local _, err = pcall (doMakeRequest, context)
@@ -31,9 +23,12 @@ end
 function doMakeRequest(context)
 	local typeStr = context:miner():typeStr()
 	
-    if (typeStr == "test") then
-		minerTest.doMakeRequest(context)
+    local success, minerProcessor = pcall (require, "lua.scripts.miner." .. typeStr)
+    
+    if success then
+		minerProcessor.doMakeRequest(context)
 	else
+        print (minerProcessor)
 		context:setStepName("end")
 		context:miner():setStat("Don't support: " .. typeStr)
 		context:setCanYield(true)
@@ -50,9 +45,12 @@ function doMakeResult(context, response, stat)
 		return
     end
 	
-    if (typeStr == "test") then
-		minerTest.doMakeResult(context, response, stat)
+    local success, minerProcessor = pcall (require, "lua.scripts.miner." .. typeStr)
+    
+    if success then
+		minerProcessor.doMakeResult(context, response, stat)
 	else
+        print (minerProcessor)
 		context:setStepName("end")
 		context:miner():setStat("Don't support: " .. typeStr)
 		context:setCanYield(true)
