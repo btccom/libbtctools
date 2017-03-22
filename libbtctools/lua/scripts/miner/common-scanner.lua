@@ -38,6 +38,8 @@ function scanner.parseMinerStats(jsonStr, miner, stat)
             
             typeStr = regularTypeStr(fullTypeStr)
         end
+    else
+        fullTypeStr = ''
     end
     
     miner:setStat(stat)

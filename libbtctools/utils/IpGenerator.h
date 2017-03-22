@@ -37,6 +37,7 @@ namespace btctools
 			string getLastIp();
 			string getNextIp();
 			string getEndIp();
+			int getIpNumber();
 
 		private:
 			uint32_t ipLongBegin_;

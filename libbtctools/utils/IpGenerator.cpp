@@ -91,6 +91,11 @@ namespace btctools
 			return long2ip(ipLongEnd_);
 		}
 
+		int IpGenerator::getIpNumber()
+		{
+			return ipLongEnd_ - ipLongBegin_ + 1;
+		}
+
 		uint32_t IpGenerator::ip2long(const string &ipString)
 		{
 			// use inet_addr() instead of inet_pton() for XP compatibility
