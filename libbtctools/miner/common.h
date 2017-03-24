@@ -1,13 +1,16 @@
 #pragma once
 
 #include <string>
+#include <map>
 #include "../tcpclient/common.h"
+#include "../lua/oolua/oolua.h"
 
 namespace btctools
 {
 	namespace miner
 	{
         using string = std::string;
+		using stringMap = std::map<string, string>;
 
 		struct Pool
 		{
@@ -37,6 +40,8 @@ namespace btctools
 			Pool pool2_;
 			Pool pool3_;
 
+			stringMap opts_;
+
 			//-------------- used by lua scripts --------------
 
 			string& ip();
@@ -46,6 +51,7 @@ namespace btctools
 			Pool& pool1();
 			Pool& pool2();
 			Pool& pool3();
+			string& opt(const string &key);
 
 			void setIp(string ip);
 			void setStat(string stat);
@@ -54,6 +60,7 @@ namespace btctools
 			void setPool1(Pool pool1);
 			void setPool2(Pool pool2);
 			void setPool3(Pool pool3);
+			void setOpt(const string &key, const string &value);
 		};
 
 		struct WorkContext

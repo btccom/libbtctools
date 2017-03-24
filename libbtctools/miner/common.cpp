@@ -63,6 +63,10 @@ namespace btctools
 		{
 			return pool3_;
 		}
+		string& Miner::opt(const string &key)
+		{
+			return opts_.at(key);
+		}
 
 		void Miner::setIp(string ip)
 		{
@@ -91,6 +95,10 @@ namespace btctools
 		void Miner::setPool3(Pool pool3)
 		{
 			pool3_ = std::move(pool3);
+		}
+		void Miner::setOpt(const string &key, const string &value)
+		{
+			opts_[key] = value;
 		}
         
 
