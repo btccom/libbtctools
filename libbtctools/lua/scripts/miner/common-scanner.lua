@@ -37,6 +37,53 @@ function scanner.parseMinerStats(jsonStr, miner, stat)
             end
             
             typeStr = regularTypeStr(fullTypeStr)
+            
+            -- find more infos
+            if (type(stat) == "table" and type(stat[2]) == "table") then
+                local opts = stat[2]
+                
+                if (opts['GHS 5s'] ~= nil) then
+                    miner:setOpt('hashrate_5s', opts['GHS 5s']..' GH/s')
+                end
+                
+                if (opts['GHS av'] ~= nil) then
+                    miner:setOpt('hashrate_avg', opts['GHS av']..' GH/s')
+                end
+                
+                if (opts['temp_num'] > 0) then
+                    local temp = {}
+                    local i = 1
+                    
+                    while (opts['temp'..i] ~= nil) do
+                        if (opts['temp'..i] > 0) then
+                            table.insert(temp, opts['temp'..i])
+                        end
+                        
+                        i = i + 1
+                    end
+                    
+                    miner:setOpt('temperature', table.concat(temp, ' / '))
+                end
+                
+                if (opts['fan_num'] > 0) then
+                    local fan = {}
+                    local i = 1
+                    
+                    while (opts['fan'..i] ~= nil) do
+                        if (opts['fan'..i] > 0) then
+                            table.insert(fan, opts['fan'..i])
+                        end
+                        
+                        i = i + 1
+                    end
+                    
+                    miner:setOpt('fan_speed', table.concat(fan, ' / '))
+                end
+                
+                if (opts['Elapsed'] ~= nil) then
+                    miner:setOpt('elapsed', utils.formatTime(opts['Elapsed'], 'd :h :m :s '))
+                end
+            end
         end
     else
         fullTypeStr = ''

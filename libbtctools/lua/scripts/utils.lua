@@ -55,4 +55,53 @@ function utils.makeUrlQueryString(params, keys)
     return table.concat(queryStrs, '&')
 end
 
+function utils.stringSplit(str, exp)
+	local result = {}
+	local strlen = #str
+	local index = 1
+	while index < strlen do
+		local start_pos, end_pos = string.find(str, exp, index)
+		if start_pos == nil then
+			break;
+		else
+			local match_str = string.sub(str, index, start_pos - 1)
+			result[#result + 1] = match_str
+			index = end_pos + 1
+		end
+	end
+	result[#result + 1] = string.sub(str, index)
+	
+	return result
+end 
+
+function utils.formatTime(secs, format)
+	format = utils.stringSplit(format, ":")
+	local radix = {24, 60, 60}
+	local time_str = "";
+	local base_value, base_name, value
+	local i = #radix
+	while i > 0 do
+		base_value = radix[i]
+		base_name = format[i + 1]
+		
+		value = secs % base_value
+		
+		if value > 0 then
+			if base_name then
+				time_str = value .. base_name .. time_str
+			end
+		end
+		
+		secs = math.floor(secs / base_value)
+		
+		i = i - 1
+	end
+	
+	if secs > 0 then
+		time_str = secs .. format[i + 1] .. time_str
+	end
+	
+	return time_str 
+end
+
 return utils
