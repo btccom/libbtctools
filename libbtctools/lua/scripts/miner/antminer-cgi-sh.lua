@@ -12,7 +12,7 @@ function miner.doMakeRequest(context)
         local request = {
 			method = 'GET',
 			host = ip,
-			path = '/cgi-bin/get_miner_conf.cgi',
+			path = '/cgi-bin/minerConfiguration.cgi',
 		}
 		
 		context:setRequestHost(ip)
@@ -63,8 +63,7 @@ function miner.doMakeResult(context, response, stat)
             local miner = context:miner()
             local pool1, pool2, pool3 = miner:pool1(), miner:pool2(), miner:pool3()
             
-            -- the order of keys is so important
-            -- S9 hardcoded the orders when parse params
+            -- the default failed order of keys
             local formKeys = {
                 "_ant_pool1url",
                 "_ant_pool1user",
@@ -74,14 +73,21 @@ function miner.doMakeResult(context, response, stat)
                 "_ant_pool2pw",
                 "_ant_pool3url",
                 "_ant_pool3user",
-                "_ant_pool3pw",
-                "_ant_nobeeper",
-                "_ant_notempoverctrl",
-                "_ant_fan_customize_switch",
-                "_ant_fan_customize_value",
-                "_ant_freq",
-                "_ant_voltage"
+                "_ant_pool3pw"
             }
+            
+            -- Auto detecting the order of keys.
+            -- It's so important because the miner's cgi script hardcoded the orders when parse params.
+
+            local formKeysJsonStr = string.match(response.body, "data%s*:%s*{(.-)}%s*,%s*[\r\n]")
+            formKeysJsonStr = '[' .. string.gsub(formKeysJsonStr, "([a-zA-Z0-9_-]+):[a-zA-Z0-9_-]+", '"%1"') .. ']'
+            local newFormKeys, pos, err = utils.jsonDecode (formKeysJsonStr)
+            
+            if not (err) then
+                formKeys = newFormKeys
+            end
+            
+            -- All known form params from Antminer S4 to S9
             
             local formParams = {
                 _ant_pool1url = pool1:url(),
@@ -101,7 +107,8 @@ function miner.doMakeResult(context, response, stat)
                 _ant_voltage = ""
             }
             
-            local bmconf, pos, err = utils.jsonDecode (response.body)
+            local bmconfJsonStr = string.match(response.body, "ant_data%s*=%s*({.-})%s*;%s*[\r\n]")
+            local bmconf, pos, err = utils.jsonDecode (bmconfJsonStr)
             
             if not (err) then
                 if (bmconf['bitmain-nobeeper']) then

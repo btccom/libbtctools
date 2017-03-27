@@ -44,7 +44,9 @@ function utils.makeUrlQueryString(params, keys)
     
     if (keys) then
         for i=1,#keys do
-            table.insert(queryStrs, utils.urlEncode(keys[i]) .. '=' .. utils.urlEncode(params[keys[i]]))
+            local k = keys[i] or ""
+            local v = params[k] or ""
+            table.insert(queryStrs, utils.urlEncode(k) .. '=' .. utils.urlEncode(v))
         end
     else
         for k,v in pairs(params) do

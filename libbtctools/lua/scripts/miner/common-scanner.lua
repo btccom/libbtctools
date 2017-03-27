@@ -11,10 +11,10 @@ local regularTypeStr = function(fullTypeStr)
     if (string.match(typeLowerStr, 'antminer')) then
         typeStr = 'antminer'
         
-        if (string.match(typeLowerStr, 's9')) then
-            typeStr = typeStr .. '-s9'
+        if (string.match(typeLowerStr, 's3') or string.match(typeLowerStr, 's1')) then
+            typeStr = typeStr .. '-openwrt'
         else
-            typeStr = 'unknown'
+            typeStr = typeStr .. '-cgi-sh'
         end
     end
     
