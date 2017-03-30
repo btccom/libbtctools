@@ -9,9 +9,9 @@ OOLUA_EXPORT_FUNCTIONS(Pool, url, worker, passwd, setUrl, setWorker, setPasswd)
 OOLUA_EXPORT_FUNCTIONS_CONST(Pool)
 
 
-OOLUA_EXPORT_FUNCTIONS(Miner, ip, stat, typeStr, fullTypeStr, pool1, pool2, pool3, opt,
+OOLUA_EXPORT_FUNCTIONS(Miner, ip, stat, typeStr, fullTypeStr, pool1, pool2, pool3,
 			setIp, setStat, setTypeStr, setFullTypeStr, setPool1, setPool2, setPool3, setOpt)
-OOLUA_EXPORT_FUNCTIONS_CONST(Miner)
+OOLUA_EXPORT_FUNCTIONS_CONST(Miner, opt)
 
 
 OOLUA_EXPORT_FUNCTIONS(WorkContext, stepName, miner, canYield, requestHost, requestPort, requestContent,

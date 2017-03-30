@@ -51,7 +51,7 @@ namespace btctools
 			Pool& pool1();
 			Pool& pool2();
 			Pool& pool3();
-			string& opt(const string &key);
+			string opt(const string &key) const;
 
 			void setIp(string ip);
 			void setStat(string stat);

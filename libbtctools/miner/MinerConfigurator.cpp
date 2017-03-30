@@ -48,13 +48,13 @@ namespace btctools
 					WorkContext *context = newContext(std::move(miner));
 					configuratorHelper_.makeRequest(context);
 
+					if (context->canYield_)
+					{
+						this->yield(context->miner_);
+					}
+
 					if (context->stepName_ == string("end"))
 					{
-						if (context->canYield_)
-						{
-							this->yield(context->miner_);
-						}
-
 						delete context;
 						i--;
 					}
@@ -89,7 +89,21 @@ namespace btctools
 				else
 				{
 					configuratorHelper_.makeRequest(context);
-					client_->addWork(&context->request_);
+
+					if (context->canYield_)
+					{
+						yield(context->miner_);
+					}
+
+					if (context->stepName_ == string("end"))
+					{
+						delete context;
+						doNextWork();
+					}
+					else
+					{
+						client_->addWork(&context->request_);
+					}
 				}
 
 				delete response;
@@ -108,13 +122,13 @@ namespace btctools
 				WorkContext *context = newContext(std::move(miner));
 				configuratorHelper_.makeRequest(context);
 
+				if (context->canYield_)
+				{
+					this->yield(context->miner_);
+				}
+
 				if (context->stepName_ == string("end"))
 				{
-					if (context->canYield_)
-					{
-						this->yield(context->miner_);
-					}
-
 					delete context;
 					minerSource_();
 					doNextWork();

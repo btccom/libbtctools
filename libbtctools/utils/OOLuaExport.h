@@ -23,7 +23,7 @@ OOLUA_PROXY(btctools::miner::Miner)
 	OOLUA_MFUNC(pool1)
 	OOLUA_MFUNC(pool2)
 	OOLUA_MFUNC(pool3)
-	OOLUA_MFUNC(opt)
+	OOLUA_MFUNC_CONST(opt)
 	
 	OOLUA_MFUNC(setIp)
 	OOLUA_MFUNC(setStat)

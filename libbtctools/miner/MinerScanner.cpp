@@ -47,13 +47,13 @@ namespace btctools
 					WorkContext *context = newContext(std::move(ip));
 					scannerHelper_.makeRequest(context);
 
+					if (context->canYield_)
+					{
+						this->yield(context->miner_);
+					}
+
 					if (context->stepName_ == string("end"))
 					{
-						if (context->canYield_)
-						{
-							this->yield(context->miner_);
-						}
-
 						delete context;
 						i--;
 					}
@@ -88,7 +88,21 @@ namespace btctools
 				else
 				{
 					scannerHelper_.makeRequest(context);
-					client_->addWork(&context->request_);
+
+					if (context->canYield_)
+					{
+						this->yield(context->miner_);
+					}
+
+					if (context->stepName_ == string("end"))
+					{
+						delete context;
+						doNextWork();
+					}
+					else
+					{
+						client_->addWork(&context->request_);
+					}
 				}
 
 				delete response;
@@ -107,13 +121,13 @@ namespace btctools
 				WorkContext *context = newContext(std::move(ip));
 				scannerHelper_.makeRequest(context);
 
+				if (context->canYield_)
+				{
+					this->yield(context->miner_);
+				}
+
 				if (context->stepName_ == string("end"))
 				{
-					if (context->canYield_)
-					{
-						this->yield(context->miner_);
-					}
-
 					delete context;
 					ipSource_();
 					doNextWork();

@@ -63,9 +63,16 @@ namespace btctools
 		{
 			return pool3_;
 		}
-		string& Miner::opt(const string &key)
+		string Miner::opt(const string &key) const
 		{
-			return opts_.at(key);
+			if (opts_.count(key))
+			{
+				return opts_.at(key);
+			}
+			else
+			{
+				return string("");
+			}
 		}
 
 		void Miner::setIp(string ip)
