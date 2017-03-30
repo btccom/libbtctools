@@ -21,7 +21,7 @@ local regularTypeStr = function(fullTypeStr)
     return typeStr
 end
 
-function scanner.parseMinerStats(jsonStr, miner, stat)
+local parseMinerStats = function(jsonStr, miner, stat)
 
     local typeStr = 'unknown'
     local fullTypeStr = 'Unknown'
@@ -50,7 +50,7 @@ function scanner.parseMinerStats(jsonStr, miner, stat)
                     miner:setOpt('hashrate_avg', opts['GHS av']..' GH/s')
                 end
                 
-                if (opts['temp_num'] > 0) then
+                if (opts['temp1'] ~= nil) then
                     local temp = {}
                     local i = 1
                     
@@ -65,7 +65,7 @@ function scanner.parseMinerStats(jsonStr, miner, stat)
                     miner:setOpt('temperature', table.concat(temp, ' / '))
                 end
                 
-                if (opts['fan_num'] > 0) then
+                if (opts['fan1'] ~= nil) then
                     local fan = {}
                     local i = 1
                     
@@ -96,7 +96,7 @@ function scanner.parseMinerStats(jsonStr, miner, stat)
     return true
 end
 
-function scanner.parseMinerPools(jsonStr, miner, stat)
+local parseMinerPools = function(jsonStr, miner, stat)
 
     local pool1 = miner:pool1()
     local pool2 = miner:pool2()
@@ -134,5 +134,63 @@ function scanner.parseMinerPools(jsonStr, miner, stat)
     
     return findSuccess
 end
+
+function scanner.doMakeRequest(context)
+    local step = context:stepName()
+    local ip = context:miner():ip()
+    
+    if (step == "begin") then
+        local port = "4028"
+        local content = '{"command":"stats"}'
+        
+        context:setStepName("doFindStats")
+        context:setRequestHost(ip)
+        context:setRequestPort(port)
+        context:setRequestContent(content)
+        
+    elseif (step == "findPools") then
+        local content = '{"command":"pools"}'
+        
+        context:setStepName("doFindPools")
+        context:setRequestContent(content)
+		
+	else
+		context:setStepName("end")
+		context:miner():setStat("inner error: unknown step name: " .. step)
+		context:setCanYield(true)
+    end
+end
+
+function scanner.doMakeResult(context, response, stat)
+    local step = context:stepName()
+    
+    if (step == "doFindStats") then
+    
+        if (stat == "success") then
+            step = "findPools"
+        else
+            step = "end"
+        end
+        
+        context:setStepName(step)
+        context:setCanYield(true)
+        
+        local canYield = parseMinerStats(response, context:miner(), stat)
+		context:setCanYield(canYield)
+        
+    elseif (step == "doFindPools") then
+        context:setStepName("end")
+        context:setCanYield(false)
+        
+        local canYield = parseMinerPools(response, context:miner(), stat)
+		context:setCanYield(canYield)
+		
+	else
+		context:setStepName("end")
+		context:miner():setStat("inner error: unknown step name: " .. step)
+		context:setCanYield(true)
+    end
+end
+
 
 return scanner

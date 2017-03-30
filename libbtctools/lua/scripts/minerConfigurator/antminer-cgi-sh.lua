@@ -1,9 +1,9 @@
-local miner = {}
+local configurator = {}
 
 local utils = require ("lua.scripts.utils")
 local http = require ("lua.scripts.http")
 
-function miner.doMakeRequest(context)
+function configurator.doMakeRequest(context)
     local step = context:stepName()
     local ip = context:miner():ip()
 	local typeStr = context:miner():typeStr()
@@ -25,12 +25,12 @@ function miner.doMakeRequest(context)
 		context:setStepName("parseResult")
 	else
 		context:setStepName("end")
-		context:miner():setStat("inner error: unknown step name")
+		context:miner():setStat("inner error: unknown step name: " .. step)
 		context:setCanYield(true)
     end
 end
 
-function miner.doMakeResult(context, response, stat)
+function configurator.doMakeResult(context, response, stat)
     local step = context:stepName()
 	response = http.parseResponse(response)
     
@@ -162,9 +162,9 @@ function miner.doMakeResult(context, response, stat)
         end
 	else
 		context:setStepName("end")
-		context:miner():setStat("inner error: unknown step name")
+		context:miner():setStat("inner error: unknown step name: " .. step)
 		context:setCanYield(true)
     end
 end
 
-return miner
+return configurator

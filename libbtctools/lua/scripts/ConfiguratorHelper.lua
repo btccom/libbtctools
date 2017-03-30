@@ -4,7 +4,7 @@ function makeRequest(context)
 	
 	if (err) then
 		context:setStepName("end")
-		context:miner():setStat(err)
+		context:miner():setStat('failed: ' .. err)
 		context:setCanYield(true)
 	end
 	
@@ -15,7 +15,7 @@ function makeResult(context, response, stat)
 	
 	if (err) then
 		context:setStepName("end")
-		context:miner():setStat(err)
+		context:miner():setStat('failed: ' .. err)
 		context:setCanYield(true)
 	end
 end
@@ -23,12 +23,11 @@ end
 function doMakeRequest(context)
 	local typeStr = context:miner():typeStr()
 	
-    local success, minerProcessor = pcall (require, "lua.scripts.miner." .. typeStr)
+    local success, minerProcessor = pcall (require, "lua.scripts.minerConfigurator." .. typeStr)
     
     if success then
 		minerProcessor.doMakeRequest(context)
 	else
-        print (minerProcessor)
 		context:setStepName("end")
 		context:miner():setStat("Don't support: " .. typeStr)
 		context:setCanYield(true)
@@ -38,14 +37,14 @@ end
 function doMakeResult(context, response, stat)
     local typeStr = context:miner():typeStr()
 	
-	if not (stat == "success") then
+	if (stat ~= "success") then
         context:setStepName("end")
 		context:miner():setStat(stat)
 		context:setCanYield(true)
 		return
     end
 	
-    local success, minerProcessor = pcall (require, "lua.scripts.miner." .. typeStr)
+    local success, minerProcessor = pcall (require, "lua.scripts.minerConfigurator." .. typeStr)
     
     if success then
 		minerProcessor.doMakeResult(context, response, stat)

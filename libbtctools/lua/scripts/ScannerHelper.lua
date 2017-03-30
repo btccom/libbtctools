@@ -1,13 +1,10 @@
 
-local scanner = require ("lua.scripts.miner.common-scanner")
-
-
 function makeRequest(context)
 	local _, err = pcall (doMakeRequest, context)
 	
 	if (err) then
 		context:setStepName("end")
-		context:miner():setStat(err)
+		context:miner():setStat('failed: ' .. err)
 		context:setCanYield(true)
 	end
 	
@@ -18,64 +15,92 @@ function makeResult(context, response, stat)
 	
 	if (err) then
 		context:setStepName("end")
-		context:miner():setStat(err)
+		context:miner():setStat('failed: ' .. err)
 		context:setCanYield(true)
 	end
 end
 
-function doMakeRequest(context)
-    local step = context:stepName()
-    local ip = context:miner():ip()
+local loadScanner = function(name)
+    return pcall (require, "lua.scripts.minerScanner." .. name)
+end
+
+local nextScannerName = function(currentName)
+    local scannerMap = {
+        ["antminer-cgminer"] = "avalon-luci"
+    }
     
-    if (step == "begin") then
-        local port = "4028"
-        local content = '{"command":"stats"}'
-        
-        context:setStepName("doFindStats")
-        context:setRequestHost(ip)
-        context:setRequestPort(port)
-        context:setRequestContent(content)
-        
-    elseif (step == "findPools") then
-        local content = '{"command":"pools"}'
-        
-        context:setStepName("doFindPools")
-        context:setRequestContent(content)
-		
-	else
-		context:setStepName("end")
-		context:miner():setStat("inner error: unknown step name")
+    return scannerMap[currentName]
+end
+
+local contextRestart = function(context)
+    context:setStepName("begin")
+    context:setCanYield(false)
+end
+
+
+function doMakeRequest(context)
+
+    local miner = context:miner()
+    local scannerName = miner:opt('scannerName')
+    
+    if (scannerName == "") then
+        scannerName = "antminer-cgminer"
+        miner:setOpt('scannerName', scannerName)
+    end
+    
+    local success, scanner = loadScanner(scannerName)
+    
+    if (success) then
+        scanner.doMakeRequest(context)
+    else
+        context:setStepName("end")
+		context:miner():setStat('failed: ' .. scanner)
 		context:setCanYield(true)
     end
 end
 
 function doMakeResult(context, response, stat)
-    local step = context:stepName()
+
+    local miner = context:miner()
+    local scannerName = miner:opt('scannerName')
     
-    if (step == "doFindStats") then
-    
-        if (stat == "success") then
-            step = "findPools"
+    assert(scannerName ~= "", "inner error: scannerName cannot be empty!")
+
+    if (stat ~= "success") then
+        
+        scannerName = nextScannerName(scannerName)
+        
+        if (scannerName == nil) then
+            context:setStepName("end")
+            context:miner():setStat(stat)
+            context:setCanYield(true)
         else
-            step = "end"
+            miner:setOpt('scannerName', scannerName)
+            contextRestart(context)
         end
         
-        context:setStepName(step)
-        context:setCanYield(true)
+        return
+    end
+    
+    local success, scanner = loadScanner(scannerName)
+    
+    if (success) then
+        scanner.doMakeResult(context, response, stat)
         
-        local canYield = scanner.parseMinerStats(response, context:miner(), stat)
-		context:setCanYield(canYield)
+        if (context:stepName() == 'end') and ((miner:typeStr() == 'unknown') or (miner:typeStr() == '')) then
+            scannerName = nextScannerName(scannerName)
+            
+            if (scannerName ~= nil) then
+                miner:setOpt('scannerName', scannerName)
+                contextRestart(context)
+            end
+            
+            return
+        end
         
-    elseif (step == "doFindPools") then
+    else
         context:setStepName("end")
-        context:setCanYield(false)
-        
-        local canYield = scanner.parseMinerPools(response, context:miner(), stat)
-		context:setCanYield(canYield)
-		
-	else
-		context:setStepName("end")
-		context:miner():setStat("inner error: unknown step name")
+		context:miner():setStat('failed: ' .. scanner)
 		context:setCanYield(true)
     end
 end
