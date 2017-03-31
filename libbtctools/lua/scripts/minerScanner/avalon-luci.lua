@@ -67,7 +67,8 @@ local parseAvalonStat = function (jsonStr, context)
             end
             
         end
-    
+        
+        miner:setTypeStr('avalon-luci')
         miner:setStat("success")
     else
 		miner:setStat("failed: " .. err)

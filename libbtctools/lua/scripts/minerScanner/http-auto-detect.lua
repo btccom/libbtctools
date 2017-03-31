@@ -41,8 +41,6 @@ function scanner.doMakeResult(context, response, stat)
 	response = http.parseResponse(response)
     
     if (step == 'detect') then
-        print (response.body)
-        print (response.statCode, string.match(response.body, '/luci/avalon/'))
         
         if (response.statCode == "401" and
             response.headers['www-authenticate'] and
