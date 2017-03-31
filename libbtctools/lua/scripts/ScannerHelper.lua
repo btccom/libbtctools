@@ -26,7 +26,7 @@ end
 
 local nextScannerName = function(currentName)
     local scannerMap = {
-        ["antminer-cgminer"] = "avalon-luci"
+        ["http-auto-detect"] = "antminer-cgminer"
     }
     
     return scannerMap[currentName]
@@ -44,7 +44,7 @@ function doMakeRequest(context)
     local scannerName = miner:opt('scannerName')
     
     if (scannerName == "") then
-        scannerName = "antminer-cgminer"
+        scannerName = "http-auto-detect"
         miner:setOpt('scannerName', scannerName)
     end
     

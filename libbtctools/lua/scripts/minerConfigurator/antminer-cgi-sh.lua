@@ -6,7 +6,10 @@ local http = require ("lua.scripts.http")
 function configurator.doMakeRequest(context)
     local step = context:stepName()
     local ip = context:miner():ip()
-	local typeStr = context:miner():typeStr()
+    local miner = context:miner()
+	local typeStr = miner:typeStr()
+    
+    context:setCanYield(true)
     
     if (step == "begin") then
         local request = {
@@ -19,19 +22,26 @@ function configurator.doMakeRequest(context)
 		context:setRequestPort("80")
 		context:setRequestContent(http.makeRequest(request))
 		context:setStepName("auth")
+        miner:setStat('login...')
 	elseif (step == "getMinerConf") then
 		context:setStepName("parseMinerConf")
+        miner:setStat('read config...')
     elseif (step == "setMinerConf") then
 		context:setStepName("parseResult")
+        miner:setStat('update config...')
 	else
 		context:setStepName("end")
 		context:miner():setStat("inner error: unknown step name: " .. step)
-		context:setCanYield(true)
     end
 end
 
 function configurator.doMakeResult(context, response, stat)
     local step = context:stepName()
+    local miner = context:miner()
+    
+    context:setCanYield(true)
+    miner:setStat(stat)
+    
 	response = http.parseResponse(response)
     
     if (step == "auth") then
@@ -41,23 +51,19 @@ function configurator.doMakeResult(context, response, stat)
 			
 			if (err) then
 				context:setStepName("end")
-				context:miner():setStat(err)
-				context:setCanYield(true)
+				context:miner():setStat('failed: ' .. err)
 			else
 				context:setStepName("getMinerConf")
 				context:setRequestContent(requestContent)
-				context:setCanYield(false)
 			end
 		else
 			context:setStepName("end")
-			context:miner():setStat("get miner conf failed")
-			context:setCanYield(true)
+			context:miner():setStat("read config failed")
 		end
 	elseif (step == "parseMinerConf") then
 		if (response.statCode == "401") then
 			context:setStepName("end")
-			context:miner():setStat("auth failed")
-			context:setCanYield(true)
+			context:miner():setStat("login failed")
 		else
             local request = http.parseRequest(context:requestContent())
             local miner = context:miner()
@@ -142,28 +148,23 @@ function configurator.doMakeResult(context, response, stat)
         
 			if (err) then
 				context:setStepName("end")
-				context:miner():setStat(err)
-				context:setCanYield(true)
+				context:miner():setStat('failed: ' .. err)
 			else
 				context:setStepName("setMinerConf")
 				context:setRequestContent(requestContent)
-				context:setCanYield(false)
 			end
 		end
     elseif (step == "parseResult") then
         if (response.statCode == "401") then
 			context:setStepName("end")
-			context:miner():setStat("auth failed")
-			context:setCanYield(true)
+			context:miner():setStat("login failed")
 		else
             context:setStepName("end")
 			context:miner():setStat(utils.trimAll(response.body))
-			context:setCanYield(true)
         end
 	else
 		context:setStepName("end")
 		context:miner():setStat("inner error: unknown step name: " .. step)
-		context:setCanYield(true)
     end
 end
 

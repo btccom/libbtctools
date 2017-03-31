@@ -89,7 +89,6 @@ local parseMinerStats = function(jsonStr, miner, stat)
         fullTypeStr = ''
     end
     
-    miner:setStat(stat)
     miner:setTypeStr(typeStr)
     miner:setFullTypeStr(fullTypeStr)
     
@@ -137,13 +136,17 @@ end
 
 function scanner.doMakeRequest(context)
     local step = context:stepName()
-    local ip = context:miner():ip()
+    local miner = context:miner()
+    local ip = miner:ip()
+    
+    context:setCanYield(true)
     
     if (step == "begin") then
         local port = "4028"
         local content = '{"command":"stats"}'
         
         context:setStepName("doFindStats")
+        miner:setStat('get status...')
         context:setRequestHost(ip)
         context:setRequestPort(port)
         context:setRequestContent(content)
@@ -152,20 +155,24 @@ function scanner.doMakeRequest(context)
         local content = '{"command":"pools"}'
         
         context:setStepName("doFindPools")
+        miner:setStat('find pools...')
         context:setRequestContent(content)
 		
 	else
 		context:setStepName("end")
 		context:miner():setStat("inner error: unknown step name: " .. step)
-		context:setCanYield(true)
     end
+    
 end
 
 function scanner.doMakeResult(context, response, stat)
     local step = context:stepName()
+    local miner = context:miner()
+    
+    context:setCanYield(true)
+    miner:setStat(stat)
     
     if (step == "doFindStats") then
-    
         if (stat == "success") then
             step = "findPools"
         else
@@ -173,22 +180,15 @@ function scanner.doMakeResult(context, response, stat)
         end
         
         context:setStepName(step)
-        context:setCanYield(true)
-        
-        local canYield = parseMinerStats(response, context:miner(), stat)
-		context:setCanYield(canYield)
+        parseMinerStats(response, context:miner(), stat)
         
     elseif (step == "doFindPools") then
         context:setStepName("end")
-        context:setCanYield(false)
-        
-        local canYield = parseMinerPools(response, context:miner(), stat)
-		context:setCanYield(canYield)
+        parseMinerPools(response, context:miner(), stat)
 		
 	else
 		context:setStepName("end")
 		context:miner():setStat("inner error: unknown step name: " .. step)
-		context:setCanYield(true)
     end
 end
 

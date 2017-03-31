@@ -17,6 +17,22 @@ local parseAvalonStat = function (jsonStr, context)
             miner:setFullTypeStr(stat['openwrtver'])
         end
         
+        if (stat['elapsed']) then
+            miner:setOpt('elapsed', utils.formatTime(stat['elapsed'], 'd :h :m :s '))
+        end
+        
+        if (stat['ghsav']) then
+            miner:setOpt('hashrate_avg', stat['ghsav']..' GH/s')
+        end
+        
+        if (stat['temp']) then
+            miner:setOpt('temperature', tostring(stat['temp']))
+        end
+        
+        if (stat['fan']) then
+            miner:setOpt('fan_speed', tostring(stat['fan']))
+        end
+        
         if (type(stat['pool']) == 'table') then
             local pools = stat['pool']
             
@@ -63,6 +79,8 @@ function scanner.doMakeRequest(context)
     local miner = context:miner()
     local ip = miner:ip()
     
+    context:setCanYield(true)
+
     if (step == "begin") then
         local request = {
 			method = 'POST',
@@ -78,6 +96,7 @@ function scanner.doMakeRequest(context)
 		context:setRequestPort("80")
 		context:setRequestContent(http.makeRequest(request))
 		context:setStepName("login")
+        miner:setStat('login...')
         
     elseif (step == "getStat") then
         local cookie = miner:opt('cookie')
@@ -94,8 +113,8 @@ function scanner.doMakeRequest(context)
         
         context:setRequestContent(http.makeRequest(request))
 		context:setStepName("readStat")
+        miner:setStat('get status...')
         
-        print (context:requestContent())
     else
         context:setStepName("end")
 		miner:setStat("inner error: unknown step name: " .. step)
@@ -106,6 +125,10 @@ end
 function scanner.doMakeResult(context, response, stat)
     local step = context:stepName()
     local miner = context:miner()
+    
+    context:setCanYield(true)
+    miner:setStat(stat)
+    
 	response = http.parseResponse(response)
     
     if (step == "login") then
@@ -123,28 +146,23 @@ function scanner.doMakeResult(context, response, stat)
                 miner:setOpt('stok', stok)
                 
                 context:setStepName("getStat")
-                context:setCanYield(false)
             else
                 context:setStepName("end")
-                miner:setStat("auth failed")
-                context:setCanYield(true)
+                miner:setStat("login failed")
             end
             
         else
             context:setStepName("end")
-			miner:setStat("auth failed")
-			context:setCanYield(true)
+			miner:setStat("login failed")
         end
     
     elseif (step == "readStat") then
         parseAvalonStat(response.body, context)
         
         context:setStepName("end")
-		context:setCanYield(true)
     else
         context:setStepName("end")
 		miner:setStat("inner error: unknown step name: " .. step)
-		context:setCanYield(true)
     end
 end
 
