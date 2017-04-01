@@ -52,8 +52,8 @@ function scanner.doMakeResult(context, response, stat)
             response.headers['www-authenticate'][1] and
             string.match(response.headers['www-authenticate'][1], '^Digest%s')) then
             
-            miner:setOpt('httpDetect', 'antminer-cgi-sh')
-            miner:setOpt('scannerName', 'antminer-cgminer')
+            miner:setOpt('httpDetect', 'antminer-http-cgi')
+            miner:setOpt('scannerName', 'antminer-cgminer-api')
             context:setStepName("begin")
             miner:setStat('find antminer')
             context:setCanYield(true)
@@ -61,8 +61,8 @@ function scanner.doMakeResult(context, response, stat)
         elseif (response.statCode == "200" and
             string.match(response.body, '/luci/avalon/')) then
             
-            miner:setOpt('httpDetect', 'avalon-luci')
-            miner:setOpt('scannerName', 'avalon-luci')
+            miner:setOpt('httpDetect', 'avalon-http-luci')
+            miner:setOpt('scannerName', 'avalon-http-luci')
             context:setStepName("begin")
             miner:setStat('find avalon')
             context:setCanYield(true)

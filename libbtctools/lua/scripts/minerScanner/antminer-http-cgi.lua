@@ -79,7 +79,7 @@ function scanner.doMakeResult(context, response, stat)
             local confs, pos, err = utils.jsonDecode (response.body)
             
             if not (err) then
-                miner:setTypeStr('antminer-cgi-sh')
+                miner:setTypeStr('antminer-http-cgi')
                 miner:setFullTypeStr('Antminer')
                 miner:setStat('success')
                 miner:setOpt('getPoolsSuccess', 'true')

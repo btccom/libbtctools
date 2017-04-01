@@ -26,7 +26,7 @@ end
 
 local nextScannerName = function(currentName)
     local scannerMap = {
-        ["http-auto-detect"] = "antminer-cgminer"
+        ["http-auto-detect"] = "antminer-cgminer-api"
     }
     
     return scannerMap[currentName]

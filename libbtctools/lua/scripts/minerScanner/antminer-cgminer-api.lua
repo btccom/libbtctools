@@ -176,11 +176,11 @@ function scanner.doMakeResult(context, response, stat)
     context:setCanYield(true)
     miner:setStat(stat)
     
-    local isAntminer = (miner:opt('httpDetect') == 'antminer-cgi-sh')
+    local isAntminer = (miner:opt('httpDetect') == 'antminer-http-cgi')
     
     if (stat ~= "success") then
         if (isAntminer) then
-            miner:setOpt('scannerName', 'antminer-cgi-sh')
+            miner:setOpt('scannerName', 'antminer-http-cgi')
             context:setStepName("begin")
         else
             context:setStepName("end")
@@ -210,7 +210,7 @@ function scanner.doMakeResult(context, response, stat)
 		
         -- find more infos from http
         if (isAntminer) then
-            miner:setOpt('scannerName', 'antminer-cgi-sh')
+            miner:setOpt('scannerName', 'antminer-http-cgi')
             context:setStepName("begin")
         end
         
