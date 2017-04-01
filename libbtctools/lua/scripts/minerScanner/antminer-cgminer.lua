@@ -30,6 +30,8 @@ local parseMinerStats = function(jsonStr, miner, stat)
         local obj, pos, err = utils.jsonDecode (jsonStr)
         
         if not err then
+            miner:setOpt('getStatSuccess', 'true')
+        
             local stat = obj.STATS
             
             if (type(stat) == "table" and type(stat[1]) == "table" and type(stat[1].Type) == "string") then
@@ -108,6 +110,8 @@ local parseMinerPools = function(jsonStr, miner, stat)
         local obj, pos, err = json.decode (jsonStr)
         
         if not err then
+            miner:setOpt('getPoolsSuccess', 'true')
+        
             local pools = obj.POOLS
             
             if (type(pools) == "table") then
@@ -146,7 +150,7 @@ function scanner.doMakeRequest(context)
         local content = '{"command":"stats"}'
         
         context:setStepName("doFindStats")
-        miner:setStat('get status...')
+        miner:setStat('find type...')
         context:setRequestHost(ip)
         context:setRequestPort(port)
         context:setRequestContent(content)
@@ -176,6 +180,11 @@ function scanner.doMakeResult(context, response, stat)
         if (stat == "success") then
             step = "findPools"
         else
+            step = "end"
+        end
+        
+        -- It has got the pools from http, skipping the next step
+        if (miner:opt('getPoolsSuccess') == 'true') then
             step = "end"
         end
         
