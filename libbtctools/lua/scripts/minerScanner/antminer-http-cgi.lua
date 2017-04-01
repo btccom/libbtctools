@@ -32,6 +32,10 @@ function scanner.doMakeRequest(context)
         context:setStepName("parseMinerStat")
         miner:setStat('read status...')
         
+    elseif (step == "getMinerFullType") then
+        context:setStepName("parseMinerFullType")
+        miner:setStat('read type...')
+        
 	else
 		context:setStepName("end")
 		miner:setStat("inner error: unknown step name: " .. step)
@@ -153,9 +157,55 @@ function scanner.doMakeResult(context, response, stat)
                     end
                 end
 
+                
+                -- make next request
+                local request = http.parseRequest(context:requestContent())
+                
+                request.path = '/cgi-bin/get_system_info.cgi';
+                
+                local requestContent, err = http.makeAuthRequest(request, response, 'root', 'root')
+                
+                if (err) then
+                    context:setStepName("end")
+                    miner:setStat('failed: ' .. err)
+                -- It has got the full type from cgminer api, skipping the next step
+                elseif (miner:opt('getFullTypeSuccess') == "true") then
+                    context:setStepName("end")
+                    miner:setStat('success')
+                else
+                    context:setStepName("getMinerFullType")
+                    context:setRequestContent(requestContent)
+                end
+                
             else
                 context:setStepName("end")
                 miner:setStat("read stat failed")
+            end
+		end
+        
+    elseif (step == "parseMinerFullType") then
+		if (response.statCode == "401") then
+			context:setStepName("end")
+			miner:setStat("login failed")
+		else
+            local obj, pos, err = utils.jsonDecode (response.body)
+            
+            if not (err) then
+                context:setStepName("end")
+                miner:setStat("success")
+                miner:setOpt('getFullTypeSuccess', 'true')
+                
+                if (type(obj) == 'table') then
+                    
+                    if (obj.minertype ~= nil) then
+                        miner:setFullTypeStr(obj.minertype)
+                    end
+                    
+                end
+                
+            else
+                context:setStepName("end")
+                miner:setStat("read type failed")
             end
 		end
         

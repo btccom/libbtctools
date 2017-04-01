@@ -12,9 +12,9 @@ local regularTypeStr = function(fullTypeStr)
         typeStr = 'antminer'
         
         if (string.match(typeLowerStr, 's3') or string.match(typeLowerStr, 's1')) then
-            typeStr = typeStr .. '-openwrt'
+            typeStr = typeStr .. '-http-luci'
         else
-            typeStr = typeStr .. '-cgi-sh'
+            typeStr = typeStr .. '-http-cgi'
         end
     end
     
