@@ -75,6 +75,49 @@ local parseAvalonStat = function (jsonStr, context)
     end
 end
 
+local parseAvalonPools = function (html, context)
+    local miner = context:miner()
+    local pool1 = miner:pool1()
+    local pool2 = miner:pool2()
+    local pool3 = miner:pool3()
+
+    if (string.match(html, 'id="cbid.cgminer.default.pool1url"')) then
+        miner:setStat("success")
+        
+        local url, worker, passwd = nil, nil, nil
+        
+        -- pool 1
+        url = string.match(html, 'id="cbid.cgminer.default.pool1url"%s+value="(.-)"')
+        worker = string.match(html, 'id="cbid.cgminer.default.pool1user"%s+value="(.-)"')
+        passwd = string.match(html, 'id="cbid.cgminer.default.pool1pw"%s+value="(.-)"')
+        
+        if (url ~= nil) then pool1:setUrl(url) end
+        if (worker ~= nil) then pool1:setWorker(worker) end
+        if (passwd ~= nil) then pool1:setPasswd(passwd) end
+        
+        -- pool 2
+        url = string.match(html, 'id="cbid.cgminer.default.pool2url"%s+value="(.-)"')
+        worker = string.match(html, 'id="cbid.cgminer.default.pool2user"%s+value="(.-)"')
+        passwd = string.match(html, 'id="cbid.cgminer.default.pool2pw"%s+value="(.-)"')
+        
+        if (url ~= nil) then pool2:setUrl(url) end
+        if (worker ~= nil) then pool2:setWorker(worker) end
+        if (passwd ~= nil) then pool2:setPasswd(passwd) end
+        
+        -- pool 3
+        url = string.match(html, 'id="cbid.cgminer.default.pool3url"%s+value="(.-)"')
+        worker = string.match(html, 'id="cbid.cgminer.default.pool3user"%s+value="(.-)"')
+        passwd = string.match(html, 'id="cbid.cgminer.default.pool3pw"%s+value="(.-)"')
+        
+        if (url ~= nil) then pool3:setUrl(url) end
+        if (worker ~= nil) then pool3:setWorker(worker) end
+        if (passwd ~= nil) then pool3:setPasswd(passwd) end
+        
+    else
+		miner:setStat("parse pools failed")
+    end
+end
+
 function scanner.doMakeRequest(context)
     local step = context:stepName()
     local miner = context:miner()
@@ -115,6 +158,23 @@ function scanner.doMakeRequest(context)
         context:setRequestContent(http.makeRequest(request))
 		context:setStepName("readStat")
         miner:setStat('get status...')
+        
+    elseif (step == "getPools") then
+        local cookie = miner:opt('cookie')
+        local stok = miner:opt('stok')
+        
+        local request = {
+			method = 'GET',
+			host = ip,
+			path = '/cgi-bin/luci/;stok=' .. stok .. '/avalon/page/configure',
+            headers = {
+                ['Cookie'] = cookie
+            }
+		}
+        
+        context:setRequestContent(http.makeRequest(request))
+		context:setStepName("readPools")
+        miner:setStat('get pools...')
         
     else
         context:setStepName("end")
@@ -158,9 +218,14 @@ function scanner.doMakeResult(context, response, stat)
         end
     
     elseif (step == "readStat") then
+        context:setStepName("getPools")
         parseAvalonStat(response.body, context)
         
+        
+    elseif (step == "readPools") then
         context:setStepName("end")
+        parseAvalonPools(response.body, context)
+        
     else
         context:setStepName("end")
 		miner:setStat("inner error: unknown step name: " .. step)

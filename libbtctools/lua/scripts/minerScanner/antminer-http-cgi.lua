@@ -80,9 +80,12 @@ function scanner.doMakeResult(context, response, stat)
             
             if not (err) then
                 miner:setTypeStr('antminer-http-cgi')
-                miner:setFullTypeStr('Antminer')
                 miner:setStat('success')
                 miner:setOpt('getPoolsSuccess', 'true')
+                
+                if (miner:opt('getStatSuccess') ~= 'true') then
+                    miner:setFullTypeStr('Antminer')
+                end
                 
                 pool1:setUrl(confs.pools[1].url)
                 pool1:setWorker(confs.pools[1].user)
