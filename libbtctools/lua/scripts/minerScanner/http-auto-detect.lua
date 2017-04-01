@@ -38,6 +38,11 @@ function scanner.doMakeResult(context, response, stat)
     context:setCanYield(true)
     miner:setStat(stat)
     
+    if (stat ~= "success") then
+        context:setStepName("end")
+        return
+    end
+    
 	response = http.parseResponse(response)
     
     if (step == 'detect') then
@@ -48,7 +53,7 @@ function scanner.doMakeResult(context, response, stat)
             string.match(response.headers['www-authenticate'][1], '^Digest%s')) then
             
             miner:setOpt('httpDetect', 'antminer-cgi-sh')
-            miner:setOpt('scannerName', 'antminer-cgi-sh')
+            miner:setOpt('scannerName', 'antminer-cgminer')
             context:setStepName("begin")
             miner:setStat('find antminer')
             context:setCanYield(true)

@@ -176,6 +176,19 @@ function scanner.doMakeResult(context, response, stat)
     context:setCanYield(true)
     miner:setStat(stat)
     
+    local isAntminer = (miner:opt('httpDetect') == 'antminer-cgi-sh')
+    
+    if (stat ~= "success") then
+        if (isAntminer) then
+            miner:setOpt('scannerName', 'antminer-cgi-sh')
+            context:setStepName("begin")
+        else
+            context:setStepName("end")
+        end
+        
+        return
+    end
+    
     if (step == "doFindStats") then
         if (stat == "success") then
             step = "findPools"
@@ -195,6 +208,12 @@ function scanner.doMakeResult(context, response, stat)
         context:setStepName("end")
         parseMinerPools(response, context:miner(), stat)
 		
+        -- find more infos from http
+        if (isAntminer) then
+            miner:setOpt('scannerName', 'antminer-cgi-sh')
+            context:setStepName("begin")
+        end
+        
 	else
 		context:setStepName("end")
 		context:miner():setStat("inner error: unknown step name: " .. step)

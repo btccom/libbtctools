@@ -45,6 +45,11 @@ function scanner.doMakeResult(context, response, stat)
     context:setCanYield(true)
     miner:setStat(stat)
     
+    if (stat ~= "success") then
+        context:setStepName("end")
+        return
+    end
+    
 	response = http.parseResponse(response)
     
     if (step == "auth") then
@@ -144,10 +149,7 @@ function scanner.doMakeResult(context, response, stat)
                         miner:setOpt('hashrate_avg', summary.ghsav .. ' GH/s')
                     end
                 end
-                
-                -- find miner's full type from cgminer api
-                miner:setOpt('scannerName', 'antminer-cgminer')
-                context:setStepName("begin")
+
             else
                 context:setStepName("end")
                 miner:setStat("read stat failed")

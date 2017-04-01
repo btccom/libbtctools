@@ -66,7 +66,8 @@ function doMakeResult(context, response, stat)
     
     assert(scannerName ~= "", "inner error: scannerName cannot be empty!")
 
-    if (stat ~= "success") then
+    -- now the scanner will process the no "success" status by itself
+    --[[if (stat ~= "success") then
         
         scannerName = nextScannerName(scannerName)
         
@@ -80,7 +81,7 @@ function doMakeResult(context, response, stat)
         end
         
         return
-    end
+    end]]
     
     local success, scanner = loadScanner(scannerName)
     
