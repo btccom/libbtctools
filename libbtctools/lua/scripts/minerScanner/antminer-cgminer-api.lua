@@ -1,7 +1,6 @@
 local scanner = {}
 
-local json = require ("lua.scripts.dkjson")
-local utils = require ("lua.scripts.utils")
+local utils = require ("utils")
 
 
 local regularTypeStr = function(fullTypeStr)
@@ -106,8 +105,7 @@ local parseMinerPools = function(jsonStr, miner, stat)
     local findSuccess = false
     
     if (stat == "success") then
-        jsonStr = utils.trimJsonStr(jsonStr)
-        local obj, pos, err = json.decode (jsonStr)
+        local obj, pos, err = utils.jsonDecode (jsonStr)
         
         if not err then
             miner:setOpt('getPoolsSuccess', 'true')

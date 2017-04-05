@@ -8,6 +8,7 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
+#include "utils/OOLuaHelper.h"
 #include "miner/MinerScanner.h"
 #include "utils/IpGenerator.h"
 
@@ -19,6 +20,8 @@ int main(int argc, char* argv[])
 {
     try
     {
+		OOLuaHelper::setPackagePath("./lua/scripts");
+
 		auto ips = btctools::utils::IpGenerator("192.168.21.35-192.168.21.35");
 		IpStrSource ipSource = ips.genIpRange();
 		MinerScanner scanner(ipSource, 256);

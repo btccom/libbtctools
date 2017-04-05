@@ -23,7 +23,7 @@ end
 function doMakeRequest(context)
 	local typeStr = context:miner():typeStr()
 	
-    local success, minerProcessor = pcall (require, "lua.scripts.minerConfigurator." .. typeStr)
+    local success, minerProcessor = pcall (require, "minerConfigurator." .. typeStr)
     
     if success then
 		minerProcessor.doMakeRequest(context)

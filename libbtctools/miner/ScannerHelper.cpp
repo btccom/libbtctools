@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ScannerHelper.h"
-#include "../utils/OOLuaExport.h"
+#include "../utils/OOLuaHelper.h"
 
 using namespace std;
 using namespace btctools::miner;
@@ -14,9 +14,9 @@ namespace btctools
 
 		ScannerHelper::ScannerHelper()
 		{
-			OOLuaExport::exportAll(script_);
+			OOLuaHelper::exportAll(script_);
 
-			bool success = script_.run_file("./lua/scripts/ScannerHelper.lua");
+			bool success = OOLuaHelper::runFile(script_, "ScannerHelper");
 
 			if (!success)
 			{

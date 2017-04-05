@@ -1,6 +1,6 @@
 local utils = {}
 
-local json = require ("lua.scripts.dkjson")
+local json = require ("dkjson")
 
 function utils.trim(str)
     return str:gsub("^%s+", ""):gsub("%s+$", "")

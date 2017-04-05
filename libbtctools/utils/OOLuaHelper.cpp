@@ -1,6 +1,6 @@
 #include "../miner/common.h"
 #include "Crypto.h"
-#include "OOLuaExport.h"
+#include "OOLuaHelper.h"
 
 using namespace btctools::miner;
 using namespace btctools::utils;
@@ -26,8 +26,14 @@ namespace btctools
 {
 	namespace utils
 	{
+		string OOLuaHelper::packagePath_ = ".";
 
-		void OOLuaExport::exportAll(OOLUA::Script &script)
+		void OOLuaHelper::setPackagePath(const string &packagePath)
+		{
+			packagePath_ = packagePath;
+		}
+
+		void OOLuaHelper::exportAll(OOLUA::Script &script)
 		{
 			script.register_class<Pool>();
 			script.register_class<Miner>();
@@ -36,6 +42,16 @@ namespace btctools
 			script.register_class_static<Crypto>("md5", &OOLUA::Proxy_class<Crypto>::md5);
 			script.register_class_static<Crypto>("base64Encode", &OOLUA::Proxy_class<Crypto>::base64Encode);
 			script.register_class_static<Crypto>("base64Decode", &OOLUA::Proxy_class<Crypto>::base64Decode);
+
+			// set package.path
+			OOLUA::Table package;
+			OOLUA::get_global(script, "package", package);
+			package.set("path", packagePath_ + "/?.lua");
+		}
+
+		bool OOLuaHelper::runFile(OOLUA::Script &script, const string &name)
+		{
+			return script.run_file(packagePath_ + '/' + name + ".lua");
 		}
 
 	} // namespace utils

@@ -1,7 +1,7 @@
 local scanner = {}
 
-local utils = require ("lua.scripts.utils")
-local http = require ("lua.scripts.http")
+local utils = require ("utils")
+local http = require ("http")
 
 function scanner.doMakeRequest(context)
     local step = context:stepName()

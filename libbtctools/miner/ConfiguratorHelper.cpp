@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ConfiguratorHelper.h"
-#include "../utils/OOLuaExport.h"
+#include "../utils/OOLuaHelper.h"
 
 using namespace std;
 using namespace btctools::miner;
@@ -14,9 +14,9 @@ namespace btctools
 
 		ConfiguratorHelper::ConfiguratorHelper()
 		{
-			OOLuaExport::exportAll(script_);
+			OOLuaHelper::exportAll(script_);
 
-			bool success = script_.run_file("./lua/scripts/ConfiguratorHelper.lua");
+			bool success = OOLuaHelper::runFile(script_, "ConfiguratorHelper");
 
 			if (!success)
 			{

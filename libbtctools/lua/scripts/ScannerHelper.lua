@@ -21,7 +21,7 @@ function makeResult(context, response, stat)
 end
 
 local loadScanner = function(name)
-    return pcall (require, "lua.scripts.minerScanner." .. name)
+    return pcall (require, "minerScanner." .. name)
 end
 
 local nextScannerName = function(currentName)
