@@ -86,10 +86,10 @@ namespace btctools
 			void setRequestContent(string content);
 		};
 
-		typedef boost::coroutines2::coroutine<const Miner &> coro_miner_t;
+		using coro_miner_t = boost::coroutines2::coroutine<const Miner &>;
 
-		typedef coro_miner_t::push_type MinerYield;
-		typedef coro_miner_t::pull_type MinerSource;
+		using MinerYield = coro_miner_t::push_type;
+		using MinerSource = coro_miner_t::pull_type;
 
 	} // namespace tcpclient
 } // namespace btctools

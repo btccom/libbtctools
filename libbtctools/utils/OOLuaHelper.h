@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <functional>
 #include "../lua/oolua/oolua.h"
 #include "../miner/common.h"
 #include "Crypto.h"
@@ -66,17 +67,27 @@ namespace btctools
 	namespace utils
 	{
 		using string = std::string;
+		using ScriptLoader = std::function<bool(const string &name, string &content, string &errmsg)>;
 
 		class OOLuaHelper
 		{
 		public:
 			static void setPackagePath(const string &packagePath);
+			static void setScriptLoader(ScriptLoader &loader);
 			static void exportAll(OOLUA::Script &script);
 			static bool runFile(OOLUA::Script &script, const string &name);
+			static void loadScript(const string &name, OOLUA::Table &result);
 
 		private:
 			static string packagePath_;
+			static ScriptLoader *scriptLoader_;
 		}; // class end
 
 	} // namespace utils
 } // namespace btctools
+
+/** class OOLuaHelper */
+OOLUA_PROXY(btctools::utils::OOLuaHelper)
+	OOLUA_TAGS(No_public_constructors)
+	OOLUA_SFUNC(loadScript)
+OOLUA_PROXY_END
