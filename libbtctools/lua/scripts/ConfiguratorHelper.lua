@@ -28,6 +28,7 @@ function doMakeRequest(context)
     if success then
 		minerProcessor.doMakeRequest(context)
 	else
+        print (minerProcessor)
 		context:setStepName("end")
 		context:miner():setStat("Don't support: " .. typeStr)
 		context:setCanYield(true)
@@ -44,7 +45,7 @@ function doMakeResult(context, response, stat)
 		return
     end
 	
-    local success, minerProcessor = pcall (require, "lua.scripts.minerConfigurator." .. typeStr)
+    local success, minerProcessor = pcall (require, "minerConfigurator." .. typeStr)
     
     if success then
 		minerProcessor.doMakeResult(context, response, stat)

@@ -111,12 +111,12 @@ namespace btctools
 			return string(inet_ntoa(std::move(addr)));
 		}
 
-		void IpGenerator::splitIpRange(const string &ipRangeString, string &begin, string &end)
+		void IpGenerator::splitIpRange(string ipRangeString, string &begin, string &end)
 		{
 			size_t pos;
 
-			// TODO: replace ~ -> -
-			// TODO: reg replace [^0-9.-] -> ''
+			boost::replace_all(ipRangeString, "~", "-");
+			replace_all_regex(ipRangeString, boost::regex("[^0-9*.-]"), string(""));
 
 			pos = ipRangeString.find('-');
 
@@ -131,8 +131,8 @@ namespace btctools
 
 			if (pos != string::npos)
 			{
-				// TODO: reg replace: begin: \*+ -> 0
-				// TODO: reg replace: end: \*+ ->255
+				begin = boost::replace_all_copy(ipRangeString, "*", "0");
+				end = boost::replace_all_copy(ipRangeString, "*", "255");
 				return;
 			}
 

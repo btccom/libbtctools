@@ -3,6 +3,8 @@
 #include <string>
 #include <boost/swap.hpp>
 #include <boost/coroutine2/all.hpp>
+#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/regex.hpp>
 
 #ifdef _WIN32
  //#include <winsock2.h>
@@ -47,7 +49,7 @@ namespace btctools
 		public:
 			static uint32_t ip2long(const string &ipString);
 			static string long2ip(const uint32_t &ipLong);
-			static void splitIpRange(const string &ipRangeString, string &begin, string &end);
+			static void splitIpRange(string ipRangeString, string &begin, string &end);
             
 		}; // end of class
 
