@@ -18,6 +18,30 @@ namespace btctools
 			return bin2hex(result, sizeof(result));
 		}
 
+		string Crypto::sha1(const string & str)
+		{
+			CryptoPP::SHA1 sha1;
+			
+			byte result[20];
+
+			sha1.Update((const byte*)str.c_str(), str.size());
+			sha1.Final(result);
+
+			return bin2hex(result, sizeof(result));
+		}
+
+		string Crypto::sha256(const string & str)
+		{
+			CryptoPP::SHA256 sha256;
+
+			byte result[32];
+
+			sha256.Update((const byte*)str.c_str(), str.size());
+			sha256.Final(result);
+
+			return bin2hex(result, sizeof(result));
+		}
+
 		string Crypto::base64Encode(const string &str)
 		{
 			CryptoPP::Base64Encoder encoder(NULL, false);

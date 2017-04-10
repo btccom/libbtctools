@@ -49,6 +49,8 @@ namespace btctools
 			script.register_class<WorkContext>();
 			script.register_class<Crypto>();
 			script.register_class_static<Crypto>("md5", &OOLUA::Proxy_class<Crypto>::md5);
+			script.register_class_static<Crypto>("sha1", &OOLUA::Proxy_class<Crypto>::sha1);
+			script.register_class_static<Crypto>("sha256", &OOLUA::Proxy_class<Crypto>::sha256);
 			script.register_class_static<Crypto>("base64Encode", &OOLUA::Proxy_class<Crypto>::base64Encode);
 			script.register_class_static<Crypto>("base64Decode", &OOLUA::Proxy_class<Crypto>::base64Decode);
 

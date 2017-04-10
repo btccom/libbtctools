@@ -57,6 +57,8 @@ OOLUA_PROXY_END
 OOLUA_PROXY(btctools::utils::Crypto)
 	OOLUA_TAGS(No_public_constructors)
 	OOLUA_SFUNC(md5)
+	OOLUA_SFUNC(sha1)
+	OOLUA_SFUNC(sha256)
 	OOLUA_SFUNC(base64Encode)
 	OOLUA_SFUNC(base64Decode)
 OOLUA_PROXY_END
