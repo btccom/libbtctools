@@ -77,6 +77,12 @@ function utils.stringSplit(str, exp)
 end 
 
 function utils.formatTime(secs, format)
+    secs = tonumber(secs)
+    
+    if secs == nil then
+        return ""
+    end
+    
 	format = utils.stringSplit(format, ":")
 	local radix = {24, 60, 60}
 	local time_str = "";
