@@ -6,7 +6,9 @@ namespace btctools
 {
     namespace utils
     {
-        
+
+		//************************ class IpGenerator ************************
+
 		IpGenerator::IpGenerator(const string &ipRange)
 		{
 			string begin;
@@ -91,7 +93,7 @@ namespace btctools
 			return long2ip(ipLongEnd_);
 		}
 
-		int IpGenerator::getIpNumber()
+		uint64_t IpGenerator::getIpNumber()
 		{
 			return ipLongEnd_ - ipLongBegin_ + 1;
 		}
@@ -144,5 +146,102 @@ namespace btctools
 			}
 		}
 
-    } // namespace utils
+
+		//************************ class IpGeneratorGroup ************************
+
+		IpGeneratorGroup::IpGeneratorGroup()
+			: ipNumber_(0)
+		{
+		}
+
+		void IpGeneratorGroup::addIpRange(const string & ipRange)
+		{
+			addIpRange(IpGenerator(ipRange));
+		}
+
+		void IpGeneratorGroup::addIpRange(IpGenerator ips)
+		{
+			if (ips.hasNext())
+			{
+				ipNumber_ += ips.getIpNumber();
+				ipGenerators_.push_back(ips);
+			}
+		}
+
+		void IpGeneratorGroup::clear()
+		{
+			ipNumber_ = 0;
+			ipGenerators_.clear();
+		}
+
+		IpStrSource IpGeneratorGroup::genIpRange()
+		{
+			return IpStrSource([this](IpStrYield &yield)
+			{
+				while (!ipGenerators_.empty())
+				{
+					IpGenerator &ips = ipGenerators_.front();
+
+					for (auto ip : ips.genIpRange())
+					{
+						yield(ip);
+						ipNumber_--;
+					}
+					
+					ipGenerators_.pop_front();
+				}
+			});
+		}
+
+		IpStrSource IpGeneratorGroup::genIpRange(int stepSize)
+		{
+			return IpStrSource([this, stepSize](IpStrYield &yield)
+			{
+				for (int i=0; i < stepSize && hasNext(); i++)
+				{
+					yield(next());
+				}
+			});
+		}
+
+		bool IpGeneratorGroup::hasNext()
+		{
+			return ipNumber_ > 0;
+		}
+
+		string IpGeneratorGroup::next()
+		{
+			IpGenerator &ips = ipGenerators_.front();
+			auto ip = ips.next();
+			ipNumber_--;
+
+			if (!ips.hasNext())
+			{
+				ipGenerators_.pop_front();
+			}
+
+			return ip;
+		}
+
+		string IpGeneratorGroup::getLastIp()
+		{
+			return ipGenerators_.front().getLastIp();
+		}
+
+		string IpGeneratorGroup::getNextIp()
+		{
+			return ipGenerators_.front().getNextIp();
+		}
+
+		string IpGeneratorGroup::getEndIp()
+		{
+			return ipGenerators_.back().getEndIp();
+		}
+
+		uint64_t IpGeneratorGroup::getIpNumber()
+		{
+			return ipNumber_;
+		}
+
+} // namespace utils
 } // namespace btctools

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <list>
 #include <boost/swap.hpp>
 #include <boost/coroutine2/all.hpp>
 #include <boost/algorithm/string.hpp>
@@ -19,7 +20,7 @@ namespace btctools
     namespace utils
     {
         using string = std::string;
-    
+		
 		using coro_ip_long_t = boost::coroutines2::coroutine<uint32_t>;
 		using IpLongYield = coro_ip_long_t::push_type;
 		using IpLongSource = coro_ip_long_t::pull_type;
@@ -39,7 +40,7 @@ namespace btctools
 			string getLastIp();
 			string getNextIp();
 			string getEndIp();
-			int getIpNumber();
+			uint64_t getIpNumber();
 
 		private:
 			uint32_t ipLongBegin_;
@@ -52,6 +53,36 @@ namespace btctools
 			static void splitIpRange(string ipRangeString, string &begin, string &end);
             
 		}; // end of class
+
+
+		using IpGeneratorList = std::list<IpGenerator>;
+
+		class IpGeneratorGroup
+		{
+		public:
+			IpGeneratorGroup();
+
+			void addIpRange(const string &ipRange);
+			void addIpRange(IpGenerator ips);
+			void clear();
+
+			IpStrSource genIpRange();
+			IpStrSource genIpRange(int stepSize);
+
+			bool hasNext();
+			string next();
+
+			string getLastIp();
+			string getNextIp();
+			string getEndIp();
+
+			uint64_t getIpNumber();
+
+		private:
+			uint64_t ipNumber_;
+			IpGeneratorList ipGenerators_;
+		}; // end of class
+
 
     } // namespace utils
 } // namespace btctools
