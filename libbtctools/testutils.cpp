@@ -1,5 +1,5 @@
 #include <iostream>
-#include "utils/IpGenerator.h"
+#include <btctools/utils/IpGenerator.h>
 #include <windows.h>
 
 using namespace std;
@@ -9,9 +9,10 @@ int main()
 {
 	IpGeneratorGroup ipg;
 
-	ipg.addIpRange("192.168.1.1-192.168.1.3");
+	ipg.addIpRange("192.168.1.1-192.168.2.254");
+	/*ipg.addIpRange("192.168.1.1-192.168.1.3");
 	ipg.addIpRange("192.168.2.10-192.168.2.100");
-	ipg.addIpRange("192.168.3.1-192.168.3.255");
+	ipg.addIpRange("192.168.3.1-192.168.3.255");*/
 
 	cout << ipg.getIpNumber() << endl;
 

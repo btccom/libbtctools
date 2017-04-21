@@ -126,6 +126,21 @@ namespace btctools
 			{
 				begin = ipRangeString.substr(0, pos);
 				end = ipRangeString.substr(pos + 1);
+
+				std::vector<std::string> beginSections;
+				std::vector<std::string> endSections;
+
+				boost::split(beginSections, begin, boost::is_any_of("."));
+				boost::split(endSections, end, boost::is_any_of("."));
+
+				if (endSections.size() < beginSections.size())
+				{
+					int i = beginSections.size() - endSections.size();
+
+					endSections.insert(endSections.begin(), beginSections.begin(), beginSections.begin() + i);
+					end = boost::join(endSections, ".");
+				}
+
 				return;
 			}
 
