@@ -79,6 +79,7 @@ function configurator.doMakeRequest(context)
             }
 		}
         
+        context:setRequestDelayTimeout(5)
         context:setRequestContent(http.makeRequest(request))
 		context:setStepName("restartCgminer")
         miner:setStat('restart cgminer...')
@@ -96,6 +97,7 @@ function configurator.doMakeRequest(context)
             }
 		}
         
+        context:setRequestDelayTimeout(1)
         context:setRequestContent(http.makeRequest(request))
 		context:setStepName("checkRestartFinish")
         miner:setStat('wait finish...')
@@ -171,12 +173,12 @@ function configurator.doMakeResult(context, response, stat)
         else
             local times = tonumber(miner:opt('check-restart-finish-times'))
             
-            if (times > 100) then
+            if (times > 20) then
                 miner:setStat("wait finish timeout")
                 context:setStepName("end")
             else
                 miner:setOpt('check-restart-finish-times', tostring(times + 1))
-                miner:setStat("not finished")
+                miner:setStat("not finish")
                 context:setStepName("waitRestartFinish")
             end
         end
