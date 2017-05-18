@@ -9,14 +9,13 @@ namespace btctools
     namespace tcpclient
     {
 
-        Client::Client(int session_timeout)
-			:session_timeout_(session_timeout),
+        Client::Client() :
 			yield_(nullptr)
         {}
 
 		void Client::addWork(Request *request, ResponseYield &yield)
 		{
-			std::make_shared<Session>(io_service_, yield)->run(request, session_timeout_);
+			std::make_shared<Session>(io_service_, yield)->run(request);
 
 			yield_ = &yield;
 		}

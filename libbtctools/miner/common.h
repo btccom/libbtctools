@@ -77,6 +77,8 @@ namespace btctools
 			string& requestHost();
 			string& requestPort();
 			string& requestContent();
+			int requestSessionTimeout();
+			int requestDelayTimeout();
 
 			void setStepName(string stepName);
 			void setMiner(Miner miner);
@@ -84,6 +86,8 @@ namespace btctools
 			void setRequestHost(string host);
 			void setRequestPort(string port);
 			void setRequestContent(string content);
+			void setRequestSessionTimeout(int timeout);
+			void setRequestDelayTimeout(int timeout);
 		};
 
 		using coro_miner_t = boost::coroutines2::coroutine<const Miner &>;

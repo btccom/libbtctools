@@ -133,6 +133,14 @@ namespace btctools
 		{
 			return request_.content_;
 		}
+		int WorkContext::requestSessionTimeout()
+		{
+			return request_.session_timeout_;
+		}
+		int WorkContext::requestDelayTimeout()
+		{
+			return request_.delay_timeout_;
+		}
 
 		void WorkContext::setStepName(string stepName)
 		{
@@ -157,6 +165,14 @@ namespace btctools
 		void WorkContext::setRequestContent(string content)
 		{
 			request_.content_ = std::move(content);
+		}
+		void WorkContext::setRequestSessionTimeout(int timeout)
+		{
+			request_.session_timeout_ = timeout;
+		}
+		void WorkContext::setRequestDelayTimeout(int timeout)
+		{
+			request_.delay_timeout_ = timeout;
 		}
 
 	} // namespace tcpclient

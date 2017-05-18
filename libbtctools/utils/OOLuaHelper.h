@@ -45,12 +45,16 @@ OOLUA_PROXY(btctools::miner::WorkContext)
 	OOLUA_MFUNC(requestHost)
 	OOLUA_MFUNC(requestPort)
 	OOLUA_MFUNC(requestContent)
+	OOLUA_MFUNC(requestSessionTimeout)
+	OOLUA_MFUNC(requestDelayTimeout)
 	OOLUA_MFUNC(setStepName)
 	OOLUA_MFUNC(setMiner)
 	OOLUA_MFUNC(setCanYield)
 	OOLUA_MFUNC(setRequestHost)
 	OOLUA_MFUNC(setRequestPort)
 	OOLUA_MFUNC(setRequestContent)
+	OOLUA_MFUNC(setRequestSessionTimeout)
+	OOLUA_MFUNC(setRequestDelayTimeout)
 OOLUA_PROXY_END
 
 /** class Crypto */

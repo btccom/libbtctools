@@ -9,7 +9,7 @@ namespace btctools
         class Client
         {
         public:
-            Client(int session_timeout = 0);
+            Client();
 
 			void addWork(Request *request, ResponseYield &yield);
 			void addWork(Request *request);
@@ -23,7 +23,6 @@ namespace btctools
             
         private:
             boost::asio::io_service io_service_;
-			int session_timeout_;
 			ResponseYield *yield_;
         };
 

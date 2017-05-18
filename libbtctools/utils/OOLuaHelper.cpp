@@ -14,8 +14,12 @@ OOLUA_EXPORT_FUNCTIONS(Miner, ip, stat, typeStr, fullTypeStr, pool1, pool2, pool
 OOLUA_EXPORT_FUNCTIONS_CONST(Miner, opt)
 
 
-OOLUA_EXPORT_FUNCTIONS(WorkContext, stepName, miner, canYield, requestHost, requestPort, requestContent,
-			setStepName, setMiner, setCanYield, setRequestHost, setRequestPort, setRequestContent)
+OOLUA_EXPORT_FUNCTIONS(WorkContext, stepName, miner, canYield,
+	requestHost, requestPort, requestContent,
+	requestSessionTimeout, requestDelayTimeout,
+	setStepName, setMiner, setCanYield,
+	setRequestHost, setRequestPort, setRequestContent,
+	setRequestSessionTimeout, setRequestDelayTimeout)
 OOLUA_EXPORT_FUNCTIONS_CONST(WorkContext)
 
 

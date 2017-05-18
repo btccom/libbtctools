@@ -27,6 +27,8 @@ namespace btctools
 			int stepSize_;
 			MinerYield *yield_;
 			ScannerHelper scannerHelper_;
+
+			int sessionTimeout_;
 		};
 
 	} // namespace tcpclient

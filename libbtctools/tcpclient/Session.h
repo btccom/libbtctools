@@ -11,9 +11,11 @@ namespace btctools
 		public:
 			Session(boost::asio::io_service &io_service, ResponseYield &responseYield);
 			~Session();
-			void run(Request *request, int session_timeout = 0);
+			void run(Request *request);
 
 		protected:
+			void run(Request *request, int session_timeout);
+			void run(Request * request, int session_timeout, int delay_timeout);
 			void setTimeout(int timeout);
 			void writeContent();
 			void readContent();
@@ -31,6 +33,7 @@ namespace btctools
 
 			char *buffer_;
 			boost::asio::deadline_timer *session_timer_;
+			boost::asio::deadline_timer *delay_timer_;
 
 			boost::asio::io_service &io_service_;
 			ResponseYield &responseYield_;

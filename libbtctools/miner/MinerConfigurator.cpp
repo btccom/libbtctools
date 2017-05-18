@@ -11,8 +11,10 @@ namespace btctools
 	namespace miner
 	{
 
-		MinerConfigurator::MinerConfigurator(MinerSource &minerSource, int stepSize)
-			:minerSource_(minerSource), stepSize_(stepSize), yield_(nullptr), client_(nullptr)
+		MinerConfigurator::MinerConfigurator(MinerSource &minerSource, int stepSize) :
+			minerSource_(minerSource), stepSize_(stepSize),
+			yield_(nullptr), client_(nullptr),
+			sessionTimeout_(0)
 		{}
 
 		WorkContext *MinerConfigurator::newContext(Miner miner)
@@ -22,6 +24,9 @@ namespace btctools
 			context->miner_ = std::move(miner);
 			context->canYield_ = false;
 			context->request_.usrdata_ = context;
+
+			context->request_.session_timeout_ = sessionTimeout_;
+			context->request_.delay_timeout_ = 0;
 
 			return context;
 		}
@@ -37,6 +42,7 @@ namespace btctools
 		void MinerConfigurator::run(MinerYield &yield, int sessionTimeout)
 		{
 			yield_ = &yield;
+			sessionTimeout_ = sessionTimeout;
 
 			btctools::tcpclient::RequestSource requestSource(
 				[this](btctools::tcpclient::RequestYield &requestYield)
@@ -67,7 +73,7 @@ namespace btctools
 				}
 			});
 
-			client_ = new btctools::tcpclient::Client(sessionTimeout);
+			client_ = new btctools::tcpclient::Client();
 			auto responseSource = client_->run(requestSource);
 
 			for (auto response : responseSource)

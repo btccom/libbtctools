@@ -26,6 +26,8 @@ namespace btctools
 			MinerSource &minerSource_;
 			MinerYield *yield_;
 			ConfiguratorHelper configuratorHelper_;
+
+			int sessionTimeout_;
 		};
 
 	} // namespace tcpclient

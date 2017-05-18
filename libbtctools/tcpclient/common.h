@@ -23,6 +23,8 @@ namespace btctools
             string host_;
             string port_;
             string content_;
+			int session_timeout_;
+			int delay_timeout_;
             const void *usrdata_;
         };
 

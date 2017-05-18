@@ -10,7 +10,8 @@ namespace btctools
         
 		Session::Session(boost::asio::io_service &io_service, ResponseYield &responseYield)
 			:socket_(nullptr), request_(nullptr), response_(nullptr),
-			running_(false), session_timer_(nullptr), buffer_(nullptr),
+			running_(false), buffer_(nullptr),
+			session_timer_(nullptr), delay_timer_(nullptr),
 			io_service_(io_service), responseYield_(responseYield)
 		{
 			buffer_ = new char[BUFFER_SIZE];
@@ -27,6 +28,12 @@ namespace btctools
 				session_timer_ = nullptr;
 			}
 
+			if (delay_timer_ != nullptr)
+			{
+				delete delay_timer_;
+				delay_timer_ = nullptr;
+			}
+
 			if (socket_ != nullptr)
 			{
 				delete socket_;
@@ -38,6 +45,11 @@ namespace btctools
 				delete buffer_;
 				buffer_ = nullptr;
 			}
+		}
+
+		void Session::run(Request * request)
+		{
+			run(request, request->session_timeout_, request->delay_timeout_);
 		}
 
 		void Session::run(Request *request, int session_timeout)
@@ -75,6 +87,29 @@ namespace btctools
 					yield(ec);
 				}
 			});
+		}
+
+		void Session::run(Request *request, int session_timeout, int delay_timeout)
+		{
+			if (delay_timeout > 0)
+			{
+				auto self(shared_from_this());
+
+				delay_timer_ = new boost::asio::deadline_timer(io_service_, boost::posix_time::seconds(delay_timeout));
+				delay_timer_->async_wait([this, self, request, session_timeout](const boost::system::error_code &ec)
+				{
+					if (ec == boost::asio::error::operation_aborted)
+					{
+						return;
+					}
+
+					run(request, session_timeout);
+				});
+			}
+			else
+			{
+				run(request, session_timeout);
+			}
 		}
 
 		void Session::setTimeout(int timeout)
