@@ -21,6 +21,10 @@ local parseAvalonStat = function (jsonStr, context)
             miner:setOpt('elapsed', utils.formatTime(stat['elapsed'], 'd :h :m :s '))
         end
         
+        if (stat['ghsmm']) then
+            miner:setOpt('hashrate_5s', stat['ghsmm']..' GH/s')
+        end
+        
         if (stat['ghsav']) then
             miner:setOpt('hashrate_avg', stat['ghsav']..' GH/s')
         end
