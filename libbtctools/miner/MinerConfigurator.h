@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common.h"
-#include "ConfiguratorHelper.h"
+#include "ScriptLoader.h"
 #include "../tcpclient/Client.h"
 
 namespace btctools
@@ -11,7 +11,8 @@ namespace btctools
 		class MinerConfigurator
 		{
 		public:
-			MinerConfigurator(MinerSource &minerSource, int stepSize);
+			MinerConfigurator(MinerSource &minerSource, int stepSize,
+				string scriptName = "ConfiguratorHelper");
 			WorkContext *newContext(Miner miner);
 			MinerSource run(int sessionTimeout);
 			void run(MinerYield &yield, int sessionTimeout);
@@ -25,7 +26,7 @@ namespace btctools
 			int stepSize_;
 			MinerSource &minerSource_;
 			MinerYield *yield_;
-			ConfiguratorHelper configuratorHelper_;
+			ScriptLoader configuratorHelper_;
 
 			int sessionTimeout_;
 		};

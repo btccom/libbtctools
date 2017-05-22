@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ScannerHelper.h"
+#include "ScriptLoader.h"
 #include "../utils/OOLuaHelper.h"
 
 using namespace std;
@@ -12,11 +12,11 @@ namespace btctools
 	namespace miner
 	{
 
-		ScannerHelper::ScannerHelper()
+		ScriptLoader::ScriptLoader(string scriptName)
 		{
 			OOLuaHelper::exportAll(script_);
 
-			bool success = OOLuaHelper::runFile(script_, "ScannerHelper");
+			bool success = OOLuaHelper::runFile(script_, scriptName);
 
 			if (!success)
 			{
@@ -24,12 +24,12 @@ namespace btctools
 			}
 		}
 
-		void ScannerHelper::makeRequest(WorkContext *context)
+		void ScriptLoader::makeRequest(WorkContext *context)
 		{
 			script_.call("makeRequest", context);
 		}
 
-		void ScannerHelper::makeResult(WorkContext *context, btctools::tcpclient::Response *response)
+		void ScriptLoader::makeResult(WorkContext *context, btctools::tcpclient::Response *response)
 		{
 			string stat;
 

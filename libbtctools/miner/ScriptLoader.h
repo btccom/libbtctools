@@ -7,10 +7,10 @@ namespace btctools
 {
 	namespace miner
 	{
-		class ScannerHelper
+		class ScriptLoader
 		{
 		public:
-			ScannerHelper();
+			ScriptLoader(string scriptName);
 			void makeRequest(WorkContext *context);
 			void makeResult(WorkContext *context, btctools::tcpclient::Response *response);
 

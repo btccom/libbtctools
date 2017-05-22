@@ -11,10 +11,10 @@ namespace btctools
 	namespace miner
 	{
 
-		MinerConfigurator::MinerConfigurator(MinerSource &minerSource, int stepSize) :
+		MinerConfigurator::MinerConfigurator(MinerSource &minerSource, int stepSize, string scriptName) :
 			minerSource_(minerSource), stepSize_(stepSize),
 			yield_(nullptr), client_(nullptr),
-			sessionTimeout_(0)
+			sessionTimeout_(0), configuratorHelper_(scriptName)
 		{}
 
 		WorkContext *MinerConfigurator::newContext(Miner miner)

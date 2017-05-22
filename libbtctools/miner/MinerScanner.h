@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common.h"
-#include "ScannerHelper.h"
+#include "ScriptLoader.h"
 #include "../tcpclient/Client.h"
 #include "../utils/IpGenerator.h"
 
@@ -12,7 +12,8 @@ namespace btctools
 		class MinerScanner
 		{
 		public:
-			MinerScanner(btctools::utils::IpStrSource &ipSource, int stepSize);
+			MinerScanner(btctools::utils::IpStrSource &ipSource, int stepSize,
+				string scriptName = "ScannerHelper");
 			WorkContext *newContext(string ip);
 			MinerSource run(int sessionTimeout);
 			void run(MinerYield &yield, int sessionTimeout);
@@ -26,7 +27,7 @@ namespace btctools
 			btctools::utils::IpStrSource &ipSource_;
 			int stepSize_;
 			MinerYield *yield_;
-			ScannerHelper scannerHelper_;
+			ScriptLoader scannerHelper_;
 
 			int sessionTimeout_;
 		};

@@ -11,10 +11,10 @@ namespace btctools
 	namespace miner
 	{
 
-		MinerScanner::MinerScanner(IpStrSource &ipSource, int stepSize) :
+		MinerScanner::MinerScanner(IpStrSource &ipSource, int stepSize, string scriptName) :
 			ipSource_(ipSource), stepSize_(stepSize),
 			yield_(nullptr), client_(nullptr),
-			sessionTimeout_(0)
+			sessionTimeout_(0), scannerHelper_(scriptName)
 		{}
 
 		WorkContext *MinerScanner::newContext(string ip)
