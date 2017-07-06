@@ -1,5 +1,5 @@
 #include <iostream>
-#include <btctools/utils/IpGenerator.h>
+#include "utils/IpGenerator.h"
 #include <windows.h>
 
 using namespace std;

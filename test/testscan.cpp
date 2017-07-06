@@ -8,8 +8,9 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#include "tcpclient/all.hpp"
-#include "utils/IpGenerator.hpp"
+#include "tcpclient/Session.h"
+#include "tcpclient/Client.h"
+#include "utils/IpGenerator.h"
 #include <boost/regex.hpp>
 #include <windows.h>
 
@@ -44,7 +45,7 @@ void run(IpGenerator &ips, int sessionTimeout, int stepSize)
 {
 	RequestSource requestSource([&ips, &stepSize](RequestYield &requestYield)
 	{
-		StringSource ipSource = ips.genIpRange(stepSize);
+		IpStrSource ipSource = ips.genIpRange(stepSize);
 
 		for (auto ip : ipSource)
 		{
@@ -53,14 +54,17 @@ void run(IpGenerator &ips, int sessionTimeout, int stepSize)
 			// use CGMiner RPC: https://github.com/ckolivas/cgminer/blob/master/API-README
 			// the response of JSON styled calling {"command":"stats"} will responsed
 			// a invalid JSON string from Antminer S9, so call with plain text style.
-			Request *req = new Request(ip, "4028", "stats|");
+			Request *req = new Request;
+			req->host_ = ip;
+			req->port_ = 4028;
+			req->content_ = "stats|";
 			req->usrdata_ = req;
 
 			requestYield(req);
 		}
 	});
 
-	Client client(sessionTimeout);
+	Client client;
 	ResponseSource responseSource = client.run(requestSource);
 
 	for (auto response : responseSource)
