@@ -147,16 +147,71 @@ function scanner.doMakeResult(context, response, stat)
                     if (summary.elapsed ~= nil) then
                         miner:setOpt('elapsed', utils.formatTime(summary.elapsed, 'd :h :m :s '))
                     end
-                    
+					
                     if (summary.ghs5s ~= nil) then
                         miner:setOpt('hashrate_5s', summary.ghs5s .. ' GH/s')
+					elseif (summary.mhs5s ~= nil) then
+						miner:setOpt('hashrate_5s', summary.mhs5s .. ' MH/s')
                     end
                     
                     if (summary.ghsav ~= nil) then
                         miner:setOpt('hashrate_avg', summary.ghsav .. ' GH/s')
+					elseif (summary.mhsav ~= nil) then
+						miner:setOpt('hashrate_avg', summary.mhsav .. ' MH/s')
                     end
                 end
 
+				if (type(stats.devs) == 'table' and type(stats.devs[1]) == 'table') then
+					local opts = stats.devs[1]
+					local datas = utils.stringSplit(opts.freq, ',')
+					
+					for key,value in pairs(datas) do
+						if (key == 1) then
+							opts.freq = value
+						else
+							kv = utils.stringSplit(value, '=')
+							
+							if (#kv == 2) then
+								opts[kv[1]] = kv[2]
+							end
+						end
+					end
+					
+					if (opts['temp1'] ~= nil) then
+						local temp = {}
+						local i = 1
+						
+						while (opts['temp'..i] ~= nil) do
+							local value = tonumber(opts['temp'..i])
+							
+							if (type(value) == 'number' and value > 0) then
+								table.insert(temp, value)
+							end
+							
+							i = i + 1
+						end
+						
+						miner:setOpt('temperature', table.concat(temp, ' / '))
+					end
+					
+					if (opts['fan1'] ~= nil) then
+						local fan = {}
+						local i = 1
+						
+						while (opts['fan'..i] ~= nil) do
+							local value = tonumber(opts['fan'..i])
+							
+							if (type(value) == 'number' and value > 0) then
+								table.insert(fan, value)
+							end
+							
+							i = i + 1
+						end
+						
+						miner:setOpt('fan_speed', table.concat(fan, ' / '))
+					end
+
+				end
                 
                 -- make next request
                 local request = http.parseRequest(context:requestContent())
@@ -199,6 +254,12 @@ function scanner.doMakeResult(context, response, stat)
                     
                     if (obj.minertype ~= nil) then
                         miner:setFullTypeStr(obj.minertype)
+						
+						-- the hashrate unit of Antminer L3 and L3+ is MH/s
+						if (string.match(obj.minertype, 'Antminer L%d')) then
+							miner:setOpt('hashrate_5s', string.gsub(miner:opt('hashrate_5s'), ' GH/s',' MH/s'))
+							miner:setOpt('hashrate_avg', string.gsub(miner:opt('hashrate_avg'), ' GH/s',' MH/s'))
+						end
                     end
                     
                 end

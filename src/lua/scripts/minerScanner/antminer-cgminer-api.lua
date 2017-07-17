@@ -43,12 +43,23 @@ local parseMinerStats = function(jsonStr, miner, stat)
             if (type(stat) == "table" and type(stat[2]) == "table") then
                 local opts = stat[2]
                 
+				local hashrateUnit = ' GH/s'
+				
+				-- the hashrate unit of Antminer L3 and L3+ is MH/s
+				if (string.match(fullTypeStr, 'Antminer L%d')) then
+					hashrateUnit = ' MH/s'
+				end
+				
                 if (opts['GHS 5s'] ~= nil) then
-                    miner:setOpt('hashrate_5s', opts['GHS 5s']..' GH/s')
+                    miner:setOpt('hashrate_5s', opts['GHS 5s']..hashrateUnit)
+				elseif (opts['MHS 5s'] ~= nil) then
+					miner:setOpt('hashrate_5s', opts['MHS 5s']..' MH/s')
                 end
                 
                 if (opts['GHS av'] ~= nil) then
-                    miner:setOpt('hashrate_avg', opts['GHS av']..' GH/s')
+                    miner:setOpt('hashrate_avg', opts['GHS av']..hashrateUnit)
+				elseif (opts['MHS av'] ~= nil) then
+					miner:setOpt('hashrate_avg', opts['MHS av']..' MH/s')
                 end
                 
                 if (opts['temp1'] ~= nil) then
