@@ -188,13 +188,23 @@ namespace btctools
 			CryptoPP::AutoSeededRandomPool rng;
 			string encryptedData;
 
-			CryptoPP::RSAES_OAEP_SHA_Encryptor e(publicKey);
+			CryptoPP::RSAES<CryptoPP::OAEP<CryptoPP::SHA256>>::Encryptor e(publicKey);
 
-			CryptoPP::StringSource ss(data, true,
-				new CryptoPP::PK_EncryptorFilter(rng, e,
-					new CryptoPP::StringSink(encryptedData)
-				) // PK_EncryptorFilter
-			); // StringSource
+			int sectionLen = e.FixedMaxPlaintextLength();
+
+			for (int i = data.length(), j = 0; i > 0; i -= sectionLen, j += sectionLen)
+			{
+				string sectionData = data.substr(j, sectionLen);
+				string sectionEncData;
+
+				CryptoPP::StringSource ss(sectionData, true,
+					new CryptoPP::PK_EncryptorFilter(rng, e,
+						new CryptoPP::StringSink(sectionEncData)
+					) // PK_EncryptorFilter
+				); // StringSource
+
+				encryptedData += sectionEncData;
+			}
 
 			return std::move(encryptedData);
 		}
@@ -204,13 +214,23 @@ namespace btctools
 			CryptoPP::AutoSeededRandomPool rng;
 			string data;
 
-			CryptoPP::RSAES_OAEP_SHA_Decryptor d(privateKey);
+			CryptoPP::RSAES<CryptoPP::OAEP<CryptoPP::SHA256>>::Decryptor d(privateKey);
 
-			CryptoPP::StringSource ss4(encryptedData, true,
-				new CryptoPP::PK_DecryptorFilter(rng, d,
-					new CryptoPP::StringSink(data)
-				) // PK_DecryptorFilter
-			); // StringSource
+			int sectionLen = d.FixedCiphertextLength();
+
+			for (int i = encryptedData.length(), j = 0; i > 0; i -= sectionLen, j += sectionLen)
+			{
+				string sectionEncData = encryptedData.substr(j, sectionLen);
+				string sectionData;
+
+				CryptoPP::StringSource ss(sectionEncData, true,
+					new CryptoPP::PK_DecryptorFilter(rng, d,
+						new CryptoPP::StringSink(sectionData)
+					) // PK_DecryptorFilter
+				); // StringSource
+
+				data += sectionData;
+			}
 
 			return std::move(data);
 		}
@@ -220,7 +240,7 @@ namespace btctools
 			CryptoPP::AutoSeededRandomPool rng;
 			string signedData;
 
-			CryptoPP::RSASS<CryptoPP::PSSR, CryptoPP::SHA1>::Signer signer(privateKey);
+			CryptoPP::RSASS<CryptoPP::PSSR, CryptoPP::SHA256>::Signer signer(privateKey);
 
 			CryptoPP::StringSource ss(data, true,
 				new CryptoPP::SignerFilter(rng, signer,
@@ -236,7 +256,7 @@ namespace btctools
 		{
 			string data;
 
-			CryptoPP::RSASS<CryptoPP::PSSR, CryptoPP::SHA1>::Verifier verifier(publicKey);
+			CryptoPP::RSASS<CryptoPP::PSSR, CryptoPP::SHA256>::Verifier verifier(publicKey);
 
 			CryptoPP::StringSource ss(signedData, true,
 				new CryptoPP::SignatureVerificationFilter(

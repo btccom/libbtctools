@@ -45,12 +45,15 @@ namespace btctools
 
 			//You must set the keyLength 512, 1024, 2048 ...
 			static RsaKeyPair rsaGenerateKey(const unsigned int keyLength);
+
 			static string rsaPrivateKeyToString(const CryptoPP::RSA::PrivateKey &privateKey);
 			static string rsaPublicKeyToString(const CryptoPP::RSA::PublicKey &publicKey);
 			static CryptoPP::RSA::PrivateKey rsaStringToPrivateKey(const string &privateKeyStr);
 			static CryptoPP::RSA::PublicKey rsaStringToPublicKey(const string &publicKeyStr);
+
 			static string rsaPublicKeyEncrypt(const CryptoPP::RSA::PublicKey &publicKey, string data);
 			static string rsaPrivateKeyDecrypt(const CryptoPP::RSA::PrivateKey &privateKey, string encryptedData);
+
 			static string rsaPrivateKeySign(const CryptoPP::RSA::PrivateKey &privateKey, string data);
 			static string rsaPublicKeyVerify(const CryptoPP::RSA::PublicKey &publicKey, string signedData);
 
