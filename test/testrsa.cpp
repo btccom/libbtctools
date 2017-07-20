@@ -3,9 +3,14 @@
 #include <string>
 #include <iostream>  
 #include <btctools/utils/Crypto.h>
+#include <cryptopp/osrng.h>
+#include <cryptopp/pssr.h>
+#include <cryptopp/filters.h>
 
 using namespace std;
 using namespace CryptoPP;
+
+using Crypto = btctools::utils::Crypto;
   
 /***** STATIC VARIABLES *****/  
 static RSAES_OAEP_SHA_Encryptor g_Pub;
@@ -19,74 +24,70 @@ int main(int argc, char *argv[])
 {  
     try  
     {  
-        char Seed[1024], Message[1024], MessageSeed[1024];  
-        unsigned int KeyLength;  
-        btctools::utils::Crypto MyRSA;
-		HCRYPTPROV   hCryptProv;
+		////////////////////////////////////////////////
+		// Generate keys
+		AutoSeededRandomPool rng;
+
+		auto keyPair = Crypto::rsaGenerateKey(4096);
+		RSA::PrivateKey privateKey = keyPair.first;
+		RSA::PublicKey publicKey = keyPair.second;
+
+		string strPriv = Crypto::rsaPrivateKeyToString(privateKey);
+		RSA::PrivateKey Priv = Crypto::rsaStringToPrivateKey(strPriv);
+
+		cout << Crypto::bin2hex(strPriv) << endl;
+		cout << endl;
+		cout << Crypto::bin2hex(Crypto::hex2bin(Crypto::bin2hex(strPriv))) << endl;
+
+		////////////////////////////////////////////////
+		// Setup
+		string message = "RSA-PSSR Test", signature, recovered;
+
+		cout << message << endl;
+
+		////////////////////////////////////////////////
+		// Sign and Encode
+		signature = Crypto::rsaPrivateKeySign(privateKey, message);
+
+		cout << Crypto::bin2hex(signature) << endl;
+
+		   ////////////////////////////////////////////////
+		   // Verify and Recover
+		recovered = Crypto::rsaPublicKeyVerify(publicKey, signature);
+
+		cout << recovered << endl;
+
+		cout << "Verified signature on message" << endl;
+
+		/////////////////////////////////////////////////////////////////////////////////////////
 
 
-		if (CryptAcquireContext(
-			&hCryptProv,
-			NULL,
-			NULL,
-			PROV_RSA_FULL,
-			0))
+		////////////////////////////////////////////////
+
+		string plain = "RSA Encryption", cipher, rec2;
+
+		////////////////////////////////////////////////
+		// Encryption
+		cipher = Crypto::rsaPublicKeyEncrypt(publicKey, plain);
+
+		////////////////////////////////////////////////
+		// Decryption
+		rec2 = Crypto::rsaPrivateKeyDecrypt(Priv, cipher);
+
+		cout << plain << endl;
+		cout << rec2 << endl;
+
+		if (plain == rec2)
 		{
-			printf("CryptAcquireContext succeeded. \n");
-		}
-		else
-		{
-			printf("Error during CryptAcquireContext!\n");
-			return -1;
+			cout << "ok" << endl;
 		}
 
-		if (CryptGenRandom(hCryptProv, 1024, (BYTE*)Seed) && 
-		    CryptGenRandom(hCryptProv, 1024, (BYTE*)MessageSeed))
-		{
-			printf("get random data success\n");
-		}
-		else
-		{
-			printf("get random data failed\n");
-		}
 
-		if (CryptReleaseContext(hCryptProv, 0)) {
-			printf("The handle has been released.\n\n");
-		}
-		else {
-			printf("The handle could not be released.\n\n");
-		}
+		/////////////////////////////////////////////////////////////////////////////////////////
+		cout << "enter to exit" << endl;
 
-  
-        cout << "Key length in bits: ";  
-        cin >> KeyLength;  
-  
-        cout << "\nMessage: ";  
-        ws(cin);      
-        cin.getline(Message, 1024);      
-  
-        //MyRSA.rsaGenerateKey(KeyLength, Seed, g_Priv, g_Pub);  
-        MyRSA.rsaGenerateKey(KeyLength, Seed, g_strPriv, g_strPub);  
-  
-        //If generate key in RSAES_OAEP_SHA_Encryptor and RSAES_OAEP_SHA_Decryptor, please note four lines below  
-         
-        cout << "g_strPub = " << g_strPub << endl; 
-        cout << endl; 
-        cout << "g_strPriv = " << g_strPriv << endl; 
-        cout << endl; 
-        
-          
-        string Plaintext(Message);  
-        string Ciphertext;  
-        //MyRSA.rsaEncryptString(g_Pub, MessageSeed, Plaintext, Ciphertext);
-        MyRSA.rsaEncryptString(g_strPub, MessageSeed, Plaintext, Ciphertext);  
-        cout << "\nCiphertext: " << Ciphertext << endl;  
-        cout << endl;
-  
-		string Decrypted;  
-        //MyRSA.rsaDecryptString(g_Priv, Ciphertext, Decrypted);
-        MyRSA.rsaDecryptString(g_strPriv, Ciphertext, Decrypted);  
-        cout << "\nDecrypted: " << Decrypted << endl;  
+		char x[1];
+		cin.getline(x, 1);
 
         return 0;  
     }  

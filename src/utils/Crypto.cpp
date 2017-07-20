@@ -42,14 +42,14 @@ namespace btctools
 			return bin2hex(result, sizeof(result));
 		}
 
-		string Crypto::base64Encode(const string &str)
+		string Crypto::base64Encode(const string &str, bool insertLineBreaks)
 		{
-			CryptoPP::Base64Encoder encoder(NULL, false);
+			CryptoPP::Base64Encoder encoder(NULL, insertLineBreaks);
 
 			encoder.Put((const byte*)str.c_str(), str.size());
 			encoder.MessageEnd();
 
-			auto size = encoder.MaxRetrievable();
+			unsigned int size = (unsigned int) encoder.MaxRetrievable();
 			string encodedStr;
 
 			if (size)
@@ -68,7 +68,7 @@ namespace btctools
 			decoder.Put((const byte*)encodedStr.c_str(), encodedStr.size());
 			decoder.MessageEnd();
 
-			auto size = decoder.MaxRetrievable();
+			unsigned int size = (unsigned int) decoder.MaxRetrievable();
 			string str;
 
 			if (size)
@@ -100,104 +100,154 @@ namespace btctools
 			return std::move(strHex);
 		}
 
-		void Crypto::rsaGenerateKey(const unsigned int KeyLength, const char *Seed, CryptoPP::RSAES_OAEP_SHA_Decryptor &Priv, CryptoPP::RSAES_OAEP_SHA_Encryptor &Pub)
+		string Crypto::bin2hex(string bin, bool uppercase)
 		{
-			CryptoPP::RandomPool RandPool;
-			RandPool.IncorporateEntropy((byte *)Seed, strlen(Seed));
+			CryptoPP::HexEncoder encoder(NULL, uppercase);
 
-			//generate private key  
-			Priv = CryptoPP::RSAES_OAEP_SHA_Decryptor(RandPool, KeyLength);
+			encoder.Put((const byte*)bin.c_str(), bin.size());
+			encoder.MessageEnd();
 
-			//generate public key using private key  
-			Pub = CryptoPP::RSAES_OAEP_SHA_Encryptor(Priv);
-		}
+			unsigned int size = (unsigned int)encoder.MaxRetrievable();
+			string encodedStr;
 
-		void Crypto::rsaGenerateKey(const unsigned int KeyLength, const char *Seed, string &strPriv, string &strPub)
-		{
-			CryptoPP::RandomPool RandPool;
-			RandPool.IncorporateEntropy((byte *)Seed, strlen(Seed));
-
-			//generate private key  
-			CryptoPP::RSAES_OAEP_SHA_Decryptor Priv(RandPool, KeyLength);
-			CryptoPP::HexEncoder PrivateEncoder(new CryptoPP::StringSink(strPriv));//本博客作者加：就为了这句代码整整找了1天！  
-			Priv.DEREncode(PrivateEncoder);
-			PrivateEncoder.MessageEnd();
-
-			//generate public key using private key  
-			CryptoPP::RSAES_OAEP_SHA_Encryptor Pub(Priv);
-			CryptoPP::HexEncoder PublicEncoder(new CryptoPP::StringSink(strPub));
-			Pub.DEREncode(PublicEncoder);
-			PublicEncoder.MessageEnd();
-		}
-
-		void Crypto::rsaEncryptString(const CryptoPP::RSAES_OAEP_SHA_Encryptor &Pub, const char *Seed, const string &Plaintext, string &Ciphertext)
-		{
-			CryptoPP::RandomPool RandPool;
-			RandPool.IncorporateEntropy((byte *)Seed, strlen(Seed));
-
-			int MaxMsgLength = Pub.FixedMaxPlaintextLength();
-			for (int i = Plaintext.size(), j = 0; i > 0; i -= MaxMsgLength, j += MaxMsgLength)
+			if (size)
 			{
-				string PartPlaintext = Plaintext.substr(j, MaxMsgLength);
-				string PartCiphertext;
-				CryptoPP::StringSource(PartPlaintext, true, new CryptoPP::PK_EncryptorFilter(RandPool, Pub, new CryptoPP::HexEncoder(new CryptoPP::StringSink(PartCiphertext))));
-				Ciphertext += PartCiphertext;
+				encodedStr.resize(size);
+				encoder.Get((byte*)encodedStr.data(), encodedStr.size());
 			}
+
+			return std::move(encodedStr);
 		}
 
-		void Crypto::rsaEncryptString(const string &strPub, const char *Seed, const string &Plaintext, string &Ciphertext)
+		string Crypto::hex2bin(string hex)
 		{
-			CryptoPP::StringSource PublicKey(strPub, true, new CryptoPP::HexDecoder);
-			CryptoPP::RSAES_OAEP_SHA_Encryptor Pub(PublicKey);
+			CryptoPP::HexDecoder decoder;
 
-			CryptoPP::RandomPool RandPool;
-			RandPool.IncorporateEntropy((byte *)Seed, strlen(Seed));
+			decoder.Put((const byte*)hex.c_str(), hex.size());
+			decoder.MessageEnd();
 
-			int MaxMsgLength = Pub.FixedMaxPlaintextLength();
-			for (int i = Plaintext.size(), j = 0; i > 0; i -= MaxMsgLength, j += MaxMsgLength)
+			unsigned int size = (unsigned int)decoder.MaxRetrievable();
+			string str;
+
+			if (size)
 			{
-				string PartPlaintext = Plaintext.substr(j, MaxMsgLength);
-				string PartCiphertext;
-				CryptoPP::StringSource(PartPlaintext, true, new CryptoPP::PK_EncryptorFilter(RandPool, Pub, new CryptoPP::HexEncoder(new CryptoPP::StringSink(PartCiphertext))));
-				Ciphertext += PartCiphertext;
+				str.resize(size);
+				decoder.Get((byte*)str.data(), str.size());
 			}
+
+			return std::move(str);
 		}
 
-		void Crypto::rsaDecryptString(const CryptoPP::RSAES_OAEP_SHA_Decryptor &Priv, const string &Ciphertext, string &Plaintext)
+		RsaKeyPair Crypto::rsaGenerateKey(const unsigned int keyLength)
 		{
-			//indicate the ciphertext in hexcode  
-			int CiphertextLength = Priv.FixedCiphertextLength() * 2;
-			for (int i = Ciphertext.size(), j = 0; i > 0; i -= CiphertextLength, j += CiphertextLength)
-			{
-				string PartCiphertext = Ciphertext.substr(j, CiphertextLength);
-				string PartPlaintext;
-				CryptoPP::StringSource(PartCiphertext, true, new CryptoPP::HexDecoder(new CryptoPP::PK_DecryptorFilter(rsaRNG(), Priv, new CryptoPP::StringSink(PartPlaintext))));
-				Plaintext += PartPlaintext;
-			}
+			CryptoPP::AutoSeededRandomPool rng;
+			CryptoPP::InvertibleRSAFunction params;
+
+			params.GenerateRandomWithKeySize(rng, keyLength);
+
+			CryptoPP::RSA::PrivateKey privateKey(params);
+			CryptoPP::RSA::PublicKey publicKey(params);
+
+			return RsaKeyPair(std::move(privateKey), std::move(publicKey));
 		}
 
-		void Crypto::rsaDecryptString(const string &strPriv, const string &Ciphertext, string &Plaintext)
+		string Crypto::rsaPrivateKeyToString(const CryptoPP::RSA::PrivateKey &privateKey)
 		{
-			CryptoPP::StringSource PrivKey(strPriv, true, new CryptoPP::HexDecoder);
-			CryptoPP::RSAES_OAEP_SHA_Decryptor Priv(PrivKey);
-
-			//indicate the ciphertext in hexcode  
-			int CiphertextLength = Priv.FixedCiphertextLength() * 2;
-			for (int i = Ciphertext.size(), j = 0; i > 0; i -= CiphertextLength, j += CiphertextLength)
-			{
-				string PartCiphertext = Ciphertext.substr(j, CiphertextLength);
-				string PartPlaintext;
-				CryptoPP::StringSource(PartCiphertext, true, new CryptoPP::HexDecoder(new CryptoPP::PK_DecryptorFilter(rsaRNG(), Priv, new CryptoPP::StringSink(PartPlaintext))));
-				Plaintext += PartPlaintext;
-			}
+			string str;
+			privateKey.DEREncode(CryptoPP::StringSink(str));
+			return std::move(str);
 		}
 
-		CryptoPP::RandomPool & Crypto::rsaRNG(void)
+		string Crypto::rsaPublicKeyToString(const CryptoPP::RSA::PublicKey &publicKey)
 		{
-			return m_rsaRandPool;
+			string str;
+			publicKey.DEREncode(CryptoPP::StringSink(str));
+			return std::move(str);
 		}
 
-		CryptoPP::RandomPool Crypto::m_rsaRandPool;
+		CryptoPP::RSA::PrivateKey Crypto::rsaStringToPrivateKey(const string &privateKeyStr)
+		{
+			CryptoPP::StringSource privateKeySource(privateKeyStr, true);
+			CryptoPP::RSA::PrivateKey privateKey;
+
+			privateKey.BERDecode(privateKeySource);
+			return std::move(privateKey);
+		}
+
+		CryptoPP::RSA::PublicKey Crypto::rsaStringToPublicKey(const string &publicKeyStr)
+		{
+			CryptoPP::StringSource publicKeySource(publicKeyStr, true);
+			CryptoPP::RSA::PublicKey publicKey;
+
+			publicKey.BERDecode(publicKeySource);
+			return std::move(publicKey);
+		}
+
+		string Crypto::rsaPublicKeyEncrypt(const CryptoPP::RSA::PublicKey &publicKey, string data)
+		{
+			CryptoPP::AutoSeededRandomPool rng;
+			string encryptedData;
+
+			CryptoPP::RSAES_OAEP_SHA_Encryptor e(publicKey);
+
+			CryptoPP::StringSource ss(data, true,
+				new CryptoPP::PK_EncryptorFilter(rng, e,
+					new CryptoPP::StringSink(encryptedData)
+				) // PK_EncryptorFilter
+			); // StringSource
+
+			return std::move(encryptedData);
+		}
+
+		string Crypto::rsaPrivateKeyDecrypt(const CryptoPP::RSA::PrivateKey &privateKey, string encryptedData)
+		{
+			CryptoPP::AutoSeededRandomPool rng;
+			string data;
+
+			CryptoPP::RSAES_OAEP_SHA_Decryptor d(privateKey);
+
+			CryptoPP::StringSource ss4(encryptedData, true,
+				new CryptoPP::PK_DecryptorFilter(rng, d,
+					new CryptoPP::StringSink(data)
+				) // PK_DecryptorFilter
+			); // StringSource
+
+			return std::move(data);
+		}
+
+		string Crypto::rsaPrivateKeySign(const CryptoPP::RSA::PrivateKey &privateKey, string data)
+		{
+			CryptoPP::AutoSeededRandomPool rng;
+			string signedData;
+
+			CryptoPP::RSASS<CryptoPP::PSSR, CryptoPP::SHA1>::Signer signer(privateKey);
+
+			CryptoPP::StringSource ss(data, true,
+				new CryptoPP::SignerFilter(rng, signer,
+					new CryptoPP::StringSink(signedData),
+					true // putMessage for recovery
+				) // SignerFilter
+			); // StringSource
+
+			return std::move(signedData);
+		}
+
+		string Crypto::rsaPublicKeyVerify(const CryptoPP::RSA::PublicKey &publicKey, string signedData)
+		{
+			string data;
+
+			CryptoPP::RSASS<CryptoPP::PSSR, CryptoPP::SHA1>::Verifier verifier(publicKey);
+
+			CryptoPP::StringSource ss(signedData, true,
+				new CryptoPP::SignatureVerificationFilter(
+					verifier,
+					new CryptoPP::StringSink(data),
+					CryptoPP::HashVerificationFilter::Flags::THROW_EXCEPTION | CryptoPP::HashVerificationFilter::Flags::PUT_MESSAGE
+				) // SignatureVerificationFilter
+			); // StringSource
+
+			return std::move(data);
+		}
 
 	} // namespace utils
 } // namespace btctools
