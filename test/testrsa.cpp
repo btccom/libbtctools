@@ -1,7 +1,7 @@
 #include <windows.h>
 #include <wincrypt.h>
 #include <string>
-#include <iostream>  
+#include <iostream>
 #include <btctools/utils/Crypto.h>
 #include <cryptopp/osrng.h>
 #include <cryptopp/pssr.h>
@@ -12,14 +12,6 @@ using namespace CryptoPP;
 
 using Crypto = btctools::utils::Crypto;
   
-/***** STATIC VARIABLES *****/  
-static RSAES_OAEP_SHA_Encryptor g_Pub;
-static RSAES_OAEP_SHA_Decryptor g_Priv;
-static string g_strPub;  
-static string g_strPriv;  
-
-/* the code copied from <http://blog.csdn.net/phker/article/details/5056288> */
-
 int main(int argc, char *argv[])  
 {  
     try  
@@ -84,12 +76,7 @@ int main(int argc, char *argv[])
 
 
 		/////////////////////////////////////////////////////////////////////////////////////////
-		cout << "enter to exit" << endl;
 
-		char x[1];
-		cin.getline(x, 1);
-
-        return 0;  
     }  
     catch(CryptoPP::Exception const &e)  
     {  
@@ -100,6 +87,16 @@ int main(int argc, char *argv[])
     {  
         cout << "\nstd::exception caught: " << e.what() << endl;  
         return -2;  
-    }  
-    return -3;  
+    }
+	catch (...)
+	{
+		cout << "\nunknown exception caught." << endl;
+		return -3;
+	}
+
+	cout << "enter to exit" << endl;
+
+	char x[1];
+	cin.getline(x, 1);
+    return 0;  
 }

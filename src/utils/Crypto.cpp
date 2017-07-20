@@ -154,14 +154,14 @@ namespace btctools
 		string Crypto::rsaPrivateKeyToString(const CryptoPP::RSA::PrivateKey &privateKey)
 		{
 			string str;
-			privateKey.DEREncode(CryptoPP::StringSink(str));
+			privateKey.DEREncodePrivateKey(CryptoPP::StringSink(str));
 			return std::move(str);
 		}
 
 		string Crypto::rsaPublicKeyToString(const CryptoPP::RSA::PublicKey &publicKey)
 		{
 			string str;
-			publicKey.DEREncode(CryptoPP::StringSink(str));
+			publicKey.DEREncodePublicKey(CryptoPP::StringSink(str));
 			return std::move(str);
 		}
 
@@ -170,7 +170,7 @@ namespace btctools
 			CryptoPP::StringSource privateKeySource(privateKeyStr, true);
 			CryptoPP::RSA::PrivateKey privateKey;
 
-			privateKey.BERDecode(privateKeySource);
+			privateKey.BERDecodePrivateKey(privateKeySource, false, privateKeyStr.size());
 			return std::move(privateKey);
 		}
 
@@ -179,7 +179,7 @@ namespace btctools
 			CryptoPP::StringSource publicKeySource(publicKeyStr, true);
 			CryptoPP::RSA::PublicKey publicKey;
 
-			publicKey.BERDecode(publicKeySource);
+			publicKey.BERDecodePublicKey(publicKeySource, false, publicKeyStr.size());
 			return std::move(publicKey);
 		}
 

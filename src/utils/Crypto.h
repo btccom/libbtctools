@@ -41,6 +41,7 @@ namespace btctools
 
 			//******* the RSA code referrered from <https://www.cryptopp.com/wiki/RSA_Signature_Schemes> *******
 			//******* and <https://www.cryptopp.com/wiki/RSA_Encryption_Schemes> *******
+			//******* See also: Keys and Formats <https://www.cryptopp.com/wiki/Keys_and_Formats> *******
 
 			//You must set the keyLength 512, 1024, 2048 ...
 			static RsaKeyPair rsaGenerateKey(const unsigned int keyLength);

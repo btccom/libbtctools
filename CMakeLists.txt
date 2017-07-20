@@ -65,6 +65,9 @@ message("-- disable SAFESEH")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SAFESEH:NO")
 message("CMAKE_EXE_LINKER_FLAGS=${CMAKE_EXE_LINKER_FLAGS}")
 
+
+###################### library ######################
+
 ###
 # build: libbtctools
 ###
@@ -80,6 +83,8 @@ set(TESTS_LIBRARIES libbtctools lua51 cryptlib ws2_32)
 # build: tests
 ###
 include_directories(src)
+
+###################### test utils ######################
 
 # testscan
 add_executable(testscan test/testscan.cpp)
@@ -100,3 +105,11 @@ target_link_libraries(testutils ${TESTS_LIBRARIES})
 # testrsa
 add_executable(testrsa test/testrsa.cpp)
 target_link_libraries(testrsa ${TESTS_LIBRARIES})
+
+###################### toolkits ######################
+
+# make-rsa-keys
+add_executable(make-rsa-keys toolkits/make-rsa-keys.cpp)
+target_link_libraries(make-rsa-keys ${TESTS_LIBRARIES})
+
+
