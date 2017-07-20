@@ -112,4 +112,6 @@ target_link_libraries(testrsa ${TESTS_LIBRARIES})
 add_executable(make-rsa-keys toolkits/make-rsa-keys.cpp)
 target_link_libraries(make-rsa-keys ${TESTS_LIBRARIES})
 
-
+# rsatools
+add_executable(rsatools toolkits/rsatools.cpp)
+target_link_libraries(rsatools ${TESTS_LIBRARIES})
