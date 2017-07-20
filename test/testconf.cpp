@@ -8,6 +8,8 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
+#define CRYPTOPP_ENABLE_NAMESPACE_WEAK 1
+
 #include <cryptopp/md5.h>
 #include "miner/common.h"
 #include "miner/MinerScanner.h"

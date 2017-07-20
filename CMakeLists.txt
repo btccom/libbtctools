@@ -49,6 +49,16 @@ else()
 endif()
 
 ###
+# define NT version
+###
+message("-- define NT version")
+set(CompilerFlags CMAKE_CXX_FLAGS_DEBUG CMAKE_C_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE CMAKE_C_FLAGS_RELEASE)
+foreach(CompilerFlag ${CompilerFlags})
+  set(${CompilerFlag} "${${CompilerFlag}} -D_WIN32_WINNT=0x0501")
+  message("${CompilerFlag}=${${CompilerFlag}}")
+endforeach()
+
+###
 # disable SAFESEH
 ###
 message("-- disable SAFESEH")
@@ -79,10 +89,14 @@ target_link_libraries(testscan ${TESTS_LIBRARIES})
 add_executable(testconf test/testconf.cpp)
 target_link_libraries(testconf ${TESTS_LIBRARIES})
 
-# testconf
+# testmain
 add_executable(testmain test/testmain.cpp)
 target_link_libraries(testmain ${TESTS_LIBRARIES})
 
-# testconf
+# testutils
 add_executable(testutils test/testutils.cpp)
 target_link_libraries(testutils ${TESTS_LIBRARIES})
+
+# testrsa
+add_executable(testrsa test/testrsa.cpp)
+target_link_libraries(testrsa ${TESTS_LIBRARIES})
