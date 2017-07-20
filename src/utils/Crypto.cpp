@@ -42,9 +42,9 @@ namespace btctools
 			return bin2hex(result, sizeof(result));
 		}
 
-		string Crypto::base64Encode(const string &str, bool insertLineBreaks)
+		string Crypto::base64Encode(const string &str, bool insertLineBreaks, int maxLineLength)
 		{
-			CryptoPP::Base64Encoder encoder(NULL, insertLineBreaks);
+			CryptoPP::Base64Encoder encoder(NULL, insertLineBreaks, maxLineLength);
 
 			encoder.Put((const byte*)str.c_str(), str.size());
 			encoder.MessageEnd();

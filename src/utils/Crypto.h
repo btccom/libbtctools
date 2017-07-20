@@ -31,7 +31,7 @@ namespace btctools
 			static string sha1(const string &str);
 			static string sha256(const string &str);
 
-			static string base64Encode(const string &str, bool insertLineBreaks = false);
+			static string base64Encode(const string &str, bool insertLineBreaks = false, int maxLineLength = 72);
 			static string base64Decode(const string &encodedStr);
 
 			static string bin2hex(const byte bArray[], int bArray_len);

@@ -30,11 +30,11 @@ int main(int argc, char *argv[])
 
 		string privRaw = Crypto::rsaPrivateKeyToString(privateKey);
 		string privHex = Crypto::bin2hex(privRaw);
-		string privBase64 = Crypto::base64Encode(privRaw, true);
+		string privBase64 = Crypto::base64Encode(privRaw, true, 64);
 
 		string pubRaw = Crypto::rsaPublicKeyToString(publicKey);
 		string pubHex = Crypto::bin2hex(pubRaw);
-		string pubBase64 = Crypto::base64Encode(pubRaw, true);
+		string pubBase64 = Crypto::base64Encode(pubRaw, true, 64);
 
 		// private key
 
@@ -46,6 +46,11 @@ int main(int argc, char *argv[])
 		privHexFile.write(privHex.c_str(), privHex.size());
 		privHexFile.close();
 
+		/*
+		* Run the command to convert RSA private key to pkcs8 private key if you need:
+		*
+		* openssl pkcs8 -topk8 -inform PEM -in private-key.pem -outform PEM -nocrypt -out private-key-php.pem
+		*/
 		std::ofstream privPemFile("./private-key.pem", std::ios::binary);
 		privPemFile.write(privKeyBegin, strlen(privKeyBegin));
 		privPemFile.write(privBase64.c_str(), privBase64.size());
@@ -55,17 +60,17 @@ int main(int argc, char *argv[])
 		// public key
 
 		std::ofstream pubRawFile("./public-key-raw.dat", std::ios::binary);
-		pubRawFile.write(privRaw.c_str(), pubRaw.size());
+		pubRawFile.write(pubRaw.c_str(), pubRaw.size());
 		pubRawFile.close();
 
 		std::ofstream pubHexFile("./public-key-hex.txt", std::ios::binary);
-		pubHexFile.write(privHex.c_str(), pubHex.size());
+		pubHexFile.write(pubHex.c_str(), pubHex.size());
 		pubHexFile.close();
 
 		/*
 		* Run the command to convert RSA public key to SSL public key so OpenSSL can load it:
 		*
-		* openssl rsa -in public-key.pem -RSAPublicKey_in -pubout
+		* openssl rsa -in public-key.pem -RSAPublicKey_in -pubout -out public-key-openssl.pem
 		*/
 		std::ofstream pubPemFile("./public-key.pem", std::ios::binary);
 		pubPemFile.write(pubKeyBegin, strlen(pubKeyBegin));
