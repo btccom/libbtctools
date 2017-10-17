@@ -112,4 +112,54 @@ function utils.formatTime(secs, format)
 	return time_str 
 end
 
+function utils.print(data, showMetatable, lastCount)
+    if type(data) ~= "table" then
+        --Value
+        if type(data) == "string" then
+            io.write("\"", data, "\"")
+        else
+            io.write(tostring(data))
+        end
+    else
+        --Format
+        local count = lastCount or 0
+        count = count + 1
+        io.write("{\n")
+        --Metatable
+        if showMetatable then
+            for i = 1,count do 
+                io.write("\t") 
+            end
+            local mt = getmetatable(data)
+            io.write("\"__metatable\" = ")
+            utils.print(mt, showMetatable, count)
+            io.write(",\n")
+        end
+        --Key
+        for key,value in pairs(data) do
+            for i = 1,count do 
+                io.write("\t") 
+            end
+            if type(key) == "string" then
+                io.write("\"", key, "\" = ")
+            elseif type(key) == "number" then
+                io.write("[", key, "] = ")
+            else
+                io.write(tostring(key))
+            end
+            utils.print(value, showMetatable, count)
+            io.write(",\n")
+        end
+        --Format
+        for i = 1,lastCount or 0 do 
+            io.write("\t") 
+        end
+            io.write("}")
+    end
+    --Format
+    if not lastCount then
+        io.write("\n")
+    end
+end
+
 return utils

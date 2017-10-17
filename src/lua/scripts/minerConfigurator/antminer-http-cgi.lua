@@ -89,8 +89,11 @@ function configurator.doMakeResult(context, response, stat)
             formKeysJsonStr = '[' .. string.gsub(formKeysJsonStr, "([a-zA-Z0-9_-]+):[a-zA-Z0-9_-]+", '"%1"') .. ']'
             local newFormKeys, pos, err = utils.jsonDecode (formKeysJsonStr)
             
-            if not (err) then
+            if (not err) and (type(newFormKeys) == "table") and (#newFormKeys >= #formKeys) then
                 formKeys = newFormKeys
+            else
+                print("inexpectant newFormKeys:")
+                utils.print(formKeys)
             end
             
             -- All known form params from Antminer S4 to S9
