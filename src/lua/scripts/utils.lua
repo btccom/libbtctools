@@ -30,6 +30,7 @@ function utils.jsonDecode(jsonStr)
 end
 
 function utils.urlEncode(s)
+    s = tostring(s)
     s = string.gsub(s, "([^%w%.%- _])", function(c) return string.format("%%%02X", string.byte(c)) end)
     return string.gsub(s, " ", "+")
 end
