@@ -163,4 +163,41 @@ function utils.print(data, showMetatable, lastCount)
     end
 end
 
+function utils.parseLoginPasswords(passwordListStr)
+    passwordList = {}
+    passwordLines = utils.stringSplit(passwordListStr, '&')
+
+    for _, line in ipairs(passwordLines) do      
+        passwordItems = utils.stringSplit(line, ':')
+
+        if (#passwordItems == 3) then
+            passwordRecord = {
+                minerType = Crypto.base64Decode(passwordItems[1]),
+                userName = Crypto.base64Decode(passwordItems[2]),
+                password = Crypto.base64Decode(passwordItems[3])
+            }
+
+            table.insert(passwordList, passwordRecord)
+        end
+    end
+
+    return passwordList
+end
+
+-- read & parse the password from OOLuaHelper
+-- it will be used by utils.getMinerLoginPassword(minerType)
+local LOGIN_PASSWORDS = utils.parseLoginPasswords(OOLuaHelper.opt("login.minerPasswords"))
+
+function utils.getMinerLoginPassword(minerType)
+    for _, record in ipairs(LOGIN_PASSWORDS) do
+        pos = string.find(string.lower(minerType), string.lower(record.minerType))
+
+        if (pos ~= nil) then
+            return record
+        end
+    end
+
+    return nil
+end
+
 return utils

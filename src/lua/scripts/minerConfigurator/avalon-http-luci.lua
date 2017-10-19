@@ -11,22 +11,28 @@ function configurator.doMakeRequest(context)
     context:setCanYield(true)
 
     if (step == "begin") then
-        local request = {
-			method = 'POST',
-			host = ip,
-			path = '/cgi-bin/luci/avalon/page/index',
-            body = 'username=root&password=',
-            headers = {
-                ['Content-Type'] = 'application/x-www-form-urlencoded'
-            }
-		}
-		
-		context:setRequestHost(ip)
-		context:setRequestPort("80")
-		context:setRequestContent(http.makeRequest(request))
-		context:setStepName("login")
-        miner:setStat('login...')
+        loginPassword = utils.getMinerLoginPassword(miner:fullTypeStr())
         
+        if (loginPassword == nil) then
+            context:setStepName("end")
+            context:miner():setStat("require password")
+        else
+            local request = {
+		    	method = 'POST',
+		    	host = ip,
+		    	path = '/cgi-bin/luci/avalon/page/index',
+                body = 'username='..loginPassword.userName..'&password='..loginPassword.password,
+                headers = {
+                    ['Content-Type'] = 'application/x-www-form-urlencoded'
+                }
+		    }
+        
+		    context:setRequestHost(ip)
+		    context:setRequestPort("80")
+		    context:setRequestContent(http.makeRequest(request))
+		    context:setStepName("login")
+            miner:setStat('login...')
+        end
     elseif (step == "updateConfig") then
         local cookie = miner:opt('cookie')
         local stok = miner:opt('stok')

@@ -147,15 +147,22 @@ function configurator.doMakeResult(context, response, stat)
             request.headers['Content-Type'] = 'application/x-www-form-urlencoded'
             request.body = utils.makeUrlQueryString(formParams, formKeys)
             
-            local requestContent, err = http.makeAuthRequest(request, response, 'root', 'root')
+            loginPassword = utils.getMinerLoginPassword(miner:fullTypeStr())
+            
+            if (loginPassword == nil) then
+                context:setStepName("end")
+                context:miner():setStat("require password")
+            else
+                local requestContent, err = http.makeAuthRequest(request, response, loginPassword.userName, loginPassword.password)
         
-			if (err) then
-				context:setStepName("end")
-				context:miner():setStat('failed: ' .. err)
-			else
-				context:setStepName("setMinerConf")
-				context:setRequestContent(requestContent)
-			end
+			    if (err) then
+			    	context:setStepName("end")
+			    	context:miner():setStat('failed: ' .. err)
+			    else
+			    	context:setStepName("setMinerConf")
+			    	context:setRequestContent(requestContent)
+                end
+            end
 		end
     elseif (step == "parseResult") then
         if (response.statCode == "401") then
