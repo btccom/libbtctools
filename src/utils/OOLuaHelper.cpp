@@ -35,6 +35,7 @@ namespace btctools
 	{
 		string OOLuaHelper::packagePath_ = ".";
 		ScriptLoader *OOLuaHelper::scriptLoader_ = nullptr;
+		stringMap OOLuaHelper::opts_;
 
 		void OOLuaHelper::setPackagePath(const string &packagePath)
 		{
@@ -51,12 +52,17 @@ namespace btctools
 			script.register_class<Pool>();
 			script.register_class<Miner>();
 			script.register_class<WorkContext>();
+
 			script.register_class<Crypto>();
 			script.register_class_static<Crypto>("md5", &OOLUA::Proxy_class<Crypto>::md5);
 			script.register_class_static<Crypto>("sha1", &OOLUA::Proxy_class<Crypto>::sha1);
 			script.register_class_static<Crypto>("sha256", &OOLUA::Proxy_class<Crypto>::sha256);
 			script.register_class_static<Crypto>("base64Encode", &OOLUA::Proxy_class<Crypto>::base64Encode);
 			script.register_class_static<Crypto>("base64Decode", &OOLUA::Proxy_class<Crypto>::base64Decode);
+			
+			script.register_class<OOLuaHelper>();
+			script.register_class_static<OOLuaHelper>("opt", &OOLUA::Proxy_class<OOLuaHelper>::opt);
+			script.register_class_static<OOLuaHelper>("setOpt", &OOLUA::Proxy_class<OOLuaHelper>::setOpt);
 
 			OOLUA::Table package;
 			OOLUA::get_global(script, "package", package);
@@ -66,7 +72,6 @@ namespace btctools
 
 			if (scriptLoader_ != nullptr)
 			{
-				script.register_class<OOLuaHelper>();
 				script.register_class_static<OOLuaHelper>("loadScript", &OOLUA::Proxy_class<OOLuaHelper>::loadScript);
 
 				script.run_chunk(
@@ -136,6 +141,23 @@ namespace btctools
 			{
 				result.set("errmsg", " script loader is empty!");
 			}
+		}
+
+		string OOLuaHelper::opt(const string &key)
+		{
+			if (opts_.count(key))
+			{
+				return opts_.at(key);
+			}
+			else
+			{
+				return string("");
+			}
+		}
+
+		void OOLuaHelper::setOpt(const string &key, const string &value)
+		{
+			opts_[key] = value;
 		}
 
 	} // namespace utils

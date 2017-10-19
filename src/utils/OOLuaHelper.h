@@ -1,10 +1,14 @@
 #pragma once
 
 #include <string>
+#include <map>
 #include <functional>
 #include "../lua/oolua/oolua.h"
 #include "../miner/common.h"
 #include "Crypto.h"
+
+using string = std::string;
+using stringMap = std::map<string, string>;
 
 /** struct Pool */
 OOLUA_PROXY(btctools::miner::Pool)
@@ -82,11 +86,15 @@ namespace btctools
 			static void setScriptLoader(ScriptLoader &loader);
 			static void exportAll(OOLUA::Script &script);
 			static bool runFile(OOLUA::Script &script, const string &name);
+			
 			static void loadScript(const string &name, OOLUA::Table &result);
+			static string opt(const string &key);
+			static void setOpt(const string &key, const string &value);
 
 		private:
 			static string packagePath_;
 			static ScriptLoader *scriptLoader_;
+			static stringMap opts_;
 		}; // class end
 
 	} // namespace utils
@@ -96,4 +104,6 @@ namespace btctools
 OOLUA_PROXY(btctools::utils::OOLuaHelper)
 	OOLUA_TAGS(No_public_constructors)
 	OOLUA_SFUNC(loadScript)
+	OOLUA_SFUNC(opt)
+	OOLUA_SFUNC(setOpt)
 OOLUA_PROXY_END
