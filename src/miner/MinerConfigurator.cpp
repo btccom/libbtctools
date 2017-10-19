@@ -119,6 +119,10 @@ namespace btctools
 			client_ = nullptr;
 		}
 
+		void MinerConfigurator::stop()
+		{
+			client_->stop();
+		}
 
 		void MinerConfigurator::doNextWork()
 		{

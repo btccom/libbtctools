@@ -16,6 +16,7 @@ namespace btctools
 			WorkContext *newContext(Miner miner);
 			MinerSource run(int sessionTimeout);
 			void run(MinerYield &yield, int sessionTimeout);
+			void stop();
 
 		protected:
 			void doNextWork();

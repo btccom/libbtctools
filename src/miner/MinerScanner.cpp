@@ -118,6 +118,10 @@ namespace btctools
 			client_ = nullptr;
 		}
 
+		void MinerScanner::stop()
+		{
+			client_->stop();
+		}
 
 		void MinerScanner::doNextWork()
 		{
