@@ -117,6 +117,10 @@ local parseAvalonPools = function (html, context)
         if (worker ~= nil) then pool3:setWorker(worker) end
         if (passwd ~= nil) then pool3:setPasswd(passwd) end
         
+        -- ntp service
+        ntpEnable = string.match(html, 'id="cbi%-cgminer%-default%-ntp_enable%-[^"]-"%s+value="([^"]-)"%s+selected="selected"')
+        if (ntpEnable ~= nil) then miner:setOpt('luci.config.cgminer.ntp_enable', ntpEnable) end
+
     else
 		miner:setStat("parse pools failed")
     end

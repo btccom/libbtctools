@@ -43,6 +43,7 @@ function configurator.doMakeRequest(context)
         
         local formParams = {
             ['cbi.submit'] = '1',
+            ['cbid.cgminer.default.ntp_enable'] = miner:opt('luci.config.cgminer.ntp_enable') or 'disable',
             ['cbid.cgminer.default.pool1url'] = pool1:url(),
             ['cbid.cgminer.default.pool1user'] = pool1:worker(),
             ['cbid.cgminer.default.pool1pw'] = pool1:passwd(),
@@ -180,7 +181,7 @@ function configurator.doMakeResult(context, response, stat)
             local times = tonumber(miner:opt('check-restart-finish-times'))
             
             if (times > 20) then
-                miner:setStat("wait finish timeout")
+                miner:setStat("ok") -- the restarting will be done in a few seconds
                 context:setStepName("end")
             else
                 miner:setOpt('check-restart-finish-times', tostring(times + 1))
