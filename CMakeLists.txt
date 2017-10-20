@@ -115,3 +115,6 @@ target_link_libraries(make-rsa-keys ${TESTS_LIBRARIES})
 # rsatools
 add_executable(rsatools toolkits/rsatools.cpp)
 target_link_libraries(rsatools ${TESTS_LIBRARIES})
+
+# disable IOCP
+add_definitions(-DBOOST_ASIO_DISABLE_IOCP)
