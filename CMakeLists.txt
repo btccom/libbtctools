@@ -36,13 +36,16 @@ if(BTCTOOLS__STATIC_LINKING_VC_LIB)
   endforeach()
   
   # release mode
-  set(CompilerFlags CMAKE_CXX_FLAGS_RELEASE CMAKE_C_FLAGS_RELEASE)
+  set(CompilerFlags CMAKE_CXX_FLAGS_RELEASE CMAKE_C_FLAGS_RELEASE
+                    CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_C_FLAGS_MINSIZEREL
+					CMAKE_CXX_FLAGS_RELWITHDEBINFO CMAKE_C_FLAGS_RELWITHDEBINFO)
   foreach(CompilerFlag ${CompilerFlags})
     string(REPLACE "/MDd" "" ${CompilerFlag} "${${CompilerFlag}}")
     string(REPLACE "/MD" "" ${CompilerFlag} "${${CompilerFlag}}")
     set(${CompilerFlag} "${${CompilerFlag}} /MT")
     message("${CompilerFlag}=${${CompilerFlag}}")
   endforeach()
+ 
 else()
   message("-- Dynamic linking VC++ runtime library (/MD).")
   message("(-DBTCTOOLS__STATIC_LINKING_VC_LIB=ON switching to static linking.)")
@@ -51,12 +54,14 @@ endif()
 ###
 # define NT version
 ###
-message("-- define NT version")
-set(CompilerFlags CMAKE_CXX_FLAGS_DEBUG CMAKE_C_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE CMAKE_C_FLAGS_RELEASE)
-foreach(CompilerFlag ${CompilerFlags})
-  set(${CompilerFlag} "${${CompilerFlag}} -D_WIN32_WINNT=0x0501")
-  message("${CompilerFlag}=${${CompilerFlag}}")
-endforeach()
+message("-- define NT version: -D_WIN32_WINNT=0x0501")
+add_definitions(-D_WIN32_WINNT=0x0501)
+
+###
+# disable IOCP
+###
+add_definitions(-DBOOST_ASIO_DISABLE_IOCP)
+
 
 ###
 # disable SAFESEH
@@ -84,27 +89,27 @@ set(TESTS_LIBRARIES libbtctools lua51 cryptlib ws2_32)
 ###
 include_directories(src)
 
-###################### test utils ######################
+###################### demos ######################
 
-# testscan
-add_executable(testscan test/testscan.cpp)
-target_link_libraries(testscan ${TESTS_LIBRARIES})
+# scanMinerDemo
+add_executable(scanMinerDemo demo/scanMinerDemo.cpp)
+target_link_libraries(scanMinerDemo ${TESTS_LIBRARIES})
 
-# testconf
-add_executable(testconf test/testconf.cpp)
-target_link_libraries(testconf ${TESTS_LIBRARIES})
+# configMinerDemo
+add_executable(configMinerDemo demo/configMinerDemo.cpp)
+target_link_libraries(configMinerDemo ${TESTS_LIBRARIES})
 
-# testmain
-add_executable(testmain test/testmain.cpp)
-target_link_libraries(testmain ${TESTS_LIBRARIES})
+# tcpClientDemo
+add_executable(tcpClientDemo demo/tcpClientDemo.cpp)
+target_link_libraries(tcpClientDemo ${TESTS_LIBRARIES})
 
-# testutils
-add_executable(testutils test/testutils.cpp)
-target_link_libraries(testutils ${TESTS_LIBRARIES})
+# ipGeneratorDemo
+add_executable(ipGeneratorDemo demo/ipGeneratorDemo.cpp)
+target_link_libraries(ipGeneratorDemo ${TESTS_LIBRARIES})
 
-# testrsa
-add_executable(testrsa test/testrsa.cpp)
-target_link_libraries(testrsa ${TESTS_LIBRARIES})
+# cryptoRSADemo
+add_executable(cryptoRSADemo demo/cryptoRSADemo.cpp)
+target_link_libraries(cryptoRSADemo ${TESTS_LIBRARIES})
 
 ###################### toolkits ######################
 
@@ -115,6 +120,3 @@ target_link_libraries(make-rsa-keys ${TESTS_LIBRARIES})
 # rsatools
 add_executable(rsatools toolkits/rsatools.cpp)
 target_link_libraries(rsatools ${TESTS_LIBRARIES})
-
-# disable IOCP
-add_definitions(-DBOOST_ASIO_DISABLE_IOCP)

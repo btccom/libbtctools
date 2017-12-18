@@ -56,9 +56,11 @@ void run(IpGenerator &ips, int sessionTimeout, int stepSize)
 			// a invalid JSON string from Antminer S9, so call with plain text style.
 			Request *req = new Request;
 			req->host_ = ip;
-			req->port_ = 4028;
+			req->port_ = "4028";
 			req->content_ = "stats|";
 			req->usrdata_ = req;
+			req->session_timeout_ = 3;
+			req->delay_timeout_ = 0;
 
 			requestYield(req);
 		}
@@ -112,8 +114,8 @@ int main(int argc, char* argv[])
 {
 	try
 	{
-		IpGenerator ips("192.168.20.0-192.168.255.255");
-		run(ips, 1, 256);
+		IpGenerator ips("192.168.200.0-192.168.255.255");
+		run(ips, 1, 50);
 	}
 	catch (std::exception& e)
 	{
