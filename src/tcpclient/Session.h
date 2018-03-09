@@ -17,8 +17,8 @@ namespace btctools
 			void run(Request *request, int session_timeout);
 			void run(Request * request, int session_timeout, int delay_timeout);
 			void setTimeout(int timeout);
-			void writeContent();
-			void readContent();
+			void writeContentTCP();
+			void readContentTCP();
 			void writeContentSSL();
 			void readContentSSL();
 			void clean();
@@ -29,7 +29,7 @@ namespace btctools
 
 			bool running_;
 
-			boost::asio::ip::tcp::socket *socket_;
+			boost::asio::ip::tcp::socket *socketTCP_;
 			boost::asio::ssl::stream<boost::asio::ip::tcp::socket> *socketSSL_;
 			Request *request_;
 			Response *response_;

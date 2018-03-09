@@ -9,7 +9,7 @@ namespace btctools
     {
         
 		Session::Session(boost::asio::io_service &io_service, ResponseYield &responseYield)
-			:socket_(nullptr), socketSSL_(nullptr),
+			:socketTCP_(nullptr), socketSSL_(nullptr),
 			request_(nullptr), response_(nullptr),
 			running_(false), buffer_(nullptr),
 			session_timer_(nullptr), delay_timer_(nullptr),
@@ -35,10 +35,10 @@ namespace btctools
 				delay_timer_ = nullptr;
 			}
 
-			if (socket_ != nullptr)
+			if (socketTCP_ != nullptr)
 			{
-				delete socket_;
-				socket_ = nullptr;
+				delete socketTCP_;
+				socketTCP_ = nullptr;
 			}
 
 			if (socketSSL_ != nullptr)
@@ -86,9 +86,9 @@ namespace btctools
 			setTimeout(session_timeout);
 
 			if (scheme == "tcp") {
-				socket_ = new tcp::socket(io_service_);
+				socketTCP_ = new tcp::socket(io_service_);
 
-				boost::asio::async_connect(*socket_, endpoint_iterator, [this, self](
+				boost::asio::async_connect(*socketTCP_, endpoint_iterator, [this, self](
 					const boost::system::error_code& ec,
 					tcp::resolver::iterator)
 				{
@@ -103,7 +103,7 @@ namespace btctools
 						return;
 					}
 
-					writeContent();
+					writeContentTCP();
 				});
 			}
 			else if (scheme == "ssl" || scheme == "tls") {
@@ -187,11 +187,11 @@ namespace btctools
 			}
 		}
 
-		void Session::writeContent()
+		void Session::writeContentTCP()
 		{
 			auto self(shared_from_this());
 
-			boost::asio::async_write(*socket_, boost::asio::buffer(request_->content_),
+			boost::asio::async_write(*socketTCP_, boost::asio::buffer(request_->content_),
 				[this, self](const boost::system::error_code& ec,
 				    std::size_t bytes_transferred)
 			{
@@ -206,15 +206,15 @@ namespace btctools
 					return;
 				}
 
-				readContent();
+				readContentTCP();
 			});
 		}
 
-		void Session::readContent()
+		void Session::readContentTCP()
 		{
 			auto self(shared_from_this());
 
-			socket_->async_read_some(boost::asio::buffer(buffer_, BUFFER_SIZE),
+			socketTCP_->async_read_some(boost::asio::buffer(buffer_, BUFFER_SIZE),
 				[this, self](const boost::system::error_code& ec,
 					std::size_t bytes_transferred)
 			{
@@ -230,7 +230,7 @@ namespace btctools
 				}
 
 				response_->content_ += string(buffer_, bytes_transferred);
-				readContent();
+				readContentTCP();
 			});
 		}
 
@@ -290,9 +290,9 @@ namespace btctools
 				session_timer_->cancel();
 			}
 
-			if (socket_ != nullptr && socket_->is_open())
+			if (socketTCP_ != nullptr && socketTCP_->is_open())
 			{
-				socket_->close();
+				socketTCP_->close();
 			}
 
 			if (socketSSL_ != nullptr && socketSSL_->lowest_layer().is_open())
