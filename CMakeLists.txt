@@ -82,7 +82,7 @@ add_library(libbtctools STATIC ${LIB_SOURCES})
 ###
 # librarys for tests
 ###
-set(TESTS_LIBRARIES libbtctools lua51 cryptlib ws2_32)
+set(TESTS_LIBRARIES libbtctools lua51 cryptlib ws2_32 ssleay32 libeay32)
 
 ###
 # build: tests
@@ -99,9 +99,13 @@ target_link_libraries(scanMinerDemo ${TESTS_LIBRARIES})
 add_executable(configMinerDemo demo/configMinerDemo.cpp)
 target_link_libraries(configMinerDemo ${TESTS_LIBRARIES})
 
-# tcpClientDemo
-add_executable(tcpClientDemo demo/tcpClientDemo.cpp)
-target_link_libraries(tcpClientDemo ${TESTS_LIBRARIES})
+# tcpClientHttpDemo
+add_executable(tcpClientHttpDemo demo/tcpClientHttpDemo.cpp)
+target_link_libraries(tcpClientHttpDemo ${TESTS_LIBRARIES})
+
+# tcpClientScanDemo
+add_executable(tcpClientScanDemo demo/tcpClientScanDemo.cpp)
+target_link_libraries(tcpClientScanDemo ${TESTS_LIBRARIES})
 
 # ipGeneratorDemo
 add_executable(ipGeneratorDemo demo/ipGeneratorDemo.cpp)

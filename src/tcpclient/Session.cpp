@@ -9,7 +9,8 @@ namespace btctools
     {
         
 		Session::Session(boost::asio::io_service &io_service, ResponseYield &responseYield)
-			:socket_(nullptr), request_(nullptr), response_(nullptr),
+			:socket_(nullptr), socketSSL_(nullptr),
+			request_(nullptr), response_(nullptr),
 			running_(false), buffer_(nullptr),
 			session_timer_(nullptr), delay_timer_(nullptr),
 			io_service_(io_service), responseYield_(responseYield)
@@ -40,6 +41,12 @@ namespace btctools
 				socket_ = nullptr;
 			}
 
+			if (socketSSL_ != nullptr)
+			{
+				delete socketSSL_;
+				socketSSL_ = nullptr;
+			}
+
 			if (buffer_ != nullptr)
 			{
 				delete buffer_;
@@ -62,31 +69,80 @@ namespace btctools
 			response_ = new Response;
 			response_->usrdata_ = request->usrdata_;
 
-			tcp::resolver resolver(io_service_);
-			auto endpoint_iterator = resolver.resolve({ request->host_, request->port_ });
+			string scheme = "tcp";
+			string host = request->host_;
+			
+			auto pos = host.find("://");
+			if (pos != string::npos) {
+				scheme = host.substr(0, pos);
+				boost::algorithm::to_lower(scheme);
 
-			socket_ = new tcp::socket(io_service_);
+				host = host.substr(pos + 3);
+			}
+
+			tcp::resolver resolver(io_service_);
+			auto endpoint_iterator = resolver.resolve({ host, request->port_ });
 
 			setTimeout(session_timeout);
 
-			boost::asio::async_connect(*socket_, endpoint_iterator, [this, self](
-				const boost::system::error_code& ec,
-				tcp::resolver::iterator)
-			{
-				if (!running_ || ec == boost::asio::error::operation_aborted)
-				{
-					return;
-				}
+			if (scheme == "tcp") {
+				socket_ = new tcp::socket(io_service_);
 
-				if (!ec)
+				boost::asio::async_connect(*socket_, endpoint_iterator, [this, self](
+					const boost::system::error_code& ec,
+					tcp::resolver::iterator)
 				{
+					if (!running_ || ec == boost::asio::error::operation_aborted)
+					{
+						return;
+					}
+
+					if (ec)
+					{
+						yield(ec);
+						return;
+					}
+
 					writeContent();
-				}
-				else
+				});
+			}
+			else if (scheme == "ssl" || scheme == "tls") {
+				boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
+				socketSSL_ = new boost::asio::ssl::stream<boost::asio::ip::tcp::socket>(io_service_, ctx);
+				socketSSL_->set_verify_mode(boost::asio::ssl::verify_none);
+
+				boost::asio::async_connect(socketSSL_->lowest_layer(), endpoint_iterator, [this, self](
+					const boost::system::error_code& ec,
+					tcp::resolver::iterator)
 				{
-					yield(ec);
-				}
-			});
+					if (!running_ || ec == boost::asio::error::operation_aborted)
+					{
+						return;
+					}
+
+					if (ec)
+					{
+						yield(ec);
+						return;
+					}
+					
+					socketSSL_->async_handshake(boost::asio::ssl::stream_base::client, [this, self](
+						const boost::system::error_code& ec)
+					{
+						if (!running_ || ec == boost::asio::error::operation_aborted)
+						{
+							return;
+						}
+
+						if (ec) {
+							yield(ec);
+							return;
+						}
+
+						writeContentSSL();
+					});
+				});
+			}
 		}
 
 		void Session::run(Request *request, int session_timeout, int delay_timeout)
@@ -144,14 +200,13 @@ namespace btctools
 					return;
 				}
 
-				if (!ec)
-				{
-					readContent();
-				}
-				else // the end of stream becomes an error code `boost::asio::error::eof`
-				{
+				// note: the end of stream becomes an error code `boost::asio::error::eof`
+				if (ec) {
 					yield(ec);
+					return;
 				}
+
+				readContent();
 			});
 		}
 
@@ -168,15 +223,61 @@ namespace btctools
 					return;
 				}
 
-				if (!ec)
-				{
-					response_->content_ += string(buffer_, bytes_transferred);
-					readContent();
-				}
-				else // the end of stream becomes an error code `boost::asio::error::eof`
-				{
+				// note: the end of stream becomes an error code `boost::asio::error::eof`
+				if (ec) {
 					yield(ec);
+					return;
 				}
+
+				response_->content_ += string(buffer_, bytes_transferred);
+				readContent();
+			});
+		}
+
+		void Session::writeContentSSL()
+		{
+			auto self(shared_from_this());
+
+			boost::asio::async_write(*socketSSL_, boost::asio::buffer(request_->content_),
+				[this, self](const boost::system::error_code& ec,
+					std::size_t bytes_transferred)
+			{
+				if (!running_ || ec == boost::asio::error::operation_aborted)
+				{
+					return;
+				}
+
+				// note: the end of stream becomes an error code `boost::asio::error::eof`
+				if (ec) {
+					yield(ec);
+					return;
+				}
+
+				readContentSSL();
+			});
+		}
+
+		void Session::readContentSSL()
+		{
+			auto self(shared_from_this());
+
+			socketSSL_->async_read_some(boost::asio::buffer(buffer_, BUFFER_SIZE),
+				[this, self](const boost::system::error_code& ec,
+					std::size_t bytes_transferred)
+			{
+				if (!running_ || ec == boost::asio::error::operation_aborted)
+				{
+					return;
+				}
+
+				// note: the end of stream becomes an error code `boost::asio::error::eof`
+				if (ec) {
+					yield(ec);
+					return;
+				}
+
+				response_->content_ += string(buffer_, bytes_transferred);
+				readContentSSL();
 			});
 		}
 
@@ -192,6 +293,11 @@ namespace btctools
 			if (socket_ != nullptr && socket_->is_open())
 			{
 				socket_->close();
+			}
+
+			if (socketSSL_ != nullptr && socketSSL_->lowest_layer().is_open())
+			{
+				socketSSL_->lowest_layer().close();
 			}
 		}
 

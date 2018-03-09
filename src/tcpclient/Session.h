@@ -19,6 +19,8 @@ namespace btctools
 			void setTimeout(int timeout);
 			void writeContent();
 			void readContent();
+			void writeContentSSL();
+			void readContentSSL();
 			void clean();
 			void yield(boost::system::error_code ec);
 
@@ -28,6 +30,7 @@ namespace btctools
 			bool running_;
 
 			boost::asio::ip::tcp::socket *socket_;
+			boost::asio::ssl::stream<boost::asio::ip::tcp::socket> *socketSSL_;
 			Request *request_;
 			Response *response_;
 
