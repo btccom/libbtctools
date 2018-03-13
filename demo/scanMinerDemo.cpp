@@ -22,7 +22,7 @@ int main(int argc, char* argv[])
     {
 		OOLuaHelper::setPackagePath("./lua/scripts");
 
-		auto ips = btctools::utils::IpGenerator("192.168.21.35-192.168.21.35");
+		auto ips = btctools::utils::IpGenerator("192.168.200.0-192.168.201.255");
 		IpStrSource ipSource = ips.genIpRange();
 		MinerScanner scanner(ipSource, 256);
 
