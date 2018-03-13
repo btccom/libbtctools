@@ -67,6 +67,7 @@ namespace btctools
 
 			request_ = request;
 			response_ = new Response;
+			response_->session_ = self;
 			response_->usrdata_ = request->usrdata_;
 
 			string scheme = "tcp";
@@ -303,9 +304,49 @@ namespace btctools
 
 		void Session::yield(boost::system::error_code ec)
 		{
-			clean();
+			if (request_->is_final_ || ec) {
+				response_->is_final_ = true;
+
+				// 关闭会话
+				clean();
+			}
+			else {
+				response_->is_final_ = false;
+
+				//取消超时定时器
+				if (session_timer_ != nullptr)
+				{
+					session_timer_->cancel();
+					session_timer_ = nullptr;
+				}
+			}
+
 			response_->error_code_ = ec;
 			responseYield_(response_);
+		}
+
+		void Session::resumeSession()
+		{
+			if (!running_) {
+				return;
+			}
+
+			auto self(shared_from_this());
+
+			// 清空响应内容
+			response_->content_.clear();
+
+			setTimeout(request_->delay_timeout_);
+
+			if (socketTCP_ != nullptr) {
+				writeContentTCP();
+			}
+			else if (socketSSL_ != nullptr) {
+				writeContentSSL();
+			}
+			else {
+				yield(boost::asio::error::service_not_found);
+			}
 		}
 
     } // namespace tcpclient

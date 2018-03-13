@@ -20,6 +20,8 @@ namespace btctools
             
 			void stop();
 			bool stopped();
+
+			void resumeSession(std::shared_ptr<Session> session);
             
         private:
             boost::asio::io_service io_service_;

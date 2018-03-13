@@ -27,6 +27,7 @@ namespace btctools
 
 			context->request_.session_timeout_ = sessionTimeout_;
 			context->request_.delay_timeout_ = 0;
+			context->request_.is_final_ = true;
 
 			return context;
 		}

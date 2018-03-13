@@ -20,6 +20,9 @@ namespace btctools
     {
         using string = std::string;
 
+		class Client;
+		class Session;
+
         struct Request
         {
             string host_;
@@ -27,14 +30,17 @@ namespace btctools
             string content_;
 			int session_timeout_;
 			int delay_timeout_;
-            const void *usrdata_;
+            const void *usrdata_; // 用户自定义数据
+			bool is_final_; // 是否为该Session的最后一个请求（请求完成后即销毁Session）
         };
 
 		struct Response
         {
             boost::system::error_code error_code_;
             string content_;
-            const void *usrdata_;
+			std::shared_ptr<Session> session_; //Response对应的Session
+            const void *usrdata_; // Request中的usrdata_会被复制到对应的Response中
+			bool is_final_; // 是否为该Session的最后一个响应（此时Session已被销毁）
         };
 
         using coro_request_t = boost::coroutines2::coroutine<Request*>;

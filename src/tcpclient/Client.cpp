@@ -64,5 +64,9 @@ namespace btctools
 			return io_service_.stopped();
 		}
 
+		void Client::resumeSession(std::shared_ptr<Session> session) {
+			session->resumeSession();
+		}
+
     } // namespace tcpclient
 } // namespace btctools

@@ -117,7 +117,7 @@ namespace btctools
 		{
 			return miner_;
 		}
-		bool& WorkContext::canYield()
+		bool WorkContext::canYield()
 		{
 			return canYield_;
 		}
@@ -140,6 +140,9 @@ namespace btctools
 		int WorkContext::requestDelayTimeout()
 		{
 			return request_.delay_timeout_;
+		}
+		bool WorkContext::isFinal() {
+			return request_.is_final_;
 		}
 
 		void WorkContext::setStepName(string stepName)
@@ -174,6 +177,10 @@ namespace btctools
 		{
 			request_.delay_timeout_ = timeout;
 		}
+		void WorkContext::setIsFinal(bool isFinal) {
+			request_.is_final_ = isFinal;
+		}
+
 
 	} // namespace tcpclient
 } // namespace btctools

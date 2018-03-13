@@ -73,12 +73,13 @@ namespace btctools
 			//-------------- used by lua scripts --------------
 			string& stepName();
 			Miner& miner();
-			bool& canYield();
+			bool canYield();
 			string& requestHost();
 			string& requestPort();
 			string& requestContent();
 			int requestSessionTimeout();
 			int requestDelayTimeout();
+			bool isFinal();
 
 			void setStepName(string stepName);
 			void setMiner(Miner miner);
@@ -88,6 +89,7 @@ namespace btctools
 			void setRequestContent(string content);
 			void setRequestSessionTimeout(int timeout);
 			void setRequestDelayTimeout(int timeout);
+			void setIsFinal(bool isFinal);
 		};
 
 		using coro_miner_t = boost::coroutines2::coroutine<const Miner &>;
