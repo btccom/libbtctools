@@ -1,5 +1,3 @@
-#pragma once
-
 #include "ScriptLoader.h"
 #include "../utils/OOLuaHelper.h"
 

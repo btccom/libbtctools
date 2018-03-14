@@ -243,3 +243,6 @@ ModelManifest.xml
 
 # Windows Shortcut
 *.lnk
+
+# build directories
+/build*

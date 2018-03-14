@@ -1,10 +1,13 @@
-#include <windows.h>
-#include <wincrypt.h>
+#ifdef _WIN32
+ #include <windows.h>
+ #include <wincrypt.h>
+#endif
+
 #include <string>
 #include <iostream>
 #include <fstream>
 #include <string.h>
-#include <btctools/utils/Crypto.h>
+#include "utils/Crypto.h"
 #include <cryptopp/osrng.h>
 #include <cryptopp/pssr.h>
 #include <cryptopp/filters.h>

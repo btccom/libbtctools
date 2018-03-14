@@ -1,5 +1,3 @@
-#pragma once
-
 #include "MinerScanner.h"
 #include "../utils/IpGenerator.h"
 

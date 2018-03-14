@@ -1,6 +1,9 @@
 #include <iostream>
 #include "utils/IpGenerator.h"
-#include <windows.h>
+
+#ifdef _WIN32
+ #include <windows.h>
+#endif
 
 using namespace std;
 using namespace btctools::utils;
@@ -52,6 +55,10 @@ int main()
 	}
 
 	cout << "\nDone" << endl;
+
+#ifdef _WIN32
 	::system("pause");
+#endif
+
 	return 0;
 }

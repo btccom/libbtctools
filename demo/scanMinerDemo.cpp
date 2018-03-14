@@ -47,7 +47,9 @@ int main(int argc, char* argv[])
 
     std::cout << "\nDone" << std::endl;
 
-    system("pause");
+#ifdef _WIN32
+	::system("pause");
+#endif
 
     return 0;
 }

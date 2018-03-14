@@ -12,7 +12,10 @@
 #include "tcpclient/Client.h"
 #include "utils/IpGenerator.h"
 #include <boost/regex.hpp>
-#include <windows.h>
+
+#ifdef _WIN32
+ #include <windows.h>
+#endif
 
 using namespace std;
 using namespace btctools::tcpclient;
@@ -23,9 +26,7 @@ int main(int argc, char* argv[])
 {
 	try
 	{
-		Client c;
-		
-		auto responseSource = c.run(RequestSource([](RequestYield &requestYield)
+		RequestSource requestSource([](RequestYield &requestYield)
 		{
 			{
 				Request *req = new Request;
@@ -74,7 +75,10 @@ int main(int argc, char* argv[])
 
 				requestYield(req);
 			}
-		}));
+		});
+
+		Client c;
+		auto responseSource = c.run(requestSource);
 
 		for (auto response : responseSource)
 		{
@@ -109,7 +113,9 @@ int main(int argc, char* argv[])
 
 	std::cout << "\nDone" << std::endl;
 
+#ifdef _WIN32
 	::system("pause");
+#endif
 
 	return 0;
 }

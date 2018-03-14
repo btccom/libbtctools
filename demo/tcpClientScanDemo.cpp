@@ -12,7 +12,10 @@
 #include "tcpclient/Client.h"
 #include "utils/IpGenerator.h"
 #include <boost/regex.hpp>
-#include <windows.h>
+
+#ifdef _WIN32
+ #include <windows.h>
+#endif
 
 using namespace std;
 using namespace btctools::tcpclient;
@@ -87,14 +90,14 @@ void run(IpGenerator &ips, int sessionTimeout, int stepSize)
 			{
 				minerType = what[1];
 
-				cout << request->host_ << "£º" << minerType << endl;
+				cout << request->host_ << ": " << minerType << endl;
 
 				request->content_ = "pools|";
 				client.addWork(request);
 			}
 			else
 			{
-				cout << request->host_ << "£º" << minerType << endl;
+				cout << request->host_ << ": " << minerType << endl;
 
 				setNextWork(ips, request, client);
 			}
@@ -124,7 +127,9 @@ int main(int argc, char* argv[])
 
 	std::cout << "\nDone" << std::endl;
 
+#ifdef _WIN32
 	::system("pause");
+#endif
 
 	return 0;
 }

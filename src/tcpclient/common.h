@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include <iostream>
 #include <string>
@@ -30,17 +30,17 @@ namespace btctools
             string content_;
 			int session_timeout_;
 			int delay_timeout_;
-            const void *usrdata_; // ÓÃ»§×Ô¶¨ÒåÊı¾İ
-			bool is_final_; // ÊÇ·ñÎª¸ÃSessionµÄ×îºóÒ»¸öÇëÇó£¨ÇëÇóÍê³Éºó¼´Ïú»ÙSession£©
+            const void *usrdata_; // ç”¨æˆ·è‡ªå®šä¹‰æ•°æ®
+			bool is_final_; // æ˜¯å¦ä¸ºè¯¥Sessionçš„æœ€åä¸€ä¸ªè¯·æ±‚ï¼ˆè¯·æ±‚å®Œæˆåå³é”€æ¯Sessionï¼‰
         };
 
 		struct Response
         {
             boost::system::error_code error_code_;
             string content_;
-			std::shared_ptr<Session> session_; //Response¶ÔÓ¦µÄSession
-            const void *usrdata_; // RequestÖĞµÄusrdata_»á±»¸´ÖÆµ½¶ÔÓ¦µÄResponseÖĞ
-			bool is_final_; // ÊÇ·ñÎª¸ÃSessionµÄ×îºóÒ»¸öÏìÓ¦£¨´ËÊ±SessionÒÑ±»Ïú»Ù£©
+			std::shared_ptr<Session> session_; //Responseå¯¹åº”çš„Session
+            const void *usrdata_; // Requestä¸­çš„usrdata_ä¼šè¢«å¤åˆ¶åˆ°å¯¹åº”çš„Responseä¸­
+			bool is_final_; // æ˜¯å¦ä¸ºè¯¥Sessionçš„æœ€åä¸€ä¸ªå“åº”ï¼ˆæ­¤æ—¶Sessionå·²è¢«é”€æ¯ï¼‰
         };
 
         using coro_request_t = boost::coroutines2::coroutine<Request*>;

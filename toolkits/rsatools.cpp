@@ -3,7 +3,7 @@
 #include <sstream>
 #include <iostream>
 #include <string.h>
-#include <btctools/utils/Crypto.h>
+#include "utils/Crypto.h"
 
 using namespace std;
 using namespace CryptoPP;
