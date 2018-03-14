@@ -1,5 +1,7 @@
 #pragma once
 
+#include <boost/asio/io_service.hpp>
+
 #include "common.h"
 
 namespace btctools

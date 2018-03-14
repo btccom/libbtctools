@@ -1,3 +1,8 @@
+#include <boost/swap.hpp>
+#include <boost/coroutine2/all.hpp>
+#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/regex.hpp>
+
 #include "IpGenerator.h"
 
 using namespace std;

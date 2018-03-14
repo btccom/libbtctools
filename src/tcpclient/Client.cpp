@@ -1,9 +1,6 @@
 #include "Session.h"
 #include "Client.h"
 
-using namespace std;
-using boost::asio::ip::tcp;
-
 namespace btctools
 {
     namespace tcpclient

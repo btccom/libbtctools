@@ -2,13 +2,10 @@
 
 #include <string>
 #include <list>
-#include <boost/swap.hpp>
 #include <boost/coroutine2/all.hpp>
-#include <boost/algorithm/string.hpp>
-#include <boost/algorithm/string/regex.hpp>
 
 #ifdef _WIN32
- //#include <winsock2.h>
+ #include <winsock2.h>
 #else
  #include <sys/socket.h>
  #include <netinet/in.h>
@@ -19,7 +16,7 @@ namespace btctools
 {
     namespace utils
     {
-        using string = std::string;
+        using std::string;
 		
 		using coro_ip_long_t = boost::coroutines2::coroutine<uint32_t>;
 		using IpLongYield = coro_ip_long_t::push_type;

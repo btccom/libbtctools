@@ -1,3 +1,5 @@
+#include <boost/asio/error.hpp>
+
 #include "ScriptLoader.h"
 #include "../utils/OOLuaHelper.h"
 

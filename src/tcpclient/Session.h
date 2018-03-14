@@ -1,5 +1,10 @@
 #pragma once
 
+#include <boost/asio/io_service.hpp>
+#include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/ssl.hpp>
+#include <boost/asio/steady_timer.hpp>
+
 #include "common.h"
 
 namespace btctools

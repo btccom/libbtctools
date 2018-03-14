@@ -86,6 +86,9 @@ if(WIN32)
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SAFESEH:NO")
   message("CMAKE_EXE_LINKER_FLAGS=${CMAKE_EXE_LINKER_FLAGS}")
 
+  # avoid errors when include Windows.h
+  add_definitions(-DWIN32_LEAN_AND_MEAN)
+
 endif()
 ###################### End of Windows Only Options ######################
 

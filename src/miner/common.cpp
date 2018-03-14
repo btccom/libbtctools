@@ -4,7 +4,7 @@ namespace btctools
 {
 	namespace miner
 	{
-        using string = std::string;
+        using std::string;
 
 		string& Pool::url()
 		{

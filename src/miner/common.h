@@ -3,13 +3,12 @@
 #include <string>
 #include <map>
 #include "../tcpclient/common.h"
-#include "../lua/oolua/oolua.h"
 
 namespace btctools
 {
 	namespace miner
 	{
-        using string = std::string;
+        using std::string;
 		using stringMap = std::map<string, string>;
 
 		struct Pool

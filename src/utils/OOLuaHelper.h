@@ -7,8 +7,6 @@
 #include "../miner/common.h"
 #include "Crypto.h"
 
-using string = std::string;
-using stringMap = std::map<string, string>;
 
 /** struct Pool */
 OOLUA_PROXY(btctools::miner::Pool)
@@ -76,7 +74,8 @@ namespace btctools
 {
 	namespace utils
 	{
-		using string = std::string;
+		using std::string;
+		using stringMap = std::map<string, string>;
 		using ScriptLoader = std::function<bool(const string &name, string &content, string &errmsg)>;
 
 		class OOLuaHelper

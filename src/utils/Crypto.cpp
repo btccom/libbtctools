@@ -1,3 +1,19 @@
+// disable warning for md5
+#define CRYPTOPP_ENABLE_NAMESPACE_WEAK 1
+
+#include <utility>
+#include <cryptopp/sha.h>
+#include <cryptopp/md5.h>
+#include <cryptopp/base64.h>
+#include <cryptopp/files.h>
+#include <cryptopp/filters.h>
+#include <cryptopp/hex.h>
+#include <cryptopp/randpool.h>
+#include <cryptopp/rsa.h>
+#include <cryptopp/osrng.h>
+#include <cryptopp/pssr.h>
+#include <cryptopp/filters.h>
+
 #include "Crypto.h"
 
 using namespace std;

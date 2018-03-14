@@ -3,6 +3,9 @@
 #include <iostream>
 #include <string>
 
+#include <boost/system/system_error.hpp>
+#include <boost/coroutine2/all.hpp>
+/*
 #include <boost/asio.hpp>
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/ip/tcp.hpp>
@@ -13,12 +16,13 @@
 #include <boost/coroutine2/all.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/algorithm/string.hpp>
+*/
 
 namespace btctools
 {
     namespace tcpclient
     {
-        using string = std::string;
+        using std::string;
 
 		class Client;
 		class Session;
