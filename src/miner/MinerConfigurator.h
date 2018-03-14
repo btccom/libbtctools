@@ -1,4 +1,5 @@
-#pragma once
+#ifndef BTCTOOLS_MINER_MINERCONFIGURATOR
+#define BTCTOOLS_MINER_MINERCONFIGURATOR
 
 #include "common.h"
 #include "ScriptLoader.h"
@@ -34,3 +35,5 @@ namespace btctools
 
 	} // namespace tcpclient
 } // namespace btctools
+
+#endif //BTCTOOLS_MINER_MINERCONFIGURATOR

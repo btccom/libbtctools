@@ -1,4 +1,5 @@
-#pragma once
+#ifndef BTCTOOLS_UTILS_CRYPTO
+#define BTCTOOLS_UTILS_CRYPTO
 
 #include <string>
 #include <cryptopp/rsa.h>
@@ -48,3 +49,5 @@ namespace btctools
 
 	} // namespace utils
 } // namespace btctools
+
+#endif //BTCTOOLS_UTILS_CRYPTO

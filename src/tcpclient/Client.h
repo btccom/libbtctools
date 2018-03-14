@@ -1,4 +1,5 @@
-#pragma once
+#ifndef BTCTOOLS_TCPCLIENT_CLIENT
+#define BTCTOOLS_TCPCLIENT_CLIENT
 
 #include <boost/asio/io_service.hpp>
 
@@ -32,3 +33,5 @@ namespace btctools
 
     } // namespace tcpclient
 } // namespace btctools
+
+#endif //BTCTOOLS_TCPCLIENT_CLIENT

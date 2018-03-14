@@ -1,4 +1,5 @@
-#pragma once
+#ifndef BTCTOOLS_UTILS_IPGENERATOR
+#define BTCTOOLS_UTILS_IPGENERATOR
 
 #include <string>
 #include <list>
@@ -83,3 +84,5 @@ namespace btctools
 
     } // namespace utils
 } // namespace btctools
+
+#endif //BTCTOOLS_UTILS_IPGENERATOR

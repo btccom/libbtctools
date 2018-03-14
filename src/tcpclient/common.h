@@ -1,4 +1,5 @@
-﻿#pragma once
+﻿#ifndef BTCTOOLS_TCPCLIENT_COMMON
+#define BTCTOOLS_TCPCLIENT_COMMON
 
 #include <iostream>
 #include <string>
@@ -58,3 +59,5 @@ namespace btctools
 
     } // namespace tcpclient
 } // namespace btctools
+
+#endif //BTCTOOLS_TCPCLIENT_COMMON

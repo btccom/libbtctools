@@ -1,4 +1,5 @@
-#pragma once
+#ifndef BTCTOOLS_MINER_COMMON
+#define BTCTOOLS_MINER_COMMON
 
 #include <string>
 #include <map>
@@ -98,3 +99,5 @@ namespace btctools
 
 	} // namespace tcpclient
 } // namespace btctools
+
+#endif //BTCTOOLS_MINER_COMMON

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef BTCTOOLS_TCPCLIENT_SESSION
+#define BTCTOOLS_TCPCLIENT_SESSION
 
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/ip/tcp.hpp>
@@ -50,3 +51,5 @@ namespace btctools
 
     } // namespace tcpclient
 } // namespace btctools
+
+#endif //BTCTOOLS_TCPCLIENT_SESSION

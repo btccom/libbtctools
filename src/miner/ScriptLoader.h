@@ -1,4 +1,5 @@
-#pragma once
+#ifndef BTCTOOLS_MINER_SCRIPTLOADER
+#define BTCTOOLS_MINER_SCRIPTLOADER
 
 #include "common.h"
 #include "../lua/oolua/oolua.h"
@@ -20,3 +21,5 @@ namespace btctools
 
 	} // namespace tcpclient
 } // namespace btctools
+
+#endif //BTCTOOLS_MINER_SCRIPTLOADER

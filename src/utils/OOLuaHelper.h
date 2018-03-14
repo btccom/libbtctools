@@ -1,4 +1,5 @@
-#pragma once
+#ifndef BTCTOOLS_UTILS_OOLUAHELPER
+#define BTCTOOLS_UTILS_OOLUAHELPER
 
 #include <string>
 #include <map>
@@ -106,3 +107,5 @@ OOLUA_PROXY(btctools::utils::OOLuaHelper)
 	OOLUA_SFUNC(opt)
 	OOLUA_SFUNC(setOpt)
 OOLUA_PROXY_END
+
+#endif //BTCTOOLS_UTILS_OOLUAHELPER
