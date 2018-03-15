@@ -22,15 +22,12 @@ int main(int argc, char* argv[])
     {
 		OOLuaHelper::setPackagePath("./lua/scripts");
 
-		auto ips = btctools::utils::IpGenerator("192.168.200.0-192.168.201.255");
-		IpStrSource ipSource = ips.genIpRange();
-		MinerScanner scanner(ipSource, 256);
+		btctools::utils::IpGenerator ips("192.168.200.0-192.168.201.255");
+		auto ipRange = ips.genIpRange();
+		MinerScanner scanner(ipRange, 100);
 
-		MinerSource source([&](MinerYield &yield)
-		{
-			scanner.run(yield, 1);
-		});
-
+		auto source = scanner.run(1); // timeout: 1
+		// fetch results
 		for (auto miner : source)
 		{
 			cout << miner.ip_ << "\t" << miner.opt("a") << "\t" << miner.stat_ << "\t" << miner.typeStr_ << "\t" << miner.fullTypeStr_ << "\t" << miner.pool1_.url_ << "\t" << miner.pool1_.worker_ << endl;
