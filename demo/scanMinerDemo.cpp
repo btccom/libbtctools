@@ -8,29 +8,73 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
+#include <iostream>
+
 #include "utils/OOLuaHelper.h"
 #include "miner/MinerScanner.h"
 #include "utils/IpGenerator.h"
 
 using namespace std;
-using namespace btctools::miner;
-using namespace btctools::utils;
 
 int main(int argc, char* argv[])
 {
     try
     {
-		OOLuaHelper::setPackagePath("./lua/scripts");
-
-		btctools::utils::IpGenerator ips("192.168.200.0-192.168.201.255");
-		auto ipRange = ips.genIpRange();
-		MinerScanner scanner(ipRange, 100);
-
-		auto source = scanner.run(1); // timeout: 1
-		// fetch results
-		for (auto miner : source)
+		// scan a network range
+		// fetch results by while()
 		{
-			cout << miner.ip_ << "\t" << miner.opt("a") << "\t" << miner.stat_ << "\t" << miner.typeStr_ << "\t" << miner.fullTypeStr_ << "\t" << miner.pool1_.url_ << "\t" << miner.pool1_.worker_ << endl;
+			btctools::utils::OOLuaHelper::setPackagePath("./lua/scripts");
+
+			btctools::utils::IpGenerator ips("192.168.200.0-192.168.201.255");
+			auto ipRange = ips.genIpRange();
+			btctools::miner::MinerScanner scanner(ipRange, 200); // concurrent connections: 200
+
+			auto source = scanner.run(1); // timeout: 1s
+
+			// fetch results by while()
+			while(source())
+			{
+				auto miner = source.get();
+				cout << miner.ip_ << "\t" << miner.opt("a") << "\t" << miner.stat_ << "\t" << miner.typeStr_ << "\t" << miner.fullTypeStr_ << "\t" << miner.pool1_.url_ << "\t" << miner.pool1_.worker_ << endl;
+			}
+		}
+
+		// scan the other network range
+		// fetch results by range-based for()
+		{
+			btctools::utils::OOLuaHelper::setPackagePath("./lua/scripts");
+
+			btctools::utils::IpGenerator ips("192.168.0.100-192.168.1.200");
+			auto ipRange = ips.genIpRange();
+			btctools::miner::MinerScanner scanner(ipRange, 100); // concurrent connections: 100
+
+			auto source = scanner.run(3); // timeout: 3s
+
+			for (auto miner : source)
+			{
+				cout << miner.ip_ << "\t" << miner.opt("a") << "\t" << miner.stat_ << "\t" << miner.typeStr_ << "\t" << miner.fullTypeStr_ << "\t" << miner.pool1_.url_ << "\t" << miner.pool1_.worker_ << endl;
+			}
+		}
+
+		// scan more than one network range
+		{
+			btctools::utils::OOLuaHelper::setPackagePath("./lua/scripts");
+
+			btctools::utils::IpGeneratorGroup ips;
+			ips.addIpRange("192.168.3.100"); // single IP
+			ips.addIpRange("192.168.10.1-80"); // range type 1
+			ips.addIpRange("10.0.0.1-1.3"); // range type 2
+			ips.addIpRange("10.0.3.3-10.0.5.9"); // full ip range
+
+			auto ipRange = ips.genIpRange();
+			btctools::miner::MinerScanner scanner(ipRange, 250); // concurrent connections: 250
+
+			auto source = scanner.run(3); // timeout: 3s
+
+			for (auto miner : source)
+			{
+				cout << miner.ip_ << "\t" << miner.opt("a") << "\t" << miner.stat_ << "\t" << miner.typeStr_ << "\t" << miner.fullTypeStr_ << "\t" << miner.pool1_.url_ << "\t" << miner.pool1_.worker_ << endl;
+			}
 		}
     }
     catch (std::exception& e)
