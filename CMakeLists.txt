@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.6)
+cmake_minimum_required (VERSION 3.4)
 
 project (libbtctools)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
@@ -15,6 +15,17 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 message("-- Build Type: ${CMAKE_BUILD_TYPE} (-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE})")
+
+#
+# Library Type: -DBTCTOOLS__LIB_TYPE=STATIC|SHARED
+# Default: STATIC
+#
+if(BTCTOOLS__LIB_TYPE MATCHES SHARED)
+  set(BTCTOOLS__LIB_TYPE SHARED)
+else()
+  set(BTCTOOLS__LIB_TYPE STATIC)
+endif()
+message("-- Library Type: ${BTCTOOLS__LIB_TYPE} (-DBTCTOOLS__LIB_TYPE=STATIC|SHARED)")
 
 # set build options (msvc not required)
 if(NOT WIN32)
@@ -84,10 +95,17 @@ if(WIN32)
   ###
   message("-- disable SAFESEH")
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SAFESEH:NO")
+  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /SAFESEH:NO")
   message("CMAKE_EXE_LINKER_FLAGS=${CMAKE_EXE_LINKER_FLAGS}")
+  message("CMAKE_SHARED_LINKER_FLAGS=${CMAKE_SHARED_LINKER_FLAGS}")
 
   # avoid errors when include Windows.h
   add_definitions(-DWIN32_LEAN_AND_MEAN)
+
+  # export all symbols when genrate a DLL.
+  if(BTCTOOLS__LIB_TYPE MATCHES SHARED)
+    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+  endif()
 
 endif()
 ###################### End of Windows Only Options ######################
@@ -163,7 +181,15 @@ endif()
 # build: libbtctools
 ###
 file(GLOB_RECURSE LIB_SOURCES src/*.cpp)
-add_library(libbtctools STATIC ${LIB_SOURCES})
+
+if(BTCTOOLS__LIB_TYPE MATCHES SHARED)
+  add_library(libbtctools SHARED ${LIB_SOURCES})
+  if(WIN32)
+    target_link_libraries(libbtctools ${THIRD_LIBRARIES})
+  endif()
+else()
+  add_library(libbtctools STATIC ${LIB_SOURCES})
+endif()
 
 ###
 # librarys for targets
