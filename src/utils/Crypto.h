@@ -8,7 +8,8 @@ namespace btctools
 {
 	namespace utils
 	{
-        using std::string;
+	        using std::string;
+	        using byte = unsigned char;
 		using RsaKeyPair = std::pair<CryptoPP::RSA::PrivateKey, CryptoPP::RSA::PublicKey>;
 
 		class Crypto
