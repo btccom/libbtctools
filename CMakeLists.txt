@@ -27,6 +27,18 @@ else()
 endif()
 message("-- Library Type: ${BTCTOOLS__LIB_TYPE} (-DBTCTOOLS__LIB_TYPE=STATIC|SHARED)")
 
+#
+# Lua Engine Type: luajit-2.0 or normal lua-5.1
+# Default: use luajit-2.0
+#
+if(BTCTOOLS__LUA_TYPE MATCHES NORMAL)
+  set(BTCTOOLS__LUA_TYPE NORMAL)
+else()
+  set(BTCTOOLS__LUA_TYPE JIT)
+endif()
+message("-- Lua Engine Type: ${BTCTOOLS__LUA_TYPE} (-DBTCTOOLS__LUA_TYPE=JIT|NORMAL)")
+
+
 # set build options (msvc not required)
 if(NOT WIN32)
   IF(CMAKE_BUILD_TYPE MATCHES Debug)
@@ -141,12 +153,23 @@ else()
 	message("   OPENSSL_SSL_LIBRARY: ${OPENSSL_SSL_LIBRARY}")
   endif()
 
-  find_package(LuaJIT)
-  if(NOT LUAJIT_FOUND)
-    message(FATAL_ERROR "LuaJIT not found!")
+  if(BTCTOOLS__LUA_TYPE MATCHES JIT)
+    find_package(LuaJIT)
+    if(NOT LUAJIT_FOUND)
+      message(FATAL_ERROR "LuaJIT not found!")
+    else()
+      message("   LUA_INCLUDE_DIR: ${LUA_INCLUDE_DIR}")
+      message("   LUA_LIBRARIES: ${LUA_LIBRARIES}")
+    endif()
+    add_definitions(-DUSE_LUAJIT)
   else()
-    message("   LUA_INCLUDE_DIR: ${LUA_INCLUDE_DIR}")
-    message("   LUA_LIBRARIES: ${LUA_LIBRARIES}")
+    find_package(Lua51)
+    if(NOT LUA51_FOUND)
+      message(FATAL_ERROR "Lua-5.1 not found!")
+    else()
+      message("   LUA_INCLUDE_DIR: ${LUA_INCLUDE_DIR}")
+      message("   LUA_LIBRARIES: ${LUA_LIBRARIES}")
+    endif()
   endif()
 
   find_package(CryptoPP)

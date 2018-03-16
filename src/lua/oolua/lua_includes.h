@@ -33,14 +33,20 @@ THE SOFTWARE.
 */
 
 #ifndef LUA_INCLUDES_H_
-#	define LUA_INCLUDES_H_
+#define LUA_INCLUDES_H_
 
 //Prevent name mangling
 extern "C"
 {
-#	include "luajit-2.0/lua.h"
-#	include "luajit-2.0/lauxlib.h"
-#	include "luajit-2.0/lualib.h"
+	#ifdef USE_LUAJIT
+		#include "luajit-2.0/lua.h"
+		#include "luajit-2.0/lauxlib.h"
+		#include "luajit-2.0/lualib.h"
+	#else
+		#include "lua-5.1/lua.h"
+		#include "lua-5.1/lauxlib.h"
+		#include "lua-5.1/lualib.h"
+	#endif
 }
 
 #endif //LUA_INCLUDES_H_
