@@ -18,6 +18,11 @@ namespace btctools
 {
     namespace tcpclient
     {
+	#if BOOST_VERSION >= 106600
+		using tcpEndpoint = boost::asio::ip::tcp::endpoint;
+	#else
+		using tcpEndpoint = boost::asio::ip::tcp::resolver::iterator;
+	#endif
         
 		Session::Session(boost::asio::io_service &io_service, ResponseYield &responseYield)
 			:socketTCP_(nullptr), socketSSL_(nullptr),
@@ -101,8 +106,7 @@ namespace btctools
 				socketTCP_ = new tcp::socket(io_service_);
 
 				boost::asio::async_connect(*socketTCP_, endpoint_iterator, [this, self](
-					const boost::system::error_code& ec,
-					tcp::endpoint)
+					const boost::system::error_code& ec, tcpEndpoint)
 				{
 					if (!running_ || ec == boost::asio::error::operation_aborted)
 					{
@@ -124,8 +128,7 @@ namespace btctools
 				socketSSL_->set_verify_mode(boost::asio::ssl::verify_none);
 
 				boost::asio::async_connect(socketSSL_->lowest_layer(), endpoint_iterator, [this, self](
-					const boost::system::error_code& ec,
-					tcp::endpoint)
+					const boost::system::error_code& ec, tcpEndpoint)
 				{
 					if (!running_ || ec == boost::asio::error::operation_aborted)
 					{
