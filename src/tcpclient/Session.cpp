@@ -102,7 +102,7 @@ namespace btctools
 
 				boost::asio::async_connect(*socketTCP_, endpoint_iterator, [this, self](
 					const boost::system::error_code& ec,
-					tcp::resolver::iterator)
+					tcp::endpoint)
 				{
 					if (!running_ || ec == boost::asio::error::operation_aborted)
 					{
@@ -125,7 +125,7 @@ namespace btctools
 
 				boost::asio::async_connect(socketSSL_->lowest_layer(), endpoint_iterator, [this, self](
 					const boost::system::error_code& ec,
-					tcp::resolver::iterator)
+					tcp::endpoint)
 				{
 					if (!running_ || ec == boost::asio::error::operation_aborted)
 					{
