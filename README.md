@@ -39,13 +39,30 @@ cmake -DBTCTOOLS__LIB_TYPE=STATIC ..
 make
 
 # or build as dynamic library
-cmake -DBTCTOOLS__LIB_TYPE=STATIC ..
+cmake -DBTCTOOLS__LIB_TYPE=SHARED ..
 make
 
 # running demos
 ./ipGeneratorDemo
 ./scanMinerDemo
 ./configMinerDemo
+```
+
+# Build on macOS
+It seems like build on Linux. Search and install dependencies with `brew` first.
+Tips: install `lua-5.1` instead of `luajit-2.0`. The demo will segmentation fault with `luajit-2.0` and I don't know the reason.
+The command will be:
+```bash
+brew install boost openssl lua@5.1 cryptopp
+
+# static library
+cmake -DBTCTOOLS__LIB_TYPE=STATIC -DBTCTOOLS__LUA_TYPE=NORMAL ..
+
+# or dynamic library
+cmake -DBTCTOOLS__LIB_TYPE=STATIC -DBTCTOOLS__LUA_TYPE=NORMAL ..
+
+# build
+make
 ```
 
 # Build on Windows
