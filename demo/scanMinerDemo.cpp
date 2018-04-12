@@ -23,7 +23,16 @@ int main(int argc, char* argv[])
 		// scan a network range
 		// fetch results by while()
 		{
+			// set script loading dir
 			btctools::utils::OOLuaHelper::setPackagePath("./lua/scripts");
+
+			// Set miner passwords (optional if miner has default password)
+			// Since the miner type cannot be determined before the scan, 
+			// you need provide username and password per miner-type.
+			// Format of the data:
+			//     minerType1:username:password&minerType2:username:password&...
+			// You can change the format at utils.parseLoginPasswords() in src/lua/scripts/utils.lua
+        	btctools::utils::OOLuaHelper::setOpt("login.minerPasswords", "AntMiner:root:root&Avalon:root:");
 
 			btctools::utils::IpGenerator ips("192.168.200.0-192.168.201.255");
 			auto ipRange = ips.genIpRange();
@@ -35,7 +44,12 @@ int main(int argc, char* argv[])
 			while(source())
 			{
 				auto miner = source.get();
-				cout << miner.ip_ << "\t" << miner.opt("a") << "\t" << miner.stat_ << "\t" << miner.typeStr_ << "\t" << miner.fullTypeStr_ << "\t" << miner.pool1_.url_ << "\t" << miner.pool1_.worker_ << endl;
+
+				// miner.opt("key") provides data defined by the scan script.
+				// Lookup miner:setOpt() calling in src/lua/scripts/minerScanner/*.lua to find more datas.
+				cout << miner.ip_ << "\t" << miner.stat_ << "\t" << miner.typeStr_ << "\t" << miner.fullTypeStr_ << "\t"
+				     << miner.opt("hashrate_avg") << "\t" << miner.opt("temperature") << "\t"
+					 << miner.pool1_.url_ << "\t" << miner.pool1_.worker_ << endl;
 			}
 		}
 
