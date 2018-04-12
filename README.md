@@ -42,6 +42,9 @@ make
 cmake -DBTCTOOLS__LIB_TYPE=SHARED ..
 make
 
+# create a link for lua script
+ln -s ../src/lua .
+
 # running demos
 ./ipGeneratorDemo
 ./scanMinerDemo
