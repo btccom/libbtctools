@@ -49,6 +49,7 @@ ln -s ../src/lua .
 ./ipGeneratorDemo
 ./scanMinerDemo
 ./configMinerDemo
+./rebootMinerDemo
 ```
 
 # Build on macOS

@@ -228,6 +228,10 @@ target_link_libraries(scanMinerDemo ${TARGET_LIBRARIES})
 add_executable(configMinerDemo demo/configMinerDemo.cpp)
 target_link_libraries(configMinerDemo ${TARGET_LIBRARIES})
 
+# rebootMinerDemo
+add_executable(rebootMinerDemo demo/rebootMinerDemo.cpp)
+target_link_libraries(rebootMinerDemo ${TARGET_LIBRARIES})
+
 # tcpClientHttpDemo
 add_executable(tcpClientHttpDemo demo/tcpClientHttpDemo.cpp)
 target_link_libraries(tcpClientHttpDemo ${TARGET_LIBRARIES})
