@@ -24,7 +24,7 @@ int main(int argc, char* argv[])
     {
 		MinerSource minerSource([](MinerYield &minerYield)
 		{
-			for (int i = 35; i < 45; i++)
+			for (int i = 35; i < 60; i++)
 			{
 				string iStr = std::to_string(i);
 

@@ -47,6 +47,12 @@ int main(int argc, char* argv[])
 
 				// miner.opt("key") provides data defined by the scan script.
 				// Lookup miner:setOpt() calling in src/lua/scripts/minerScanner/*.lua to find more datas.
+
+				// And, one miner will be repoted more than one time, with the same IP, different stat and 
+				// another different datas.
+				// Datas will gradually be obtained and repoted. For example, the first report of an IP may
+				// contains an empty typeStr, but it will be set a value at the second report.
+
 				cout << miner.ip_ << "\t" << miner.stat_ << "\t" << miner.typeStr_ << "\t" << miner.fullTypeStr_ << "\t"
 				     << miner.opt("hashrate_avg") << "\t" << miner.opt("temperature") << "\t"
 					 << miner.pool1_.url_ << "\t" << miner.pool1_.worker_ << endl;
