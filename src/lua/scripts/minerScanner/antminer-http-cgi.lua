@@ -116,7 +116,7 @@ function scanner.doMakeResult(context, response, stat)
                 
                 request.path = '/cgi-bin/get_miner_status.cgi';
                 
-                local requestContent, err = http.makeAuthRequest(request, response, 'root', 'root')
+                local requestContent, err = http.makeAuthRequest(request, response, loginPassword.userName, loginPassword.password)
                 
                 if (err) then
                     context:setStepName("end")
@@ -225,7 +225,7 @@ function scanner.doMakeResult(context, response, stat)
                 
                 request.path = '/cgi-bin/get_system_info.cgi';
                 
-                local requestContent, err = http.makeAuthRequest(request, response, 'root', 'root')
+                local requestContent, err = http.makeAuthRequest(request, response, loginPassword.userName, loginPassword.password)
                 
                 if (err) then
                     context:setStepName("end")

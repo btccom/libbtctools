@@ -47,15 +47,23 @@ function configurator.doMakeResult(context, response, stat)
     if (step == "auth") then
 		if (response.statCode == "401") then
 			local request = http.parseRequest(context:requestContent())
-			local requestContent, err = http.makeAuthRequest(request, response, 'root', 'root')
+			loginPassword = utils.getMinerLoginPassword(miner:fullTypeStr())
+            
+            if (loginPassword == nil) then
+                context:setStepName("end")
+                context:miner():setStat("require password")
+            else
+			    local request = http.parseRequest(context:requestContent())
+			    local requestContent, err = http.makeAuthRequest(request, response, loginPassword.userName, loginPassword.password)
 			
-			if (err) then
-				context:setStepName("end")
-				context:miner():setStat('failed: ' .. err)
-			else
-				context:setStepName("getMinerConf")
-				context:setRequestContent(requestContent)
-			end
+                if (err) then
+                    context:setStepName("end")
+                    context:miner():setStat('failed: ' .. err)
+                else
+                    context:setStepName("getMinerConf")
+                    context:setRequestContent(requestContent)
+                end
+            end
 		else
 			context:setStepName("end")
 			context:miner():setStat("read config failed")
