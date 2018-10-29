@@ -51,6 +51,11 @@ function scanner.doMakeResult(context, response, stat)
     
     if (stat ~= "success") then
         context:setStepName("end")
+        -- Some AntMiner that lack the default pool configuration may not be able to complete the scan.
+        -- So here is a compromise to allow the user to configure the pool of the miner.
+		context:miner():setStat("success")
+		miner:setFullTypeStr("Antminer *")
+		miner:setTypeStr("antminer-http-cgi")
         return
     end
     
