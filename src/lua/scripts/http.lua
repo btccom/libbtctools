@@ -141,7 +141,7 @@ local make_digest_header = function(t)
 end
 
 local make_basic_auth = function(httpRequest, httpResponse, user, password)
-	return Crypto.base64Encode(user .. ':' .. password)
+	return "Basic " .. Crypto.base64Encode(user .. ':' .. password, false, 255)
 end
 
 local make_digest_auth = function(httpRequest, httpResponse, user, password)
