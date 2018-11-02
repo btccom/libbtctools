@@ -141,6 +141,8 @@ local make_digest_header = function(t)
 end
 
 local make_basic_auth = function(httpRequest, httpResponse, user, password)
+	-- The default value of C++ parameters is not avaliable in Lua,
+	-- so you need to provide complete 3 parameters.
 	return "Basic " .. Crypto.base64Encode(user .. ':' .. password, false, 255)
 end
 
@@ -286,6 +288,30 @@ function http.makeAuthRequest(httpRequest, httpResponse, user, password)
 	else
 		return nil, string.format("auth not needed: %s %s %s", httpResponse.statCode, httpResponse.statMsg, httpResponse.protocol)
 	end
+end
+
+function http.setFileUploadRequest(request, fields)
+	local boundary = '-----------------------BTCTools' .. tostring(os.time())
+	request.headers['content-type'] = 'multipart/form-data; boundary=' .. boundary
+	request.method = 'POST'
+	request.body = ''
+
+	for name, item in pairs(fields) do
+		request.body = request.body .. boundary .. "\r\n"
+		request.body = request.body .. "Content-Disposition: form-data; name=\"" .. name .. "\""
+		
+		if (item['filename'] ~= nil) then
+			request.body = request.body .. '; filename="' .. item['filename'] .. '"'
+		end
+
+		if (item['content-type'] ~= nil) then
+			request.body = request.body .. "\r\nContent-Type: " .. item['content-type']
+		end
+
+		request.body = request.body .. "\r\n\r\n" .. item['data'] .. "\r\n"
+	end
+
+	request.body = request.body .. boundary .. "--\r\n"
 end
 
 ---------------- End of function defines ----------------
