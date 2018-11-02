@@ -48,7 +48,7 @@ function configurator.doMakeResult(context, response, stat)
     
     if (step == "auth") then
 		if (response.statCode == "401") then
-			loginPassword = utils.getMinerLoginPassword(miner:fullTypeStr())
+			local loginPassword = utils.getMinerLoginPassword(miner:fullTypeStr())
             
             if (loginPassword == nil) then
                 context:setStepName("end")
@@ -78,7 +78,7 @@ function configurator.doMakeResult(context, response, stat)
             local request = {
                 method = 'GET',
                 host = ip,
-                path = '/cgi-bin/reboot.cgi',
+                path = '/cgi-bin/get_system_info.cgi',
             }
             
 			if (err) then

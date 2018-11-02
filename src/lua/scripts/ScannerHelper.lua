@@ -65,27 +65,11 @@ function doMakeResult(context, response, stat)
     local scannerName = miner:opt('scannerName')
     
     assert(scannerName ~= "", "inner error: scannerName cannot be empty!")
-
-    -- now the scanner will process the no "success" status by itself
-    --[[if (stat ~= "success") then
-        
-        scannerName = nextScannerName(scannerName)
-        
-        if (scannerName == nil) then
-            context:setStepName("end")
-            context:miner():setStat(stat)
-            context:setCanYield(true)
-        else
-            miner:setOpt('scannerName', scannerName)
-            contextRestart(context)
-        end
-        
-        return
-    end]]
     
     local success, scanner = loadScanner(scannerName)
     
     if (success) then
+        -- now the scanner will process the no "success" status by itself
         scanner.doMakeResult(context, response, stat)
         
         if (context:stepName() == 'end') and ((miner:typeStr() == 'unknown') or (miner:typeStr() == '')) then

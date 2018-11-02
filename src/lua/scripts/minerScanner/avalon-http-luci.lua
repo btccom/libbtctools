@@ -134,7 +134,7 @@ function scanner.doMakeRequest(context)
     context:setCanYield(true)
 
     if (step == "begin") then
-        loginPassword = utils.getMinerLoginPassword(miner:fullTypeStr())
+        local loginPassword = utils.getMinerLoginPassword(miner:fullTypeStr())
         
         if (loginPassword == nil) then
             context:setStepName("end")

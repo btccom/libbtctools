@@ -47,7 +47,7 @@ function configurator.doMakeResult(context, response, stat)
     if (step == "auth") then
 		if (response.statCode == "401") then
 			local request = http.parseRequest(context:requestContent())
-			loginPassword = utils.getMinerLoginPassword(miner:fullTypeStr())
+			local loginPassword = utils.getMinerLoginPassword(miner:fullTypeStr())
             
             if (loginPassword == nil) then
                 context:setStepName("end")
@@ -155,7 +155,7 @@ function configurator.doMakeResult(context, response, stat)
             request.headers['Content-Type'] = 'application/x-www-form-urlencoded'
             request.body = utils.makeUrlQueryString(formParams, formKeys)
             
-            loginPassword = utils.getMinerLoginPassword(miner:fullTypeStr())
+            local loginPassword = utils.getMinerLoginPassword(miner:fullTypeStr())
             
             if (loginPassword == nil) then
                 context:setStepName("end")

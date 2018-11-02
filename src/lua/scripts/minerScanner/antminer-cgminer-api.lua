@@ -1,6 +1,7 @@
 local scanner = {}
 
 local utils = require ("utils")
+local date = require ("date")
 
 
 local regularTypeStr = function(fullTypeStr)
@@ -29,8 +30,7 @@ local parseMinerStats = function(jsonStr, miner, stat)
         local obj, pos, err = utils.jsonDecode (jsonStr)
         
         if not err then
-            miner:setOpt('getStatSuccess', 'true')
-        
+            local status = obj.status
             local stat = obj.STATS
             
             if (type(stat) == "table" and type(stat[1]) == "table" and type(stat[1].Type) == "string") then
@@ -38,6 +38,29 @@ local parseMinerStats = function(jsonStr, miner, stat)
             end
             
             typeStr = regularTypeStr(fullTypeStr)
+
+            -- find versions
+            if (type(stat) == "table" and type(stat[1]) == "table") then
+                local versions = stat[1]
+                
+                if (versions.Miner ~= nil) then
+                    miner:setOpt('hardware_version', versions.Miner)
+                end
+
+                if (versions.BMMiner ~= nil) then
+                    miner:setOpt('software_version', 'bmminer ' .. versions.BMMiner)
+                elseif (versions.CGMiner ~= nil) then
+                    miner:setOpt('software_version', 'cgminer ' .. versions.CGMiner)
+                end
+
+                if (versions.CompileTime ~= nil) then
+                    local ok, firmwareVer = pcall(date, versions.CompileTime)
+                    if (ok) then
+                        miner:setOpt('firmware_version', firmwareVer:fmt("%Y%m%d"))
+                    end
+                end
+                
+            end
             
             -- find more infos
             if (type(stat) == "table" and type(stat[2]) == "table") then
@@ -119,8 +142,6 @@ local parseMinerPools = function(jsonStr, miner, stat)
         local obj, pos, err = utils.jsonDecode (jsonStr)
         
         if not err then
-            miner:setOpt('getPoolsSuccess', 'true')
-        
             local pools = obj.POOLS
             
             if (type(pools) == "table") then
@@ -204,12 +225,7 @@ function scanner.doMakeResult(context, response, stat)
         else
             step = "end"
         end
-        
-        -- It has got the pools from http, skipping the next step
-        if (miner:opt('getPoolsSuccess') == 'true') then
-            step = "end"
-        end
-        
+
         context:setStepName(step)
         parseMinerStats(response, context:miner(), stat)
         

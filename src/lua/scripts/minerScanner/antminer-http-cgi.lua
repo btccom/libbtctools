@@ -2,6 +2,7 @@ local scanner = {}
 
 local utils = require ("utils")
 local http = require ("http")
+local date = require ("date")
 
 function scanner.doMakeRequest(context)
     local step = context:stepName()
@@ -48,22 +49,27 @@ function scanner.doMakeResult(context, response, stat)
     
     context:setCanYield(true)
     miner:setStat(stat)
-    
-    if (stat ~= "success") then
+
+    if (stat ~= "success" and response == "") then
         context:setStepName("end")
-        -- Some AntMiner that lack the default pool configuration may not be able to complete the scan.
+        -- Some AntMiner that lack some default configs may not be able to complete the scan.
         -- So here is a compromise to allow the user to configure the pool of the miner.
-		context:miner():setStat("success")
-		miner:setFullTypeStr("Antminer *")
-		miner:setTypeStr("antminer-http-cgi")
+        -- Notes:
+        --     Some Antminer will end the HTTP connection abnormally, 
+        --     but as long as the response is not empty, it can still be parsed normally.
+        context:miner():setStat("success")
+        if (miner:fullTypeStr() == '' or miner:typeStr() == '') then
+    		miner:setFullTypeStr('Antminer *')
+            miner:setTypeStr('antminer-http-cgi')
+        end
         return
     end
-    
+
 	response = http.parseResponse(response)
     
     if (step == "auth") then
         if (response.statCode == "401") then
-            loginPassword = utils.getMinerLoginPassword(miner:fullTypeStr())
+            local loginPassword = utils.getMinerLoginPassword(miner:fullTypeStr())
             
             if (loginPassword == nil) then
                 context:setStepName("end")
@@ -97,10 +103,10 @@ function scanner.doMakeResult(context, response, stat)
             if not (err) then
                 miner:setTypeStr('antminer-http-cgi')
                 miner:setStat('success')
-                miner:setOpt('getPoolsSuccess', 'true')
                 
-                if (miner:opt('getStatSuccess') ~= 'true') then
-                    miner:setFullTypeStr('Antminer')
+                -- used for getMinerLoginPassword
+                if (miner:fullTypeStr() == '') then
+                    miner:setFullTypeStr('Antminer *')
                 end
                 
                 pool1:setUrl(confs.pools[1].url)
@@ -121,15 +127,12 @@ function scanner.doMakeResult(context, response, stat)
                 
                 request.path = '/cgi-bin/get_miner_status.cgi';
                 
+                local loginPassword = utils.getMinerLoginPassword(miner:fullTypeStr())
                 local requestContent, err = http.makeAuthRequest(request, response, loginPassword.userName, loginPassword.password)
                 
                 if (err) then
                     context:setStepName("end")
                     miner:setStat('failed: ' .. err)
-                -- It has got the status from cgminer api, skipping the next step
-                elseif (miner:opt('getStatSuccess') == "true") then
-                    context:setStepName("end")
-                    miner:setStat('success')
                 else
                     context:setStepName("getMinerStat")
                     context:setRequestContent(requestContent)
@@ -151,7 +154,6 @@ function scanner.doMakeResult(context, response, stat)
             if not (err) then
                 context:setStepName("end")
                 miner:setStat("success")
-                miner:setOpt('getStatSuccess', 'true')
                 
                 if (type(stats.summary) == 'table') then
                     local summary = stats.summary
@@ -159,15 +161,22 @@ function scanner.doMakeResult(context, response, stat)
                     if (summary.elapsed ~= nil) then
                         miner:setOpt('elapsed', utils.formatTime(summary.elapsed, 'd :h :m :s '))
                     end
+
+                    local hashrateUnit = ' GH/s'
+				
+                    -- the hashrate unit of Antminer L3 and L3+ is MH/s
+                    if (string.match(miner:fullTypeStr(), 'Antminer L%d')) then
+                        hashrateUnit = ' MH/s'
+                    end
 					
                     if (summary.ghs5s ~= nil) then
-                        miner:setOpt('hashrate_5s', summary.ghs5s .. ' GH/s')
+                        miner:setOpt('hashrate_5s', summary.ghs5s .. hashrateUnit)
 					elseif (summary.mhs5s ~= nil) then
 						miner:setOpt('hashrate_5s', summary.mhs5s .. ' MH/s')
                     end
                     
                     if (summary.ghsav ~= nil) then
-                        miner:setOpt('hashrate_avg', summary.ghsav .. ' GH/s')
+                        miner:setOpt('hashrate_avg', summary.ghsav .. hashrateUnit)
 					elseif (summary.mhsav ~= nil) then
 						miner:setOpt('hashrate_avg', summary.mhsav .. ' MH/s')
                     end
@@ -230,15 +239,12 @@ function scanner.doMakeResult(context, response, stat)
                 
                 request.path = '/cgi-bin/get_system_info.cgi';
                 
+                local loginPassword = utils.getMinerLoginPassword(miner:fullTypeStr())
                 local requestContent, err = http.makeAuthRequest(request, response, loginPassword.userName, loginPassword.password)
                 
                 if (err) then
                     context:setStepName("end")
                     miner:setStat('failed: ' .. err)
-                -- It has got the full type from cgminer api, skipping the next step
-                elseif (miner:opt('getFullTypeSuccess') == "true") then
-                    context:setStepName("end")
-                    miner:setStat('success')
                 else
                     context:setStepName("getMinerFullType")
                     context:setRequestContent(requestContent)
@@ -260,7 +266,6 @@ function scanner.doMakeResult(context, response, stat)
             if not (err) then
                 context:setStepName("end")
                 miner:setStat("success")
-                miner:setOpt('getFullTypeSuccess', 'true')
                 
                 if (type(obj) == 'table') then
                     
@@ -272,6 +277,51 @@ function scanner.doMakeResult(context, response, stat)
 							miner:setOpt('hashrate_5s', string.gsub(miner:opt('hashrate_5s'), ' GH/s',' MH/s'))
 							miner:setOpt('hashrate_avg', string.gsub(miner:opt('hashrate_avg'), ' GH/s',' MH/s'))
 						end
+                    end
+
+                    if (obj.system_filesystem_version ~= nil) then
+                        local ok, firmwareVer = pcall(date, obj.system_filesystem_version)
+                        if (ok) then
+                            miner:setOpt('firmware_version', firmwareVer:fmt("%Y%m%d"))
+                        end
+                    end
+
+                    -------- begin of software_version --------
+                    local software = nil
+
+                    if (obj.system_logic_version ~= nil) then
+                        software = obj.system_logic_version
+                    end
+
+                    if (obj.bmminer_version ~= nil) then
+                        if (software == nil) then
+                            software = 'bmminer ' .. obj.bmminer_version
+                        else
+                            software = software .. ', bmminer ' .. obj.bmminer_version
+                        end
+                    elseif (obj.cgminer_version ~= nil) then
+                        if (software == nil) then
+                            software = 'cgminer ' .. obj.cgminer_version
+                        else
+                            software = software .. ', cgminer ' .. obj.cgminer_version
+                        end
+                    end
+
+                    if (software ~= nil) then
+                        miner:setOpt('software_version', software)
+                    end
+                    -------- end of software_version --------
+
+                    if (obj.ant_hwv ~= nil) then
+                        miner:setOpt('hardware_version', obj.ant_hwv)
+                    end
+
+                    if (obj.nettype ~= nil) then
+                        miner:setOpt('network_type', obj.nettype)
+                    end
+
+                    if (obj.macaddr ~= nil) then
+                        miner:setOpt('mac_address', obj.macaddr)
                     end
                     
                 end
