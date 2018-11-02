@@ -23,9 +23,31 @@ int main(int argc, char* argv[])
 {
     try
     {
+		// Set miner passwords
+		// Format:
+		// "<miner-model-base64>:<user-base64>:<pwd-base64>&<miner-model-base64>:<user-base64>:<pwd-base64>&..."
+        btctools::utils::OOLuaHelper::setOpt("login.minerPasswords", Crypto::base64Encode("Antminer S9") + ":" +
+		                                                             Crypto::base64Encode("root") + ":" +
+																	 Crypto::base64Encode("root"));
+
+        // set miner model
+        btctools::utils::OOLuaHelper::setOpt("upgrader.minerModel", "Antminer S9");
+
+        // set firmware
+        btctools::utils::OOLuaHelper::setOpt("upgrader.firmwareName", "firmware.tar.gz");
+		// Set as the contents of the firmware file.
+		// Read the binary directly into std::string without any coding.
+		// Here is just a demo.
+		std::string fileData(20000000, 'a');
+        btctools::utils::OOLuaHelper::setOpt("upgrader.firmwareData", fileData);
+
+        // set keep settings
+		// "1" or "0"
+        btctools::utils::OOLuaHelper::setOpt("upgrader.keepSettings", "1");
+
 		MinerSource minerSource([](MinerYield &minerYield)
 		{
-			for (int i = 35; i < 60; i++)
+			for (int i = 3; i < 5; i++)
 			{
 				string iStr = std::to_string(i);
 
@@ -33,7 +55,7 @@ int main(int argc, char* argv[])
 
 				// The following information can be obtained through the scanning process.
 				// Manually filled here as a demo.
-				miner->ip_ = string("192.168.21.") + iStr;
+				miner->ip_ = string("10.0.1.") + iStr;
 				miner->fullTypeStr_ = "Antminer S9";
 				miner->typeStr_ = "antminer-http-cgi";
 
@@ -44,20 +66,10 @@ int main(int argc, char* argv[])
 
 		OOLuaHelper::setPackagePath("./lua/scripts");
 
-		// Set miner passwords (optional if miner has default password)
-		// Since the miner type cannot be determined before the scan, 
-		// you need provide username and password per miner-type.
-		// Format of the data:
-		//     "<miner-model-base64>:<user-base64>:<pwd-base64>&<miner-model-base64>:<user-base64>:<pwd-base64>&..."
-		// You can change the format at utils.parseLoginPasswords() in src/lua/scripts/utils.lua
-		btctools::utils::OOLuaHelper::setOpt("login.minerPasswords", Crypto::base64Encode("Antminer S9") + ":" +
-																	 Crypto::base64Encode("root") + ":" +
-																	 Crypto::base64Encode("root"));
-
-		// We implement restarting miners as another type of configuring miners.
+		// We implement upgrading miners as another type of configuring miners.
 		// It is the same as configuring miners, except that RebooterHelper.lua is loaded
 		// instead of the default ConfiguratorHelper.lua
-		MinerConfigurator config(minerSource, 10, "RebooterHelper");
+		MinerConfigurator config(minerSource, 10, "UpgraderHelper");
 
 		auto source = config.run(3);
 

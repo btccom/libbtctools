@@ -13,8 +13,10 @@
 #include "utils/OOLuaHelper.h"
 #include "miner/MinerScanner.h"
 #include "utils/IpGenerator.h"
+#include "utils/Crypto.h"
 
 using namespace std;
+using namespace btctools::utils;
 
 int main(int argc, char* argv[])
 {
@@ -30,9 +32,14 @@ int main(int argc, char* argv[])
 			// Since the miner type cannot be determined before the scan, 
 			// you need provide username and password per miner-type.
 			// Format of the data:
-			//     minerType1:username:password&minerType2:username:password&...
+			//     "<miner-model-base64>:<user-base64>:<pwd-base64>&<miner-model-base64>:<user-base64>:<pwd-base64>&..."
 			// You can change the format at utils.parseLoginPasswords() in src/lua/scripts/utils.lua
-        	btctools::utils::OOLuaHelper::setOpt("login.minerPasswords", "AntMiner:root:root&Avalon:root:");
+			btctools::utils::OOLuaHelper::setOpt("login.minerPasswords", Crypto::base64Encode("Antminer S9") + ":" +
+																		 Crypto::base64Encode("root") + ":" +
+																		 Crypto::base64Encode("root") + "&" +
+																		 Crypto::base64Encode("Avalon") + ":" +
+																		 Crypto::base64Encode("root") + ":" +
+																		 Crypto::base64Encode(""));
 
 			btctools::utils::IpGenerator ips("192.168.200.0-192.168.201.255");
 			auto ipRange = ips.genIpRange();
