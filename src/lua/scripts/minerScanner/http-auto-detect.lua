@@ -56,7 +56,7 @@ function scanner.doMakeResult(context, response, stat)
             miner:setOpt('scannerName', 'antminer-cgminer-api')
             context:setStepName("begin")
             miner:setStat('find antminer')
-            miner:setFullTypeStr('Antminer') -- used for utils.getMinerLoginPassword()
+            miner:setFullTypeStr('Antminer *') -- used for utils.getMinerLoginPassword()
             context:setCanYield(true)
             
         elseif (response.statCode == "200" and
@@ -66,7 +66,7 @@ function scanner.doMakeResult(context, response, stat)
             miner:setOpt('scannerName', 'avalon-http-luci')
             context:setStepName("begin")
             miner:setStat('find avalon')
-            miner:setFullTypeStr('Avalon') -- used for utils.getMinerLoginPassword()
+            miner:setFullTypeStr('Avalon *') -- used for utils.getMinerLoginPassword()
             context:setCanYield(true)
             
         else
