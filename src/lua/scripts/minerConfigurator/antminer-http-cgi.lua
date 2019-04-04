@@ -87,7 +87,16 @@ function configurator.doMakeResult(context, response, stat)
                 "_ant_pool2pw",
                 "_ant_pool3url",
                 "_ant_pool3user",
-                "_ant_pool3pw"
+                "_ant_pool3pw",
+                "_ant_nobeeper",
+                "_ant_notempoverctrl",
+                "_ant_fan_customize_switch",
+                "_ant_fan_customize_value",
+                "_ant_freq",
+                "_ant_voltage",
+                "_ant_asic_boost",
+                "_ant_low_vol_freq",
+                "_ant_economic_mode"
             }
             
             -- Auto detecting the order of keys.
@@ -105,7 +114,6 @@ function configurator.doMakeResult(context, response, stat)
             end
             
             -- All known form params from Antminer S4 to S9
-            
             local formParams = {
                 _ant_pool1url = pool1:url(),
                 _ant_pool1user = pool1:worker(),
@@ -121,12 +129,16 @@ function configurator.doMakeResult(context, response, stat)
                 _ant_fan_customize_switch = "false",
                 _ant_fan_customize_value = "",
                 _ant_freq = "",
-                _ant_voltage = ""
+                _ant_voltage = "",
+                _ant_asic_boost = "true",
+                _ant_low_vol_freq = "true",
+                _ant_economic_mode = "false"
             }
             
             local bmconfJsonStr = string.match(response.body, "ant_data%s*=%s*({.-})%s*;%s*[\r\n]")
             local bmconf, pos, err = utils.jsonDecode (bmconfJsonStr)
             
+            -- Origin values of params
             if not (err) then
                 if (bmconf['bitmain-nobeeper']) then
                     formParams._ant_nobeeper = bmconf['bitmain-nobeeper']
@@ -138,6 +150,9 @@ function configurator.doMakeResult(context, response, stat)
                 
                 if (bmconf['bitmain-fan-ctrl']) then
                     formParams._ant_fan_customize_switch = bmconf['bitmain-fan-ctrl']
+                end
+
+                if (bmconf['bitmain-fan-pwm']) then
                     formParams._ant_fan_customize_value = bmconf['bitmain-fan-pwm']
                 end
                 
@@ -148,6 +163,31 @@ function configurator.doMakeResult(context, response, stat)
                 if (bmconf['bitmain-voltage']) then
                     formParams._ant_voltage = bmconf['bitmain-voltage']
                 end
+
+                if (bmconf['bitmain-close-asic-boost']) then
+                    formParams._ant_asic_boost = "false"
+                end
+                
+                if (bmconf['bitmain-close-low-vol-freq']) then
+                    formParams._ant_low_vol_freq = "false"
+                end
+                
+                if (bmconf['bitmain-economic-mode']) then
+                    formParams._ant_economic_mode = bmconf['bitmain-economic-mode']
+                end
+            end
+
+            -- Custom values of params
+            if (miner:opt("config.antminer.asicBoost") ~= "") then
+                formParams._ant_asic_boost = miner:opt("config.antminer.asicBoost")
+            end
+
+            if (miner:opt("config.antminer.lowPowerMode") ~= "") then
+                formParams._ant_low_vol_freq = miner:opt("config.antminer.lowPowerMode")
+            end
+
+            if (miner:opt("config.antminer.lowPowerEnhancedMode") ~= "") then
+                formParams._ant_economic_mode = miner:opt("config.antminer.lowPowerEnhancedMode")
             end
             
             request.method = 'POST';
