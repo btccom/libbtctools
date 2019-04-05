@@ -194,8 +194,8 @@ function configurator.doMakeResult(context, response, stat)
                 end
             end
 
-            if (miner:opt("config.antminer.lowPowerEnhancedMode") ~= "") then
-                formParams._ant_economic_mode = miner:opt("config.antminer.lowPowerEnhancedMode")
+            if (miner:opt("config.antminer.economicMode") ~= "") then
+                formParams._ant_economic_mode = miner:opt("config.antminer.economicMode")
             end
             
             request.method = 'POST';
