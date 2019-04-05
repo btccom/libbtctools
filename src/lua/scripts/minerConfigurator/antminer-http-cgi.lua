@@ -130,9 +130,9 @@ function configurator.doMakeResult(context, response, stat)
                 _ant_fan_customize_value = "",
                 _ant_freq = "",
                 _ant_voltage = "",
-                _ant_asic_boost = "true",
-                _ant_low_vol_freq = "true",
-                _ant_economic_mode = "false"
+                _ant_asic_boost = "false", -- false: enable ASICBoost; true: disable ASICBoost
+                _ant_low_vol_freq = "true", -- true: normal freq; false: low freq
+                _ant_economic_mode = "false" -- not use in AntMiner S9
             }
             
             local bmconfJsonStr = string.match(response.body, "ant_data%s*=%s*({.-})%s*;%s*[\r\n]")
@@ -140,50 +140,58 @@ function configurator.doMakeResult(context, response, stat)
             
             -- Origin values of params
             if not (err) then
-                if (bmconf['bitmain-nobeeper']) then
+                if (bmconf['bitmain-nobeeper'] ~= nil) then
                     formParams._ant_nobeeper = bmconf['bitmain-nobeeper']
                 end
                 
-                if (bmconf['bitmain-notempoverctrl']) then
+                if (bmconf['bitmain-notempoverctrl'] ~= nil) then
                     formParams._ant_notempoverctrl = bmconf['bitmain-notempoverctrl']
                 end
                 
-                if (bmconf['bitmain-fan-ctrl']) then
+                if (bmconf['bitmain-fan-ctrl'] ~= nil) then
                     formParams._ant_fan_customize_switch = bmconf['bitmain-fan-ctrl']
                 end
 
-                if (bmconf['bitmain-fan-pwm']) then
+                if (bmconf['bitmain-fan-pwm'] ~= nil) then
                     formParams._ant_fan_customize_value = bmconf['bitmain-fan-pwm']
                 end
                 
-                if (bmconf['bitmain-freq']) then
+                if (bmconf['bitmain-freq'] ~= nil) then
                     formParams._ant_freq = bmconf['bitmain-freq']
                 end
                 
-                if (bmconf['bitmain-voltage']) then
+                if (bmconf['bitmain-voltage'] ~= nil) then
                     formParams._ant_voltage = bmconf['bitmain-voltage']
                 end
 
-                if (bmconf['bitmain-close-asic-boost']) then
-                    formParams._ant_asic_boost = "false"
+                if (bmconf['bitmain-close-asic-boost'] ~= nil) then
+                    formParams._ant_asic_boost = bmconf['bitmain-close-asic-boost']
                 end
                 
-                if (bmconf['bitmain-close-low-vol-freq']) then
-                    formParams._ant_low_vol_freq = "false"
+                if (bmconf['bitmain-close-low-vol-freq'] ~= nil) then
+                    formParams._ant_low_vol_freq = bmconf['bitmain-close-low-vol-freq']
                 end
                 
-                if (bmconf['bitmain-economic-mode']) then
+                if (bmconf['bitmain-economic-mode'] ~= nil) then
                     formParams._ant_economic_mode = bmconf['bitmain-economic-mode']
                 end
             end
 
             -- Custom values of params
             if (miner:opt("config.antminer.asicBoost") ~= "") then
-                formParams._ant_asic_boost = miner:opt("config.antminer.asicBoost")
+                if (miner:opt("config.antminer.asicBoost") == "true") then
+                    formParams._ant_asic_boost = "false"
+                else
+                    formParams._ant_asic_boost = "true"
+                end
             end
 
             if (miner:opt("config.antminer.lowPowerMode") ~= "") then
-                formParams._ant_low_vol_freq = miner:opt("config.antminer.lowPowerMode")
+                if (miner:opt("config.antminer.lowPowerMode") == "true") then
+                    formParams._ant_low_vol_freq = "false"
+                else
+                    formParams._ant_low_vol_freq = "true"
+                end
             end
 
             if (miner:opt("config.antminer.lowPowerEnhancedMode") ~= "") then
