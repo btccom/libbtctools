@@ -68,9 +68,12 @@ local parseMinerStats = function(jsonStr, miner, stat)
                 
 				local hashrateUnit = ' GH/s'
 				
-				-- the hashrate unit of Antminer L3 and L3+ is MH/s
 				if (string.match(fullTypeStr, 'Antminer L%d')) then
-					hashrateUnit = ' MH/s'
+                    -- the hashrate unit of Antminer L3 and L3+ is MH/s
+                    hashrateUnit = ' MH/s'
+                elseif (string.match(fullTypeStr, 'Antminer Z%d')) then
+                    -- the hashrate unit of Antminer Z9 and Z11 is ksol/s
+                    hashrateUnit = ' ksol/s'
 				end
 				
                 if (opts['GHS 5s'] ~= nil) then
