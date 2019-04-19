@@ -131,10 +131,15 @@ function configurator.doMakeResult(context, response, stat)
                 _ant_fan_customize_value = "",
                 _ant_freq = "",
                 _ant_voltage = "",
+
+                -- Some models have these configurations
                 _ant_asic_boost = "false", -- false: enable ASICBoost; true: disable ASICBoost
                 _ant_low_vol_freq = "true", -- true: normal freq; false: low freq
                 _ant_economic_mode = "false", -- not use in AntMiner S9
-                _ant_multi_level = "1"
+                _ant_multi_level = "1", -- for AntMiner S9 overclocking
+
+                -- Other models have these configurations
+                _ant_work_mode = ""
             }
             
             local bmconfJsonStr = string.match(response.body, "ant_data%s*=%s*({.-})%s*;%s*[\r\n]")
@@ -181,6 +186,10 @@ function configurator.doMakeResult(context, response, stat)
                 if (bmconf['bitmain-low-vol'] ~= nil) then
                     formParams._ant_multi_level = bmconf['bitmain-low-vol']
                 end
+
+                if (bmconf['bitmain-work-mode'] ~= nil) then
+                    formParams._ant_work_mode = bmconf['bitmain-work-mode']
+                end
             end
 
             -- Custom values of params
@@ -206,6 +215,14 @@ function configurator.doMakeResult(context, response, stat)
 
             if (miner:opt("config.antminer.overclockWorkingMode") ~= "") then
                 formParams._ant_multi_level = miner:opt("config.antminer.overclockWorkingMode")
+                
+                if (miner:opt("antminer.overclock_to_freq") == "true") then
+                    formParams._ant_freq = formParams._ant_multi_level
+                end
+
+                if (miner:opt("antminer.overclock_to_work_mode") == "true") then
+                    formParams._ant_work_mode = formParams._ant_multi_level
+                end
             end
             
             request.method = 'POST';
@@ -238,7 +255,7 @@ function configurator.doMakeResult(context, response, stat)
             context:setStepName("end")
             context:miner():setStat(utils.trimAll(response.body))
             if (context:miner():opt("config.antminer.overclockWorkingMode") ~= "") then
-                context:miner():setStat(context:miner():stat()..", overclock √")
+                context:miner():setStat(context:miner():stat().." (OC√)")
             end
         end
 	else

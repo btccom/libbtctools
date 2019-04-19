@@ -363,6 +363,26 @@ function scanner.doMakeResult(context, response, stat)
             
             if not (err) then
                 miner:setOpt('antminer.overclock_option', response.body)
+            elseif (string.match(miner:fullTypeStr(), 'Antminer L5')) then
+                miner:setOpt('antminer.overclock_option', [[{
+                    "(450MHz) Normal Power":"450",
+                    "(400MHz) Low Power":"400",
+                    "(350MHz) Ultra Low Power":"350"
+                }]])
+                miner:setOpt('antminer.overclock_to_freq', "true")
+            elseif (string.match(miner:fullTypeStr(), 'Antminer S17 Pro')) then
+                miner:setOpt('antminer.overclock_option', [[{
+                    "Low Power":"0",
+                    "Normal":"1",
+                    "Turbo":"2"
+                }]])
+                miner:setOpt('antminer.overclock_to_work_mode', "true")
+            elseif (string.match(miner:fullTypeStr(), 'Antminer S17')) then
+                miner:setOpt('antminer.overclock_option', [[{
+                    "Low Power":"1",
+                    "Normal":"2"
+                }]])
+                miner:setOpt('antminer.overclock_to_work_mode', "true")
             end
         end
     else
