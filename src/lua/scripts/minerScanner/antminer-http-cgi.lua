@@ -374,7 +374,7 @@ function scanner.doMakeResult(context, response, stat)
                 miner:setOpt('antminer.overclock_option', [[{
                     "Low Power":"0",
                     "Normal":"1",
-                    "Turbo":"2"
+                    "High Performance":"2"
                 }]])
                 miner:setOpt('antminer.overclock_to_work_mode', "true")
             elseif (string.match(miner:fullTypeStr(), 'Antminer S17')) then
