@@ -36,7 +36,11 @@ function scanner.doMakeRequest(context)
     elseif (step == "getMinerFullType") then
         context:setStepName("parseMinerFullType")
         miner:setStat('read type...')
-        
+
+    elseif (step == "getOverclockOption") then
+        context:setStepName("parseOverclockOption")
+        miner:setStat('read overclock option...')
+
 	else
 		context:setStepName("end")
 		miner:setStat("inner error: unknown step name: " .. step)
@@ -324,6 +328,21 @@ function scanner.doMakeResult(context, response, stat)
                         miner:setOpt('mac_address', obj.macaddr)
                     end
                     
+                    -- make next request
+                    local request = http.parseRequest(context:requestContent())
+                    
+                    request.path = '/cgi-bin/get_multi_option.cgi';
+                    
+                    local loginPassword = utils.getMinerLoginPassword(miner:fullTypeStr())
+                    local requestContent, err = http.makeAuthRequest(request, response, loginPassword.userName, loginPassword.password)
+                    
+                    if (err) then
+                        context:setStepName("end")
+                        miner:setStat('failed: ' .. err)
+                    else
+                        context:setStepName("getOverclockOption")
+                        context:setRequestContent(requestContent)
+                    end
                 end
                 
             else
@@ -332,7 +351,21 @@ function scanner.doMakeResult(context, response, stat)
             end
 		end
         
-	else
+    elseif (step == "parseOverclockOption") then
+		if (response.statCode == "401") then
+			context:setStepName("end")
+			miner:setStat("login failed")
+        else
+            context:setStepName("end")
+            miner:setStat("success")
+
+            local obj, pos, err = utils.jsonDecode (response.body)
+            
+            if not (err) then
+                miner:setOpt('antminer.overclock_option', response.body)
+            end
+        end
+    else
 		context:setStepName("end")
 		miner:setStat("inner error: unknown step name: " .. step)
     end

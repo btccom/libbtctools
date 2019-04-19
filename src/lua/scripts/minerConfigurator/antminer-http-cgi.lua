@@ -96,7 +96,8 @@ function configurator.doMakeResult(context, response, stat)
                 "_ant_voltage",
                 "_ant_asic_boost",
                 "_ant_low_vol_freq",
-                "_ant_economic_mode"
+                "_ant_economic_mode",
+                "_ant_multi_level"
             }
             
             -- Auto detecting the order of keys.
@@ -106,11 +107,11 @@ function configurator.doMakeResult(context, response, stat)
             formKeysJsonStr = '[' .. string.gsub(formKeysJsonStr, "([a-zA-Z0-9_-]+):[a-zA-Z0-9_-]+", '"%1"') .. ']'
             local newFormKeys, pos, err = utils.jsonDecode (formKeysJsonStr)
             
-            if (not err) and (type(newFormKeys) == "table") and (#newFormKeys >= #formKeys) then
+            if (not err) and (type(newFormKeys) == "table") then
                 formKeys = newFormKeys
             else
                 print("inexpectant newFormKeys:")
-                utils.print(formKeys)
+                utils.print(newFormKeys)
             end
             
             -- All known form params from Antminer S4 to S9
@@ -132,7 +133,8 @@ function configurator.doMakeResult(context, response, stat)
                 _ant_voltage = "",
                 _ant_asic_boost = "false", -- false: enable ASICBoost; true: disable ASICBoost
                 _ant_low_vol_freq = "true", -- true: normal freq; false: low freq
-                _ant_economic_mode = "false" -- not use in AntMiner S9
+                _ant_economic_mode = "false", -- not use in AntMiner S9
+                _ant_multi_level = "1"
             }
             
             local bmconfJsonStr = string.match(response.body, "ant_data%s*=%s*({.-})%s*;%s*[\r\n]")
@@ -175,6 +177,10 @@ function configurator.doMakeResult(context, response, stat)
                 if (bmconf['bitmain-economic-mode'] ~= nil) then
                     formParams._ant_economic_mode = bmconf['bitmain-economic-mode']
                 end
+
+                if (bmconf['bitmain-low-vol'] ~= nil) then
+                    formParams._ant_multi_level = bmconf['bitmain-low-vol']
+                end
             end
 
             -- Custom values of params
@@ -196,6 +202,10 @@ function configurator.doMakeResult(context, response, stat)
 
             if (miner:opt("config.antminer.economicMode") ~= "") then
                 formParams._ant_economic_mode = miner:opt("config.antminer.economicMode")
+            end
+
+            if (miner:opt("config.antminer.overclockWorkingMode") ~= "") then
+                formParams._ant_multi_level = miner:opt("config.antminer.overclockWorkingMode")
             end
             
             request.method = 'POST';
@@ -226,7 +236,10 @@ function configurator.doMakeResult(context, response, stat)
 			context:miner():setStat("login failed")
 		else
             context:setStepName("end")
-			context:miner():setStat(utils.trimAll(response.body))
+            context:miner():setStat(utils.trimAll(response.body))
+            if (context:miner():opt("config.antminer.overclockWorkingMode") ~= "") then
+                context:miner():setStat(context:miner():stat()..", overclock √")
+            end
         end
 	else
 		context:setStepName("end")
