@@ -2,6 +2,16 @@ local utils = {}
 
 local json = require ("dkjson")
 
+function utils.append(str, new, sep)
+    if (sep == nil) then
+        sep = ', '
+    end
+    if (string.len(str) > 0) then
+        str = str .. sep
+    end
+    return str .. new
+end
+
 function utils.trim(str)
     return str:gsub("^%s+", ""):gsub("%s+$", "")
 end

@@ -193,9 +193,35 @@ function configurator.doMakeResult(context, response, stat)
             end
 
             -- Custom values of params
+            if (miner:opt("config.antminer.overclockWorkingMode") ~= "") then
+                local options, _, optionErr = utils.jsonDecode (miner:opt('antminer.overclock_option'))
+                local workingModeName = miner:opt("config.antminer.overclockWorkingMode")
+                local workingModeValue = nil
+
+                if not (optionErr) then
+                    workingModeValue = options[workingModeName]
+                end
+
+                if (workingModeValue ~= nil) then
+                    formParams._ant_multi_level = workingModeValue
+                    
+                    if (miner:opt("antminer.overclock_to_freq") == "true") then
+                        formParams._ant_freq = formParams._ant_multi_level
+                    end
+
+                    if (miner:opt("antminer.overclock_to_work_mode") == "true") then
+                        formParams._ant_work_mode = formParams._ant_multi_level
+                    end
+
+                    miner:setOpt('antminer.overclock_working_mode', workingModeName)
+                end
+            end
+
             if (miner:opt("config.antminer.asicBoost") ~= "") then
                 if (miner:opt("config.antminer.asicBoost") == "true") then
+                    -- it should be named "_ant_disable_low_vol_freq"
                     formParams._ant_asic_boost = "false"
+                    miner:setOpt('antminer.overclock_working_mode', utils.append(miner:opt('antminer.overclock_working_mode'), 'LPM'))
                 else
                     formParams._ant_asic_boost = "true"
                 end
@@ -203,7 +229,9 @@ function configurator.doMakeResult(context, response, stat)
 
             if (miner:opt("config.antminer.lowPowerMode") ~= "") then
                 if (miner:opt("config.antminer.lowPowerMode") == "true") then
+                    -- it should be named "_ant_disable_low_vol_freq"
                     formParams._ant_low_vol_freq = "false"
+                    miner:setOpt('antminer.overclock_working_mode', utils.append(miner:opt('antminer.overclock_working_mode'), 'Enhanced LPM'))
                 else
                     formParams._ant_low_vol_freq = "true"
                 end
@@ -211,18 +239,6 @@ function configurator.doMakeResult(context, response, stat)
 
             if (miner:opt("config.antminer.economicMode") ~= "") then
                 formParams._ant_economic_mode = miner:opt("config.antminer.economicMode")
-            end
-
-            if (miner:opt("config.antminer.overclockWorkingMode") ~= "") then
-                formParams._ant_multi_level = miner:opt("config.antminer.overclockWorkingMode")
-                
-                if (miner:opt("antminer.overclock_to_freq") == "true") then
-                    formParams._ant_freq = formParams._ant_multi_level
-                end
-
-                if (miner:opt("antminer.overclock_to_work_mode") == "true") then
-                    formParams._ant_work_mode = formParams._ant_multi_level
-                end
             end
             
             request.method = 'POST';
@@ -254,9 +270,6 @@ function configurator.doMakeResult(context, response, stat)
 		else
             context:setStepName("end")
             context:miner():setStat(utils.trimAll(response.body))
-            if (context:miner():opt("config.antminer.overclockWorkingMode") ~= "") then
-                context:miner():setStat(context:miner():stat().." (OC√)")
-            end
         end
 	else
 		context:setStepName("end")

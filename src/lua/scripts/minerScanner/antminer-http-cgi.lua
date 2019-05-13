@@ -96,23 +96,67 @@ function scanner.doMakeResult(context, response, stat)
 		else
             local pool1, pool2, pool3 = miner:pool1(), miner:pool2(), miner:pool3()
             
-            local confs, pos, err = utils.jsonDecode (response.body)
+            local bmconf, pos, err = utils.jsonDecode (response.body)
             
             if not (err) then
                 miner:setTypeStr('antminer-http-cgi')
                 miner:setStat('success')
 
-                pool1:setUrl(confs.pools[1].url)
-                pool1:setWorker(confs.pools[1].user)
-                pool1:setPasswd(confs.pools[1].pass)
+                pool1:setUrl(bmconf.pools[1].url)
+                pool1:setWorker(bmconf.pools[1].user)
+                pool1:setPasswd(bmconf.pools[1].pass)
                 
-                pool2:setUrl(confs.pools[2].url)
-                pool2:setWorker(confs.pools[2].user)
-                pool2:setPasswd(confs.pools[2].pass)
+                pool2:setUrl(bmconf.pools[2].url)
+                pool2:setWorker(bmconf.pools[2].user)
+                pool2:setPasswd(bmconf.pools[2].pass)
                 
-                pool3:setUrl(confs.pools[3].url)
-                pool3:setWorker(confs.pools[3].user)
-                pool3:setPasswd(confs.pools[3].pass)
+                pool3:setUrl(bmconf.pools[3].url)
+                pool3:setWorker(bmconf.pools[3].user)
+                pool3:setPasswd(bmconf.pools[3].pass)
+
+                if (bmconf['bitmain-nobeeper'] ~= nil) then
+                    miner:setOpt('_ant_nobeeper', tostring(bmconf['bitmain-nobeeper']))
+                end
+                
+                if (bmconf['bitmain-notempoverctrl'] ~= nil) then
+                    miner:setOpt('_ant_notempoverctrl', tostring(bmconf['bitmain-notempoverctrl']))
+                end
+                
+                if (bmconf['bitmain-fan-ctrl'] ~= nil) then
+                    miner:setOpt('_ant_fan_customize_switch', tostring(bmconf['bitmain-fan-ctrl']))
+                end
+
+                if (bmconf['bitmain-fan-pwm'] ~= nil) then
+                    miner:setOpt('_ant_fan_customize_value', tostring(bmconf['bitmain-fan-pwm']))
+                end
+                
+                if (bmconf['bitmain-freq'] ~= nil) then
+                    miner:setOpt('_ant_freq', tostring(bmconf['bitmain-freq']))
+                end
+                
+                if (bmconf['bitmain-voltage'] ~= nil) then
+                    miner:setOpt('_ant_voltage', tostring(bmconf['bitmain-voltage']))
+                end
+
+                if (bmconf['bitmain-close-asic-boost'] ~= nil) then
+                    miner:setOpt('_ant_disable_asic_boost', tostring(bmconf['bitmain-close-asic-boost']))
+                end
+                
+                if (bmconf['bitmain-close-low-vol-freq'] ~= nil) then
+                    miner:setOpt('_ant_disable_low_vol_freq', tostring(bmconf['bitmain-close-low-vol-freq']))
+                end
+                
+                if (bmconf['bitmain-economic-mode'] ~= nil) then
+                    miner:setOpt('_ant_economic_mode', tostring(bmconf['bitmain-economic-mode']))
+                end
+
+                if (bmconf['bitmain-low-vol'] ~= nil) then
+                    miner:setOpt('_ant_multi_level', tostring(bmconf['bitmain-low-vol']))
+                end
+
+                if (bmconf['bitmain-work-mode'] ~= nil) then
+                    miner:setOpt('_ant_work_mode', tostring(bmconf['bitmain-work-mode']))
+                end
             end
 
             -- make next request
@@ -358,6 +402,36 @@ function scanner.doMakeResult(context, response, stat)
                     "Normal":"2"
                 }]])
                 miner:setOpt('antminer.overclock_to_work_mode', "true")
+            end
+
+            -- get the name of current working mode
+            local options, _, optionErr = utils.jsonDecode (miner:opt('antminer.overclock_option'))
+            if not (optionErr) then
+                local workingModeValue = ''
+                local workingModeName = ''
+
+                if (miner:opt("antminer.overclock_to_freq") == "true") then
+                    workingModeValue = miner:opt("_ant_freq")
+                elseif (miner:opt("antminer.overclock_to_work_mode") == "true") then
+                    workingModeValue = miner:opt("_ant_work_mode")
+                else
+                    workingModeValue = miner:opt("_ant_multi_level")
+                end
+
+                for k, v in pairs(options) do
+                    if (tostring(v) == workingModeValue) then
+                        workingModeName = k
+                        break
+                    end
+                end
+
+                miner:setOpt('antminer.overclock_working_mode', workingModeName)
+            end
+            if (miner:opt("_ant_disable_asic_boost") == "false") then
+                miner:setOpt('antminer.overclock_working_mode', utils.append(miner:opt('antminer.overclock_working_mode'), 'LPM'))
+            end
+            if (miner:opt("_ant_disable_asic_boost") == "false") then
+                miner:setOpt('antminer.overclock_working_mode', utils.append(miner:opt('antminer.overclock_working_mode'), 'Enhanced LPM'))
             end
 
             -- make next request
