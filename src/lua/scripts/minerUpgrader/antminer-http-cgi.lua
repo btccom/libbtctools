@@ -14,10 +14,18 @@ local isKeepSettings = function()
 end
 
 local getUpgradePath = function()
-	if (isKeepSettings) then
+	if (isKeepSettings()) then
 		return '/cgi-bin/upgrade.cgi'
 	else
 		return '/cgi-bin/upgrade_clear.cgi'
+	end
+end
+
+local getRebootPath = function(httpBody)
+	if (isKeepSettings() or string.find(httpBody, '/cgi-bin/reset_conf.cgi') == nil) then
+		return '/cgi-bin/reboot.cgi'
+	else
+		return '/cgi-bin/reset_conf.cgi'
 	end
 end
 
@@ -146,12 +154,12 @@ function configurator.doMakeResult(context, response, stat)
 				context:setStepName("end")
 				miner:setStat('failed: ' .. err)
 			elseif (first ~= "<") then
-				if (pos > 1) then
+				if (pos ~= nil) then
 					result = string.sub(result, 1, pos)
 				end
 				context:setStepName("end")
 				miner:setStat('failed: '.. result)
-			elseif(rebooting < 1) then
+			elseif(rebooting == nil) then
 				context:setStepName("end")
 				miner:setStat('failed: ' .. result)
 			else
@@ -159,12 +167,13 @@ function configurator.doMakeResult(context, response, stat)
 				local loginPassword = utils.getMinerLoginPassword(miner:fullTypeStr())
 				local request = http.parseRequest(context:requestContent())
 				request.method = 'GET'
-				request.path = '/cgi-bin/reboot.cgi'
+				request.path = getRebootPath(response.body)
 				request.headers['content-type'] = nil
 				request.headers['content-length'] = nil
 				request.body = nil
 				local requestContent, err = http.makeAuthRequest(request, response, loginPassword.userName, loginPassword.password)
 				context:setRequestContent(requestContent)
+				context:setRequestSessionTimeout(10)
 			end
 		end
 	elseif (step == "doReboot") then
@@ -185,16 +194,21 @@ function configurator.doMakeResult(context, response, stat)
             context:setStepName("end")
 			miner:setStat("upgraded")
         else
-            local times = tonumber(miner:opt('check-upgrade-finish-times'))
-            
-            if (times > 60) then
-                miner:setStat("wait finish timeout")
-                context:setStepName("end")
-            else
-                miner:setOpt('check-upgrade-finish-times', tostring(times + 1))
-                miner:setStat("not finish")
-                context:setStepName("waitFinish")
-            end
+			local times = tonumber(miner:opt('check-upgrade-finish-times'))
+			
+			if (isKeepSettings()) then
+				if (times > 10) then
+					miner:setStat("wait finish timeout")
+					context:setStepName("end")
+				else
+					miner:setOpt('check-upgrade-finish-times', tostring(times + 1))
+					miner:setStat("not finish")
+					context:setStepName("waitFinish")
+				end
+			else
+				context:setStepName("end")
+				miner:setStat("upgraded")
+			end
         end
 	else
 		context:setStepName("end")

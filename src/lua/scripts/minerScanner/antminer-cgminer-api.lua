@@ -239,6 +239,7 @@ function scanner.doMakeResult(context, response, stat)
         -- find more infos from http
         if (isAntminer) then
             miner:setOpt('scannerName', 'antminer-http-cgi')
+            miner:setOpt('skipGetMinerStat', 'true')
             context:setStepName("begin")
         end
         

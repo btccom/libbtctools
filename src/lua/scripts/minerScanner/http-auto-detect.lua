@@ -43,7 +43,8 @@ function scanner.doMakeResult(context, response, stat)
         return
     end
     
-	response = http.parseResponse(response)
+    response = http.parseResponse(response)
+    miner:setOpt('httpPortAvailable', 'true')
     
     if (step == 'detect') then
         
@@ -57,6 +58,7 @@ function scanner.doMakeResult(context, response, stat)
             context:setStepName("begin")
             miner:setStat('find antminer')
             miner:setFullTypeStr('Antminer *') -- used for utils.getMinerLoginPassword()
+            miner:setTypeStr('antminer-unknown')
             context:setCanYield(true)
             
         elseif (response.statCode == "200" and

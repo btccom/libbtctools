@@ -156,6 +156,15 @@ function scanner.doMakeRequest(context)
 		    context:setStepName("login")
             miner:setStat('login...')
         end
+
+        -- Use longer timeouts to avoid incomplete content downloads
+        if (miner:opt('httpPortAvailable') == 'true') then
+            local timeout = context:requestSessionTimeout() * 5
+            if (timeout < 10) then
+                timeout = 10
+            end
+            context:setRequestSessionTimeout(timeout)
+        end
         
     elseif (step == "getStat") then
         local cookie = miner:opt('cookie')

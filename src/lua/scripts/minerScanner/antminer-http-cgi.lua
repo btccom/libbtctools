@@ -24,6 +24,15 @@ function scanner.doMakeRequest(context)
 		context:setRequestContent(http.makeRequest(request))
 		context:setStepName("auth")
         miner:setStat('login...')
+
+        -- Use longer timeouts to avoid incomplete content downloads
+        if (miner:opt('httpPortAvailable') == 'true') then
+            local timeout = context:requestSessionTimeout() * 5
+            if (timeout < 10) then
+                timeout = 10
+            end
+            context:setRequestSessionTimeout(timeout)
+        end
         
 	elseif (step == "getMinerConf") then
 		context:setStepName("parseMinerConf")
@@ -53,21 +62,6 @@ function scanner.doMakeResult(context, response, stat)
     
     context:setCanYield(true)
     miner:setStat(stat)
-
-    if (stat ~= "success" and response == "") then
-        context:setStepName("end")
-        -- Some AntMiner that lack some default configs may not be able to complete the scan.
-        -- So here is a compromise to allow the user to configure the pool of the miner.
-        -- Notes:
-        --     Some Antminer will end the HTTP connection abnormally, 
-        --     but as long as the response is not empty, it can still be parsed normally.
-        context:miner():setStat("success")
-        if (miner:fullTypeStr() == '' or miner:typeStr() == '') then
-    		miner:setFullTypeStr('Antminer *')
-            miner:setTypeStr('antminer-http-cgi')
-        end
-        return
-    end
 
 	response = http.parseResponse(response)
     
@@ -107,12 +101,7 @@ function scanner.doMakeResult(context, response, stat)
             if not (err) then
                 miner:setTypeStr('antminer-http-cgi')
                 miner:setStat('success')
-                
-                -- used for getMinerLoginPassword
-                if (miner:fullTypeStr() == '') then
-                    miner:setFullTypeStr('Antminer *')
-                end
-                
+
                 pool1:setUrl(confs.pools[1].url)
                 pool1:setWorker(confs.pools[1].user)
                 pool1:setPasswd(confs.pools[1].pass)
@@ -124,27 +113,22 @@ function scanner.doMakeResult(context, response, stat)
                 pool3:setUrl(confs.pools[3].url)
                 pool3:setWorker(confs.pools[3].user)
                 pool3:setPasswd(confs.pools[3].pass)
-                
-                
-                -- make next request
-                local request = http.parseRequest(context:requestContent())
-                
-                request.path = '/cgi-bin/get_miner_status.cgi';
-                
-                local loginPassword = utils.getMinerLoginPassword(miner:fullTypeStr())
-                local requestContent, err = http.makeAuthRequest(request, response, loginPassword.userName, loginPassword.password)
-                
-                if (err) then
-                    context:setStepName("end")
-                    miner:setStat('failed: ' .. err)
-                else
-                    context:setStepName("getMinerStat")
-                    context:setRequestContent(requestContent)
-                end
-                
-            else
+            end
+
+            -- make next request
+            local request = http.parseRequest(context:requestContent())
+            
+            request.path = '/cgi-bin/get_system_info.cgi';
+            
+            local loginPassword = utils.getMinerLoginPassword(miner:fullTypeStr())
+            local requestContent, err = http.makeAuthRequest(request, response, loginPassword.userName, loginPassword.password)
+            
+            if (err) then
                 context:setStepName("end")
-                miner:setStat("read config failed")
+                miner:setStat('failed: ' .. err)
+            else
+                context:setStepName("getMinerFullType")
+                context:setRequestContent(requestContent)
             end
 		end
         
@@ -238,20 +222,13 @@ function scanner.doMakeResult(context, response, stat)
 
 				end
                 
-                -- make next request
-                local request = http.parseRequest(context:requestContent())
-                
-                request.path = '/cgi-bin/get_system_info.cgi';
-                
-                local loginPassword = utils.getMinerLoginPassword(miner:fullTypeStr())
-                local requestContent, err = http.makeAuthRequest(request, response, loginPassword.userName, loginPassword.password)
-                
+                -- scanning finished
                 if (err) then
                     context:setStepName("end")
                     miner:setStat('failed: ' .. err)
                 else
-                    context:setStepName("getMinerFullType")
-                    context:setRequestContent(requestContent)
+                    context:setStepName("end")
+                    miner:setStat('success')
                 end
                 
             else
@@ -356,8 +333,6 @@ function scanner.doMakeResult(context, response, stat)
 			context:setStepName("end")
 			miner:setStat("login failed")
         else
-            context:setStepName("end")
-            miner:setStat("success")
 
             local obj, pos, err = utils.jsonDecode (response.body)
             
@@ -383,6 +358,22 @@ function scanner.doMakeResult(context, response, stat)
                     "Normal":"2"
                 }]])
                 miner:setOpt('antminer.overclock_to_work_mode', "true")
+            end
+
+            -- make next request
+            if (miner:opt('skipGetMinerStat') == 'true') then
+                context:setStepName("end")
+                miner:setStat("success")
+            else
+                local request = http.parseRequest(context:requestContent())
+                    
+                request.path = '/cgi-bin/get_miner_status.cgi';
+                
+                local loginPassword = utils.getMinerLoginPassword(miner:fullTypeStr())
+                local requestContent, err = http.makeAuthRequest(request, response, loginPassword.userName, loginPassword.password)
+                
+                context:setStepName("getMinerStat")
+                context:setRequestContent(requestContent)
             end
         end
     else
