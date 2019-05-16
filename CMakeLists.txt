@@ -63,32 +63,38 @@ if(WIN32)
   option(BTCTOOLS__STATIC_LINKING_VC_LIB
     "Static linking VC++ runtime library (/MT)" OFF)
 
+  macro(set_linking_vclib CompilerFlag LinkFlag)
+    string(REPLACE "/MDd" "" ${CompilerFlag} "${${CompilerFlag}}")
+    string(REPLACE "/MD" "" ${CompilerFlag} "${${CompilerFlag}}")
+    string(REPLACE "/MTd" "" ${CompilerFlag} "${${CompilerFlag}}")
+    string(REPLACE "/MT" "" ${CompilerFlag} "${${CompilerFlag}}")
+    set(${CompilerFlag} "${${CompilerFlag}} ${LinkFlag}")
+    message("${CompilerFlag}=${${CompilerFlag}}")
+  endmacro()
+
   if(BTCTOOLS__STATIC_LINKING_VC_LIB)
-    message("-- Static linking VC++ runtime library (/MT).")
-    
-    # debug mode
-    set(CompilerFlags CMAKE_CXX_FLAGS_DEBUG CMAKE_C_FLAGS_DEBUG)
-    foreach(CompilerFlag ${CompilerFlags})
-      string(REPLACE "/MDd" "" ${CompilerFlag} "${${CompilerFlag}}")
-      string(REPLACE "/MD" "" ${CompilerFlag} "${${CompilerFlag}}")
-      set(${CompilerFlag} "${${CompilerFlag}} /MTd")
-      message("${CompilerFlag}=${${CompilerFlag}}")
-    endforeach()
-    
-    # release mode
-    set(CompilerFlags CMAKE_CXX_FLAGS_RELEASE CMAKE_C_FLAGS_RELEASE
-                      CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_C_FLAGS_MINSIZEREL
-            CMAKE_CXX_FLAGS_RELWITHDEBINFO CMAKE_C_FLAGS_RELWITHDEBINFO)
-    foreach(CompilerFlag ${CompilerFlags})
-      string(REPLACE "/MDd" "" ${CompilerFlag} "${${CompilerFlag}}")
-      string(REPLACE "/MD" "" ${CompilerFlag} "${${CompilerFlag}}")
-      set(${CompilerFlag} "${${CompilerFlag}} /MT")
-      message("${CompilerFlag}=${${CompilerFlag}}")
-    endforeach()
-  
+    message("-- Static linking VC++ runtime library (/MT): -DBTCTOOLS__STATIC_LINKING_VC_LIB=ON")
+
+    set_linking_vclib(CMAKE_CXX_FLAGS_DEBUG          "/MTd")
+    set_linking_vclib(CMAKE_C_FLAGS_DEBUG            "/MTd")
+    set_linking_vclib(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/MTd")
+    set_linking_vclib(CMAKE_C_FLAGS_RELWITHDEBINFO   "/MTd")
+    set_linking_vclib(CMAKE_CXX_FLAGS_RELEASE        "/MT")
+    set_linking_vclib(CMAKE_C_FLAGS_RELEASE          "/MT")
+    set_linking_vclib(CMAKE_CXX_FLAGS_MINSIZEREL     "/MT")
+    set_linking_vclib(CMAKE_C_FLAGS_MINSIZEREL       "/MT")
+
   else()
-    message("-- Dynamic linking VC++ runtime library (/MD).")
-    message("(-DBTCTOOLS__STATIC_LINKING_VC_LIB=ON switching to static linking.)")
+    message("-- Dynamic linking VC++ runtime library (/MD): -DBTCTOOLS__STATIC_LINKING_VC_LIB=OFF")
+
+    set_linking_vclib(CMAKE_CXX_FLAGS_DEBUG          "/MDd")
+    set_linking_vclib(CMAKE_C_FLAGS_DEBUG            "/MDd")
+    set_linking_vclib(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/MDd")
+    set_linking_vclib(CMAKE_C_FLAGS_RELWITHDEBINFO   "/MDd")
+    set_linking_vclib(CMAKE_CXX_FLAGS_RELEASE        "/MD")
+    set_linking_vclib(CMAKE_C_FLAGS_RELEASE          "/MD")
+    set_linking_vclib(CMAKE_CXX_FLAGS_MINSIZEREL     "/MD")
+    set_linking_vclib(CMAKE_C_FLAGS_MINSIZEREL       "/MD")
   endif()
 
   ###
@@ -100,8 +106,7 @@ if(WIN32)
   ###
   # disable IOCP
   ###
-  add_definitions(-DBOOST_ASIO_DISABLE_IOCP)
-
+  #add_definitions(-DBOOST_ASIO_DISABLE_IOCP)
 
   ###
   # disable SAFESEH
@@ -128,74 +133,68 @@ endif()
 message("") # empty line
 message("------------------------------- Libs -------------------------------")
 
-if(WIN32)
-  # find_package() cannot work properly at Windows, so set lib-name directly.
-  set(THIRD_LIBRARIES lua51 cryptlib ws2_32 ssleay32 libeay32)
-
-  # include dir for targets
-  include_directories(src)
-
+find_package(Boost 1.59 COMPONENTS regex system context)
+if(NOT Boost_FOUND)
+  message(FATAL_ERROR "Boost 1.59 or later not found!")
 else()
-  # use find_package() at *unix like systems.
-  find_package(Boost 1.59 COMPONENTS regex system context)
-  if(NOT Boost_FOUND)
-    message(FATAL_ERROR "Boost 1.59 or later not found!")
-  else()
-    message("   Boost_INCLUDE_DIRS: ${Boost_INCLUDE_DIRS}")
-    message("   Boost_LIBRARIES: ${Boost_LIBRARIES}")
-  endif()
+  message("-- Boost_INCLUDE_DIRS: ${Boost_INCLUDE_DIRS}")
+  message("-- Boost_LIBRARIES: ${Boost_LIBRARIES}")
+endif()
 
-  find_package(OpenSSL)
-  if(NOT OPENSSL_FOUND)
-    message(FATAL_ERROR "OpenSSL not found!")
-  else()
-    message("   OPENSSL_INCLUDE_DIR: ${OPENSSL_INCLUDE_DIR}")
-    message("   OPENSSL_CRYPTO_LIBRARY: ${OPENSSL_CRYPTO_LIBRARY}")
-	message("   OPENSSL_SSL_LIBRARY: ${OPENSSL_SSL_LIBRARY}")
-  endif()
+find_package(OpenSSL)
+if(NOT OPENSSL_FOUND)
+  message(FATAL_ERROR "OpenSSL not found!")
+else()
+  message("-- OPENSSL_INCLUDE_DIR: ${OPENSSL_INCLUDE_DIR}")
+  message("-- OPENSSL_CRYPTO_LIBRARY: ${OPENSSL_CRYPTO_LIBRARY}")
+  message("-- OPENSSL_SSL_LIBRARY: ${OPENSSL_SSL_LIBRARY}")
+endif()
 
-  if(BTCTOOLS__LUA_TYPE MATCHES JIT)
-    find_package(LuaJIT)
-    if(NOT LUAJIT_FOUND)
-      message(FATAL_ERROR "LuaJIT not found!")
-    else()
-      message("   LUA_INCLUDE_DIR: ${LUA_INCLUDE_DIR}")
-      message("   LUA_LIBRARIES: ${LUA_LIBRARIES}")
-    endif()
+if(BTCTOOLS__LUA_TYPE MATCHES JIT)
+  find_package(LuaJIT)
+  if(NOT LUAJIT_FOUND)
+    message(FATAL_ERROR "LuaJIT not found!")
   else()
-    find_package(Lua51)
-    if(NOT LUA51_FOUND)
-      message(FATAL_ERROR "Lua-5.1 not found!")
-    else()
-      message("   LUA_INCLUDE_DIR: ${LUA_INCLUDE_DIR}")
-      message("   LUA_LIBRARIES: ${LUA_LIBRARIES}")
-    endif()
+    message("-- LUA_INCLUDE_DIR: ${LUA_INCLUDE_DIR}")
+    message("-- LUA_LIBRARIES: ${LUA_LIBRARIES}")
   endif()
-
-  find_package(CryptoPP)
-  if(NOT CRYPTOPP_FOUND)
-    message(FATAL_ERROR "Crypto++ not found!")
+else()
+  find_package(Lua51)
+  if(NOT LUA51_FOUND)
+    message(FATAL_ERROR "Lua-5.1 not found!")
   else()
-    message("   CRYPTOPP_INCLUDE_DIRS: ${CRYPTOPP_INCLUDE_DIRS}")
-    message("   CRYPTOPP_LIBRARIES: ${CRYPTOPP_LIBRARIES}")
+    message("-- LUA_INCLUDE_DIR: ${LUA_INCLUDE_DIR}")
+    message("-- LUA_LIBRARIES: ${LUA_LIBRARIES}")
   endif()
+endif()
 
+find_package(CryptoPP)
+if(NOT CRYPTOPP_FOUND)
+  message(FATAL_ERROR "Crypto++ not found!")
+else()
+  message("-- CRYPTOPP_INCLUDE_DIRS: ${CRYPTOPP_INCLUDE_DIRS}")
+  message("-- CRYPTOPP_LIBRARIES: ${CRYPTOPP_LIBRARIES}")
+endif()
+
+if (WIN32)
+  set(PTHREAD_INCLUDE_DIR "")
+  set(PTHREAD_LIBRARIES ws2_32)
+else()
   find_package(LibPthread)
   if(NOT PTHREAD_FOUND)
     message(FATAL_ERROR "libpthread not found!")
   else()
-    message("   PTHREAD_INCLUDE_DIR: ${PTHREAD_INCLUDE_DIR}")
-    message("   PTHREAD_LIBRARIES: ${PTHREAD_LIBRARIES}")
+    message("-- PTHREAD_INCLUDE_DIR: ${PTHREAD_INCLUDE_DIR}")
+    message("-- PTHREAD_LIBRARIES: ${PTHREAD_LIBRARIES}")
   endif()
-
-  include_directories(src ${Boost_INCLUDE_DIRS} ${OPENSSL_INCLUDE_DIR}
-                          ${LUA_INCLUDE_DIR} ${CRYPTOPP_INCLUDE_DIRS} ${PTHREAD_INCLUDE_DIR})
-
-  # include dir for targets
-  set(THIRD_LIBRARIES ${Boost_LIBRARIES} ${OPENSSL_CRYPTO_LIBRARY} ${OPENSSL_SSL_LIBRARY}
-                      ${LUA_LIBRARIES} ${CRYPTOPP_LIBRARIES} ${PTHREAD_LIBRARIES})
-
 endif()
+
+# include dir for targets
+include_directories(src ${Boost_INCLUDE_DIRS} ${OPENSSL_INCLUDE_DIR}
+                        ${LUA_INCLUDE_DIR} ${CRYPTOPP_INCLUDE_DIRS} ${PTHREAD_INCLUDE_DIR})
+
+set(THIRD_LIBRARIES ${Boost_LIBRARIES} ${OPENSSL_CRYPTO_LIBRARY} ${OPENSSL_SSL_LIBRARY}
+                      ${LUA_LIBRARIES} ${CRYPTOPP_LIBRARIES} ${PTHREAD_LIBRARIES})
 
 
 ###################################### Targets ######################################

@@ -14,9 +14,12 @@ There are 4 dependencies:
 And `libpthread` is required on Linux and macOS.
 
 # Build on Linux
-Example on Ubuntu 16.04 x64:
+Example on Ubuntu 18.04 x64:
 ```bash
-# build boost 1.65
+# install boost via apt
+apt install libboost-dev
+
+# or build boost 1.65 if you want (optional)
 wget https://dl.bintray.com/boostorg/release/1.65.1/source/boost_1_65_1.tar.gz
 tar zxf boost_1_65_1.tar.gz
 cd boost_1_65_1
@@ -72,4 +75,34 @@ make
 ```
 
 # Build on Windows
-TODO: it's not easy. I will finish the document next days.
+
+### install vcpkg
+
+```
+git clone https://github.com/Microsoft/vcpkg.git
+cd vcpkg
+.\bootstrap-vcpkg.bat
+.\vcpkg integrate install
+```
+
+> PS G:\work\vcpkg> .\vcpkg integrate install
+> Applied user-wide integration for this vcpkg root.
+> 
+> All MSBuild C++ projects can now #include any installed libraries.
+> Linking will be handled automatically.
+> Installing new libraries will make them instantly available.
+> 
+> CMake projects should use: "-DCMAKE_TOOLCHAIN_FILE=G:/work/vcpkg/scripts/buildsystems/vcpkg.cmake"
+
+### install packages via vcpkg
+
+```
+.\vcpkg install boost:x86-windows-static openssl:x86-windows-static cryptopp:x86-windows-static luajit:x86-windows-static
+```
+
+### cmake & build
+
+```
+cmake -DCMAKE_BUILD_TYPE=Release -A win32 -DCMAKE_TOOLCHAIN_FILE=G:/work/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x86-windows-static -DBTCTOOLS__STATIC_LINKING_VC_LIB=ON -DBTCTOOLS__LIB_TYPE=STATIC ..
+start libbtctools.sln
+```

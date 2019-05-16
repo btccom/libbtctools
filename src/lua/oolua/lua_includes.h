@@ -38,15 +38,9 @@ THE SOFTWARE.
 //Prevent name mangling
 extern "C"
 {
-	#ifdef USE_LUAJIT
-		#include "luajit-2.0/lua.h"
-		#include "luajit-2.0/lauxlib.h"
-		#include "luajit-2.0/lualib.h"
-	#else
-		#include "lua-5.1/lua.h"
-		#include "lua-5.1/lauxlib.h"
-		#include "lua-5.1/lualib.h"
-	#endif
+	#include "lua.h"
+	#include "lauxlib.h"
+	#include "lualib.h"
 }
 
 #endif //LUA_INCLUDES_H_
