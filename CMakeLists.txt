@@ -205,16 +205,16 @@ set(THIRD_LIBRARIES ${Boost_LIBRARIES} ${OPENSSL_CRYPTO_LIBRARY} ${OPENSSL_SSL_L
 file(GLOB_RECURSE LIB_SOURCES src/*.cpp)
 
 if(BTCTOOLS__LIB_TYPE MATCHES SHARED)
-  add_library(libbtctools SHARED ${LIB_SOURCES})
-  target_link_libraries(libbtctools ${THIRD_LIBRARIES})
+  add_library(btctools SHARED ${LIB_SOURCES})
+  target_link_libraries(btctools ${THIRD_LIBRARIES})
 else()
-  add_library(libbtctools STATIC ${LIB_SOURCES})
+  add_library(btctools STATIC ${LIB_SOURCES})
 endif()
 
 ###
 # librarys for targets
 ###
-set(TARGET_LIBRARIES libbtctools ${THIRD_LIBRARIES})
+set(TARGET_LIBRARIES btctools ${THIRD_LIBRARIES})
 
 
 ###################### demos ######################
@@ -260,3 +260,30 @@ target_link_libraries(make-rsa-keys ${TARGET_LIBRARIES})
 # rsatools
 add_executable(rsatools toolkits/rsatools.cpp)
 target_link_libraries(rsatools ${TARGET_LIBRARIES})
+
+
+###################################### Installtion ######################################
+
+file(GLOB_RECURSE LIBBTCTOOLS_HEADERS src/*.h src/*.hpp)
+
+install(FILES ${LIBBTCTOOLS_HEADERS} DESTINATION include/btctools)
+install(DIRECTORY src/lua/scripts DESTINATION share/btctools/lua)
+
+install(TARGETS btctools DESTINATION lib)
+
+install(TARGETS
+          scanMinerDemo
+          configMinerDemo
+          rebootMinerDemo
+          upgradeMinerDemo
+          tcpClientHttpDemo
+          tcpClientScanDemo
+          ipGeneratorDemo
+          cryptoRSADemo
+          make-rsa-keys
+          rsatools
+        DESTINATION
+          bin/btctools)
+
+# demo need these scripts to run
+install(DIRECTORY src/lua/scripts DESTINATION bin/btctools/lua)

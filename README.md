@@ -38,17 +38,17 @@ mkdir build
 cd build
 
 # build as static library
-cmake -DBTCTOOLS__LIB_TYPE=STATIC ..
+cmake -DCMAKE_INSTALL_PREFIX=/opt/btctools -DBTCTOOLS__LIB_TYPE=STATIC ..
 make
+make install
 
 # or build as dynamic library
-cmake -DBTCTOOLS__LIB_TYPE=SHARED ..
+cmake -DCMAKE_INSTALL_PREFIX=/opt/btctools -DBTCTOOLS__LIB_TYPE=SHARED ..
 make
-
-# create a link for lua script
-ln -s ../src/lua .
+make install
 
 # running demos
+cd /opt/btctools/bin/btctools
 ./ipGeneratorDemo
 ./scanMinerDemo
 ./configMinerDemo
@@ -65,13 +65,14 @@ The command will be:
 brew install boost openssl lua@5.1 cryptopp
 
 # static library
-cmake -DBTCTOOLS__LIB_TYPE=STATIC -DBTCTOOLS__LUA_TYPE=NORMAL ..
+cmake -DCMAKE_INSTALL_PREFIX=/opt/btctools -DBTCTOOLS__LIB_TYPE=STATIC -DBTCTOOLS__LUA_TYPE=NORMAL ..
 
 # or dynamic library
-cmake -DBTCTOOLS__LIB_TYPE=SHARED -DBTCTOOLS__LUA_TYPE=NORMAL ..
+cmake -DCMAKE_INSTALL_PREFIX=/opt/btctools -DBTCTOOLS__LIB_TYPE=SHARED -DBTCTOOLS__LUA_TYPE=NORMAL ..
 
-# build
+# build & install
 make
+make install
 ```
 
 # Build on Windows
@@ -117,14 +118,16 @@ Example output for `.\vcpkg integrate install`:
 
 #### 32bit
 ```
-cmake -DCMAKE_BUILD_TYPE=Release -A win32 -DCMAKE_TOOLCHAIN_FILE=G:/work/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x86-windows-static -DBTCTOOLS__STATIC_LINKING_VC_LIB=ON -DBTCTOOLS__LIB_TYPE=STATIC ..
+cmake -DCMAKE_BUILD_TYPE=Release -A win32 -DCMAKE_TOOLCHAIN_FILE=G:/work/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x86-windows-static -DBTCTOOLS__STATIC_LINKING_VC_LIB=ON -DBTCTOOLS__LIB_TYPE=STATIC -DCMAKE_INSTALL_PREFIX=%appdata%\lib32\btctools ..
 start libbtctools.sln
 ```
 
 #### 64bit
 ```
-cmake -DCMAKE_BUILD_TYPE=Release -A x64 -DCMAKE_TOOLCHAIN_FILE=G:/work/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-static -DBTCTOOLS__STATIC_LINKING_VC_LIB=ON -DBTCTOOLS__LIB_TYPE=STATIC ..
+cmake -DCMAKE_BUILD_TYPE=Release -A x64 -DCMAKE_TOOLCHAIN_FILE=G:/work/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-static -DBTCTOOLS__STATIC_LINKING_VC_LIB=ON -DBTCTOOLS__LIB_TYPE=STATIC -DCMAKE_INSTALL_PREFIX=%appdata%\lib\btctools ..
 start libbtctools.sln
 ```
 
 Replace `G:/work/vcpkg/scripts/buildsystems/vcpkg.cmake` to your `vcpkg.cmake` path.
+
+Build the `INSTALL` project to install.
