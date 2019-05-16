@@ -22,7 +22,7 @@ local getUpgradePath = function()
 end
 
 local getRebootPath = function(httpBody)
-	if (isKeepSettings() or string.find(httpBody, '/cgi-bin/reset_conf.cgi') == nil) then
+	if (isKeepSettings() or string.find(httpBody, 'onload="f_submit_reboot();"') == nil) then
 		return '/cgi-bin/reboot.cgi'
 	else
 		return '/cgi-bin/reset_conf.cgi'
