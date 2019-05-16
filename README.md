@@ -78,12 +78,18 @@ make
 
 ### install vcpkg
 
+See https://github.com/Microsoft/vcpkg/ for more details.
+
+
+Quick Steps:
 ```
 git clone https://github.com/Microsoft/vcpkg.git
 cd vcpkg
 .\bootstrap-vcpkg.bat
 .\vcpkg integrate install
 ```
+
+Example output for `.\vcpkg integrate install`:
 
 > PS G:\work\vcpkg> .\vcpkg integrate install
 > Applied user-wide integration for this vcpkg root.
@@ -96,13 +102,29 @@ cd vcpkg
 
 ### install packages via vcpkg
 
+
+#### 32bit
 ```
 .\vcpkg install boost:x86-windows-static openssl:x86-windows-static cryptopp:x86-windows-static luajit:x86-windows-static
 ```
 
+#### 64bit
+```
+.\vcpkg install boost:x64-windows-static openssl:x64-windows-static cryptopp:x64-windows-static luajit:x64-windows-static
+```
+
 ### cmake & build
 
+#### 32bit
 ```
 cmake -DCMAKE_BUILD_TYPE=Release -A win32 -DCMAKE_TOOLCHAIN_FILE=G:/work/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x86-windows-static -DBTCTOOLS__STATIC_LINKING_VC_LIB=ON -DBTCTOOLS__LIB_TYPE=STATIC ..
 start libbtctools.sln
 ```
+
+#### 64bit
+```
+cmake -DCMAKE_BUILD_TYPE=Release -A x64 -DCMAKE_TOOLCHAIN_FILE=G:/work/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-static -DBTCTOOLS__STATIC_LINKING_VC_LIB=ON -DBTCTOOLS__LIB_TYPE=STATIC ..
+start libbtctools.sln
+```
+
+Replace `G:/work/vcpkg/scripts/buildsystems/vcpkg.cmake` to your `vcpkg.cmake` path.
