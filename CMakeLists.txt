@@ -35,7 +35,6 @@ if(BTCTOOLS__LUA_TYPE MATCHES NORMAL)
   set(BTCTOOLS__LUA_TYPE NORMAL)
 else()
   set(BTCTOOLS__LUA_TYPE JIT)
-  add_definitions(-DUSE_LUAJIT)
 endif()
 message("-- Lua Engine Type: ${BTCTOOLS__LUA_TYPE} (-DBTCTOOLS__LUA_TYPE=JIT|NORMAL)")
 
