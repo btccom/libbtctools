@@ -263,9 +263,8 @@ target_link_libraries(rsatools ${TARGET_LIBRARIES})
 
 ###################################### Installtion ######################################
 
-file(GLOB_RECURSE LIBBTCTOOLS_HEADERS src/*.h src/*.hpp)
-
-install(FILES ${LIBBTCTOOLS_HEADERS} DESTINATION include/btctools)
+install(DIRECTORY src/ DESTINATION include/btctools FILES_MATCHING PATTERN "*.h")
+install(DIRECTORY src/ DESTINATION include/btctools FILES_MATCHING PATTERN "*.hpp")
 install(DIRECTORY src/lua/scripts DESTINATION share/btctools/lua)
 
 install(TARGETS btctools DESTINATION lib)
