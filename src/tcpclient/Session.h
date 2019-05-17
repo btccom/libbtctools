@@ -18,7 +18,10 @@ namespace btctools
 			Session(boost::asio::io_service &io_service, ResponseYield &responseYield);
 			~Session();
 			void run(Request *request);
-			void resumeSession(); // 恢复会话。此时请求已经被外部更新，于是重新发送请求并读取响应（重用之前的连接）
+			
+			// Resume the session. The request has been updated externally.
+			// Resend the request and read the response (reuse the previous connection).
+			void resumeSession();
 
 		protected:
 			void run(Request *request, int session_timeout);
