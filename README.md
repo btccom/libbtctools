@@ -16,8 +16,11 @@ And `libpthread` is required on Linux and macOS.
 # Build on Linux
 Example on Ubuntu 18.04 x64:
 ```bash
+# build tools
+apt-get install -y build-essential autotools-dev libtool autoconf automake pkg-config cmake gcc g++
+
 # install boost via apt
-apt install libboost-dev
+apt install libboost-all-dev
 
 # or build boost 1.65 if you want (optional)
 wget https://dl.bintray.com/boostorg/release/1.65.1/source/boost_1_65_1.tar.gz
