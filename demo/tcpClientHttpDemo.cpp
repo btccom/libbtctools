@@ -75,6 +75,21 @@ int main(int argc, char* argv[])
 
 				requestYield(req);
 			}
+
+			{
+				Request* req = new Request;
+				req->host_ = "www.google.cn";
+				req->port_ = "80";
+				req->content_ = "POST / HTTP/1.0\r\nHost: www.google.cn\r\n\r\n123456789{file}987654321";
+				req->fileUpload_ = true;
+				req->replaceTag_ = "{file}";
+				req->filePath_ = "./test.txt";
+				req->usrdata_ = req;
+				req->session_timeout_ = 15;
+				req->delay_timeout_ = 0;
+
+				requestYield(req);
+			}
 		});
 
 		Client c;

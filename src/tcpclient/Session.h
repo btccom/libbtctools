@@ -1,6 +1,9 @@
 #ifndef BTCTOOLS_TCPCLIENT_SESSION
 #define BTCTOOLS_TCPCLIENT_SESSION
 
+#include <functional>
+#include <fstream>
+
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/ssl.hpp>
@@ -27,11 +30,26 @@ namespace btctools
 			void run(Request *request, int session_timeout);
 			void run(Request * request, int session_timeout, int delay_timeout);
 			void setTimeout(int timeout);
-			void writeContentTCP();
-			void readContentTCP();
-			void writeContentSSL();
-			void readContentSSL();
-			void clean();
+
+      template<class T>
+			void writeContent(T *socket);
+
+      enum class FileUploadStage {
+        BEFORE_FILE_UPLOAD,
+        IN_FILE_UPLOAD,
+        AFTER_FILE_UPLOAD
+      };
+
+      template<class T>
+      void writeFileContent(T* socket, FileUploadStage stage = FileUploadStage::BEFORE_FILE_UPLOAD, size_t replaceTagPos = string::npos);
+
+      template<class T>
+      void writeFileContent(T* socket, std::shared_ptr<std::ifstream> fs, size_t replaceTagPos);
+
+      template<class T>
+			void readContent(T *socket);
+			
+      void clean();
 			void yield(boost::system::error_code ec);
 
 		private:

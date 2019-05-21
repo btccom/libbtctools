@@ -1,3 +1,5 @@
+#include <fstream>
+
 #include <boost/asio.hpp>
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/ip/tcp.hpp>
@@ -119,7 +121,7 @@ namespace btctools
 						return;
 					}
 
-					writeContentTCP();
+					writeContent(socketTCP_);
 				});
 			}
 			else if (scheme == "ssl" || scheme == "tls") {
@@ -154,7 +156,7 @@ namespace btctools
 							return;
 						}
 
-						writeContentSSL();
+						writeContent(socketSSL_);
 					});
 				});
 			}
@@ -202,12 +204,17 @@ namespace btctools
 			}
 		}
 
-		void Session::writeContentTCP()
+    template<class T>
+		void Session::writeContent(T* socket)
 		{
 			auto self(shared_from_this());
 
-			boost::asio::async_write(*socketTCP_, boost::asio::buffer(request_->content_),
-				[this, self](const boost::system::error_code& ec,
+      if (request_->fileUpload_) {
+        return writeFileContent(socket);
+      }
+
+			boost::asio::async_write(*socket, boost::asio::buffer(request_->content_),
+				[this, self, socket](const boost::system::error_code& ec,
 				    std::size_t bytes_transferred)
 			{
 				if (!running_ || ec == boost::asio::error::operation_aborted)
@@ -221,16 +228,126 @@ namespace btctools
 					return;
 				}
 
-				readContentTCP();
+				readContent(socket);
 			});
 		}
 
-		void Session::readContentTCP()
+    template<class T>
+    void Session::writeFileContent(T* socket, FileUploadStage stage, size_t replaceTagPos)
+    {
+      auto self(shared_from_this());
+
+      switch (stage) {
+      case FileUploadStage::BEFORE_FILE_UPLOAD:
+      {
+        if (request_->content_.empty() || request_->replaceTag_.empty()) {
+          return writeFileContent(socket, FileUploadStage::IN_FILE_UPLOAD, string::npos);
+        }
+
+        size_t pos = request_->content_.find(request_->replaceTag_);
+        if (pos == request_->content_.npos) {
+          return writeFileContent(socket, FileUploadStage::IN_FILE_UPLOAD, string::npos);
+        }
+
+        // write the part before replaceTag
+        boost::asio::async_write(*socket, boost::asio::buffer(request_->content_.data(), pos),
+          [this, self, socket, pos](const boost::system::error_code& ec,
+            std::size_t bytes_transferred)
+        {
+          if (!running_ || ec == boost::asio::error::operation_aborted) {
+            return;
+          }
+          // note: the end of stream becomes an error code `boost::asio::error::eof`
+          if (ec) {
+            yield(ec);
+            return;
+          }
+
+          writeFileContent(socket, FileUploadStage::IN_FILE_UPLOAD, pos);
+        });
+        return;
+      }
+
+      case FileUploadStage::IN_FILE_UPLOAD:
+      {
+        shared_ptr<ifstream> fs = make_shared<ifstream>(request_->filePath_, ios::binary);
+
+        if (!*fs) {
+          yield(boost::asio::error::not_found);
+          return;
+        }
+
+        return writeFileContent(socket, fs, replaceTagPos);
+      }
+
+      case FileUploadStage::AFTER_FILE_UPLOAD:
+      {
+        if (replaceTagPos == string::npos) {
+          return readContent(socket);
+        }
+
+        // write the part after replaceTag
+        boost::asio::async_write(*socket, boost::asio::buffer(
+          request_->content_.data() + replaceTagPos + request_->replaceTag_.size(),
+          request_->content_.size() - replaceTagPos - request_->replaceTag_.size()),
+          [this, self, socket](const boost::system::error_code& ec,
+            std::size_t bytes_transferred)
+        {
+          if (!running_ || ec == boost::asio::error::operation_aborted) {
+            return;
+          }
+          // note: the end of stream becomes an error code `boost::asio::error::eof`
+          if (ec) {
+            yield(ec);
+            return;
+          }
+
+          readContent(socket);
+        });
+        return;
+        }
+      }
+    }
+
+    template<class T>
+    void Session::writeFileContent(T* socket, shared_ptr<ifstream> fs, size_t replaceTagPos) {
+      auto self(shared_from_this());
+
+      fs->read(buffer_, BUFFER_SIZE);
+      size_t bufLen = fs->gcount();
+
+      if (bufLen == 0) {
+        return writeFileContent(socket, FileUploadStage::AFTER_FILE_UPLOAD, replaceTagPos);
+      }
+
+      boost::asio::async_write(*socket, boost::asio::buffer(buffer_, bufLen),
+        [this, self, socket, fs, replaceTagPos](const boost::system::error_code& ec,
+          std::size_t bytes_transferred)
+      {
+        if (!running_ || ec == boost::asio::error::operation_aborted) {
+          return;
+        }
+        // note: the end of stream becomes an error code `boost::asio::error::eof`
+        if (ec) {
+          yield(ec);
+          return;
+        }
+
+        if (fs->eof()) {
+          return writeFileContent(socket, FileUploadStage::AFTER_FILE_UPLOAD, replaceTagPos);
+        }
+
+        writeFileContent(socket, fs, replaceTagPos);
+      });
+    }
+
+    template<class T>
+		void Session::readContent(T* socket)
 		{
 			auto self(shared_from_this());
 
-			socketTCP_->async_read_some(boost::asio::buffer(buffer_, BUFFER_SIZE),
-				[this, self](const boost::system::error_code& ec,
+      socket->async_read_some(boost::asio::buffer(buffer_, BUFFER_SIZE),
+				[this, self, socket](const boost::system::error_code& ec,
 					std::size_t bytes_transferred)
 			{
 				if (!running_ || ec == boost::asio::error::operation_aborted)
@@ -245,54 +362,7 @@ namespace btctools
 				}
 
 				response_->content_ += string(buffer_, bytes_transferred);
-				readContentTCP();
-			});
-		}
-
-		void Session::writeContentSSL()
-		{
-			auto self(shared_from_this());
-
-			boost::asio::async_write(*socketSSL_, boost::asio::buffer(request_->content_),
-				[this, self](const boost::system::error_code& ec,
-					std::size_t bytes_transferred)
-			{
-				if (!running_ || ec == boost::asio::error::operation_aborted)
-				{
-					return;
-				}
-
-				// note: the end of stream becomes an error code `boost::asio::error::eof`
-				if (ec) {
-					yield(ec);
-					return;
-				}
-
-				readContentSSL();
-			});
-		}
-
-		void Session::readContentSSL()
-		{
-			auto self(shared_from_this());
-
-			socketSSL_->async_read_some(boost::asio::buffer(buffer_, BUFFER_SIZE),
-				[this, self](const boost::system::error_code& ec,
-					std::size_t bytes_transferred)
-			{
-				if (!running_ || ec == boost::asio::error::operation_aborted)
-				{
-					return;
-				}
-
-				// note: the end of stream becomes an error code `boost::asio::error::eof`
-				if (ec) {
-					yield(ec);
-					return;
-				}
-
-				response_->content_ += string(buffer_, bytes_transferred);
-				readContentSSL();
+				readContent(socket);
 			});
 		}
 
@@ -307,11 +377,14 @@ namespace btctools
 
 			if (socketTCP_ != nullptr && socketTCP_->is_open())
 			{
+        socketTCP_->shutdown(boost::asio::ip::tcp::socket::shutdown_both);
 				socketTCP_->close();
 			}
 
 			if (socketSSL_ != nullptr && socketSSL_->lowest_layer().is_open())
 			{
+        socketSSL_->shutdown();
+        socketSSL_->lowest_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_both);
 				socketSSL_->lowest_layer().close();
 			}
 		}
@@ -321,13 +394,13 @@ namespace btctools
 			if (request_->is_final_ || ec) {
 				response_->is_final_ = true;
 
-				// 关闭会话
+				// close session
 				clean();
 			}
 			else {
 				response_->is_final_ = false;
 
-				//取消超时定时器
+				// cancel timer
 				if (session_timer_ != nullptr)
 				{
 					session_timer_->cancel();
@@ -347,16 +420,16 @@ namespace btctools
 
 			auto self(shared_from_this());
 
-			// 清空响应内容
+			// clear contents
 			response_->content_.clear();
 
 			setTimeout(request_->delay_timeout_);
 
 			if (socketTCP_ != nullptr) {
-				writeContentTCP();
+				writeContent(socketTCP_);
 			}
 			else if (socketSSL_ != nullptr) {
-				writeContentSSL();
+				writeContent(socketSSL_);
 			}
 			else {
 				yield(boost::asio::error::service_not_found);

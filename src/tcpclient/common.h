@@ -33,19 +33,26 @@ namespace btctools
             string host_;
             string port_;
             string content_;
-			int session_timeout_;
-			int delay_timeout_;
-            const void *usrdata_; // User-defined data
-			bool is_final_; // Whether it is the last request of the session (the session is destroyed after the request is completed)
+            
+            // Used to support file upload HTTP requests (Reduce memory usage)
+            // Replace replaceTag_ in content_ with file contents of filePath_
+            bool fileUpload_ = false;
+            string replaceTag_;
+            string filePath_;
+
+            int session_timeout_ = 0;
+            int delay_timeout_ = 0;
+            const void *usrdata_ = nullptr; // User-defined data
+            bool is_final_ = false; // Whether it is the last request of the session (the session is destroyed after the request is completed)
         };
 
-		struct Response
+        struct Response
         {
             boost::system::error_code error_code_;
             string content_;
-			std::shared_ptr<Session> session_; // Session of the Response
-            const void *usrdata_; // The usrdata_ in the Request will be copied to its Response.
-			bool is_final_; // Whether it is the last response of the session (the session has been destroyed)
+            std::shared_ptr<Session> session_; // Session of the Response
+            const void *usrdata_ = nullptr; // The usrdata_ in the Request will be copied to its Response.
+            bool is_final_ = false; // Whether it is the last response of the session (the session has been destroyed)
         };
 
         using coro_request_t = boost::coroutines2::coroutine<Request*>;
