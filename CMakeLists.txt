@@ -201,7 +201,8 @@ set(THIRD_LIBRARIES ${Boost_LIBRARIES} ${OPENSSL_CRYPTO_LIBRARY} ${OPENSSL_SSL_L
 ###
 # build: libbtctools
 ###
-file(GLOB_RECURSE LIB_SOURCES src/*.cpp)
+file(GLOB_RECURSE LIB_SOURCES src/*.h src/*.hpp src/*.cpp)
+source_group(TREE ${CMAKE_SOURCE_DIR} FILES ${LIB_SOURCES})
 
 if(BTCTOOLS__LIB_TYPE MATCHES SHARED)
   add_library(btctools SHARED ${LIB_SOURCES})
