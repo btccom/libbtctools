@@ -50,6 +50,9 @@ OOLUA_PROXY(btctools::miner::WorkContext)
 	OOLUA_MFUNC(requestContent)
 	OOLUA_MFUNC(requestSessionTimeout)
 	OOLUA_MFUNC(requestDelayTimeout)
+  OOLUA_MFUNC(isFileUpload)
+  OOLUA_MFUNC(uploadedFilePath)
+  OOLUA_MFUNC(uploadedReplaceTag)
 	OOLUA_MFUNC(setStepName)
 	OOLUA_MFUNC(setMiner)
 	OOLUA_MFUNC(setCanYield)
@@ -58,6 +61,8 @@ OOLUA_PROXY(btctools::miner::WorkContext)
 	OOLUA_MFUNC(setRequestContent)
 	OOLUA_MFUNC(setRequestSessionTimeout)
 	OOLUA_MFUNC(setRequestDelayTimeout)
+  OOLUA_MFUNC(setFileUpload)
+  OOLUA_MFUNC(clearFileUpload)
 OOLUA_PROXY_END
 
 /** class Crypto */

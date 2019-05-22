@@ -17,9 +17,11 @@ OOLUA_EXPORT_FUNCTIONS_CONST(Miner, opt)
 OOLUA_EXPORT_FUNCTIONS(WorkContext, stepName, miner, canYield,
 	requestHost, requestPort, requestContent,
 	requestSessionTimeout, requestDelayTimeout,
+  isFileUpload, uploadedFilePath, uploadedReplaceTag,
 	setStepName, setMiner, setCanYield,
 	setRequestHost, setRequestPort, setRequestContent,
-	setRequestSessionTimeout, setRequestDelayTimeout)
+	setRequestSessionTimeout, setRequestDelayTimeout,
+  setFileUpload, clearFileUpload)
 OOLUA_EXPORT_FUNCTIONS_CONST(WorkContext)
 
 

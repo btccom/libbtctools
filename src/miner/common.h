@@ -81,6 +81,10 @@ namespace btctools
 			int requestDelayTimeout();
 			bool isFinal();
 
+      bool isFileUpload();
+      string& uploadedFilePath();
+      string& uploadedReplaceTag();
+
 			void setStepName(string stepName);
 			void setMiner(Miner miner);
 			void setCanYield(bool canYield);
@@ -90,6 +94,9 @@ namespace btctools
 			void setRequestSessionTimeout(int timeout);
 			void setRequestDelayTimeout(int timeout);
 			void setIsFinal(bool isFinal);
+
+      void setFileUpload(string filePath, string replaceTag);
+      void clearFileUpload();
 		};
 
 		using coro_miner_t = boost::coroutines2::coroutine<const Miner &>;

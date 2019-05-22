@@ -27,22 +27,17 @@ int main(int argc, char* argv[])
 		// Format:
 		// "<miner-model-base64>:<user-base64>:<pwd-base64>&<miner-model-base64>:<user-base64>:<pwd-base64>&..."
         btctools::utils::OOLuaHelper::setOpt("login.minerPasswords", Crypto::base64Encode("Antminer S9") + ":" +
-		                                                             Crypto::base64Encode("root") + ":" +
-																	 Crypto::base64Encode("root"));
+                                                                     Crypto::base64Encode("root") + ":" +
+                                                                     Crypto::base64Encode("root"));
 
         // set miner model
         btctools::utils::OOLuaHelper::setOpt("upgrader.minerModel", "Antminer S9");
 
         // set firmware
-        btctools::utils::OOLuaHelper::setOpt("upgrader.firmwareName", "firmware.tar.gz");
-		// Set as the contents of the firmware file.
-		// Read the binary directly into std::string without any coding.
-		// Here is just a demo.
-		std::string fileData(20000000, 'a');
-        btctools::utils::OOLuaHelper::setOpt("upgrader.firmwareData", fileData);
+        btctools::utils::OOLuaHelper::setOpt("upgrader.firmwareName", "./firmware.tar.gz");
 
         // set keep settings
-		// "1" or "0"
+        // "1" or "0"
         btctools::utils::OOLuaHelper::setOpt("upgrader.keepSettings", "1");
 
 		MinerSource minerSource([](MinerYield &minerYield)

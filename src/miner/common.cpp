@@ -143,6 +143,21 @@ namespace btctools
 			return request_.is_final_;
 		}
 
+    bool WorkContext::isFileUpload()
+    {
+      return request_.fileUpload_;
+    }
+
+    string& WorkContext::uploadedFilePath()
+    {
+      return request_.filePath_;
+    }
+
+    string& WorkContext::uploadedReplaceTag()
+    {
+      return request_.replaceTag_;
+    }
+
 		void WorkContext::setStepName(string stepName)
 		{
 			stepName_ = std::move(stepName);
@@ -178,6 +193,20 @@ namespace btctools
 		void WorkContext::setIsFinal(bool isFinal) {
 			request_.is_final_ = isFinal;
 		}
+
+    void WorkContext::setFileUpload(string filePath, string replaceTag)
+    {
+      request_.fileUpload_ = true;
+      request_.filePath_ = filePath;
+      request_.replaceTag_ = replaceTag;
+    }
+
+    void WorkContext::clearFileUpload()
+    {
+      request_.fileUpload_ = false;
+      request_.filePath_.clear();
+      request_.replaceTag_.clear();
+    }
 
 
 	} // namespace tcpclient

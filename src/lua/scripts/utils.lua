@@ -210,4 +210,14 @@ function utils.getMinerLoginPassword(minerType)
     return nil
 end
 
+function utils.getFileSize(filePath)
+    local file = io.open(filePath, "r")
+    if (file == nil) then
+        return 0
+    end
+    local size = file:seek("end")
+    io.close(file)
+    return size
+end
+
 return utils

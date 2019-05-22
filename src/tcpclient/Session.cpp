@@ -375,16 +375,19 @@ namespace btctools
 				session_timer_->cancel();
 			}
 
+			// Prevent shutdown() from throwing an exception
+			boost::system::error_code ec;
+
 			if (socketTCP_ != nullptr && socketTCP_->is_open())
 			{
-        socketTCP_->shutdown(boost::asio::ip::tcp::socket::shutdown_both);
+        socketTCP_->shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
 				socketTCP_->close();
 			}
 
 			if (socketSSL_ != nullptr && socketSSL_->lowest_layer().is_open())
 			{
-        socketSSL_->shutdown();
-        socketSSL_->lowest_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_both);
+        socketSSL_->shutdown(ec);
+        socketSSL_->lowest_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
 				socketSSL_->lowest_layer().close();
 			}
 		}

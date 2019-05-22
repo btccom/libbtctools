@@ -232,7 +232,7 @@ function http.makeRequest(httpRequest)
 		httpRequest.headers['host'] = httpRequest.host
 	end
 	
-	if (string.len(httpRequest.body) > 0) then
+	if (string.len(httpRequest.body) > 0) and (httpRequest.headers['content-length'] == nil) then
 		httpRequest.headers['content-length'] = { string.len(httpRequest.body) };
 	end
 	

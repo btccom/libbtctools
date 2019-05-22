@@ -3,12 +3,6 @@ local configurator = {}
 local utils = require ("utils")
 local http = require ("http")
 
--- The large HTTP body cache, to help reduce the memory usage
--- with Lua's string memory sharing.
--- It will be released after the MinerCongifure object in C++ scope destroyed.
-local firmwareHttpBodyCache = nil
-local firmwareHttpContentType = nil
-
 local isKeepSettings = function()
 	return OOLuaHelper.opt("upgrader.keepSettings") ~= "0"
 end
@@ -98,25 +92,20 @@ function configurator.doMakeResult(context, response, stat)
 
 					local request = http.parseRequest(context:requestContent())
 
-					if (firmwareHttpBodyCache == nil or firmwareHttpContentType == nil) then
-						-- make the firmware POST data
-						local fields = {
-							["datafile"] = {
-								["filename"] = OOLuaHelper.opt("upgrader.firmwareName"),
-								["data"] = OOLuaHelper.opt("upgrader.firmwareData"),
-								["content-type"] = "application/x-gzip"
-							}
+					-- make the firmware POST data
+					local filePath = OOLuaHelper.opt("upgrader.firmwareName")
+					local replaceTag = '{file-data}'
+					local fields = {
+						["datafile"] = {
+							["filename"] = filePath,
+							["data"] = replaceTag,
+							["content-type"] = "application/x-gzip"
 						}
-						http.setFileUploadRequest(request, fields)
-						-- save cache
-						firmwareHttpBodyCache = request.body
-						firmwareHttpContentType = request.headers['content-type']
-					else
-						-- use cache
-						request.method = 'POST'
-						request.headers['content-type'] = firmwareHttpContentType
-						request.body = firmwareHttpBodyCache
-					end
+					}
+					http.setFileUploadRequest(request, fields)
+					context:setFileUpload(filePath, replaceTag)
+
+					request.headers['content-length'] = string.len(request.body) + utils.getFileSize(filePath) - string.len(replaceTag)
 
 					local requestContent, err = http.makeAuthRequest(request, response, loginPassword.userName, loginPassword.password)
 					
@@ -174,6 +163,7 @@ function configurator.doMakeResult(context, response, stat)
 				local requestContent, err = http.makeAuthRequest(request, response, loginPassword.userName, loginPassword.password)
 				context:setRequestContent(requestContent)
 				context:setRequestSessionTimeout(10)
+				context:clearFileUpload()
 			end
 		end
 	elseif (step == "doReboot") then
