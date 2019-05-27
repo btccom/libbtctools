@@ -45,7 +45,7 @@ namespace btctools
 				stat = "success";
 				break;
 			default:
-				stat = "unknown";
+				stat = response->error_code_.message();
 				break;
 			}
 

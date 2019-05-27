@@ -22,37 +22,40 @@ end
 
 function doMakeRequest(context)
 	local typeStr = context:miner():typeStr()
-	
-    local success, minerProcessor = pcall (require, "minerUpgrader." .. typeStr)
+	local success, minerProcessor = pcall (require, "minerUpgrader." .. typeStr)
     
-    if success then
+  if success then
 		minerProcessor.doMakeRequest(context)
 	else
-        print (minerProcessor)
+    print (minerProcessor)
 		context:setStepName("end")
 		context:miner():setStat("Don't support: " .. typeStr)
 		context:setCanYield(true)
-    end
+  end
 end
 
 function doMakeResult(context, response, stat)
-    local typeStr = context:miner():typeStr()
+  local typeStr = context:miner():typeStr()
 	
 	if (context:stepName() ~= "doWaitFinish" and stat ~= "success") then
-        context:setStepName("end")
-		context:miner():setStat(stat)
+		if (stat == "Element not found") then
+			context:miner():setStat("Firmware file not found")
+		else
+			context:miner():setStat(stat)
+		end
+		context:setStepName("end")
 		context:setCanYield(true)
 		return
-    end
+  end
     
-    local success, minerProcessor = pcall (require, "minerUpgrader." .. typeStr)
+  local success, minerProcessor = pcall (require, "minerUpgrader." .. typeStr)
     
-    if success then
+  if success then
 		minerProcessor.doMakeResult(context, response, stat)
 	else
-        print (minerProcessor)
+    print (minerProcessor)
 		context:setStepName("end")
 		context:miner():setStat("Don't support: " .. typeStr)
 		context:setCanYield(true)
-    end
+  end
 end
