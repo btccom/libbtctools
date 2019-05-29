@@ -9,13 +9,7 @@ local regularTypeStr = function(fullTypeStr)
     local typeLowerStr = string.lower(fullTypeStr)
     
     if (string.match(typeLowerStr, 'antminer')) then
-        typeStr = 'antminer'
-        
-        if (string.match(typeLowerStr, 's3') or string.match(typeLowerStr, 's1')) then
-            typeStr = typeStr .. '-http-luci'
-        else
-            typeStr = typeStr .. '-http-cgi'
-        end
+        typeStr = 'antminer-http-cgi'
     end
     
     return typeStr
