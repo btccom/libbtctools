@@ -184,8 +184,11 @@ function scanner.doMakeResult(context, response, stat)
 		if (response.statCode == "401") then
 			context:setStepName("end")
 			miner:setStat("login failed")
-		else
-            local stats, pos, err = utils.jsonDecode (response.body)
+        else
+            -- S17 has this:
+            -- "ghsav":"0.00,GHS 30m=0.00"
+            local body = string.gsub(response.body, ',GHS 30m=', '","ghs30m":"')
+            local stats, pos, err = utils.jsonDecode(body)
             
             if not (err) then
                 context:setStepName("end")

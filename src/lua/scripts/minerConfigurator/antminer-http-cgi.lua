@@ -267,6 +267,7 @@ function configurator.doMakeResult(context, response, stat)
             request.path = '/cgi-bin/set_miner_conf.cgi';
             request.headers['Content-Type'] = 'application/x-www-form-urlencoded'
             request.body = utils.makeUrlQueryString(formParams, formKeys)
+            context:setRequestSessionTimeout(120)
             
             local loginPassword = utils.getMinerLoginPassword(miner:fullTypeStr())
             
