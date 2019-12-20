@@ -115,6 +115,14 @@ local parseMinerStats = function(jsonStr, miner, stat)
                 if (opts['Elapsed'] ~= nil) then
                     miner:setOpt('elapsed', utils.formatTime(opts['Elapsed'], 'd :h :m :s '))
                 end
+
+                if (opts['Mode'] ~= nil) then
+                    miner:setOpt('_ant_work_mode', opts['Mode'])
+                end
+
+                if (opts['Ex Hash Rate'] ~= nil) then
+                    miner:setOpt('_ant_multi_level', opts['Ex Hash Rate'])
+                end
             end
         end
     else
