@@ -157,6 +157,10 @@ function scanner.doMakeResult(context, response, stat)
                 if (bmconf['bitmain-work-mode'] ~= nil) then
                     miner:setOpt('_ant_work_mode', tostring(bmconf['bitmain-work-mode']))
                 end
+
+                if (bmconf['bitmain-ex-hashrate'] ~= nil) then
+                    miner:setOpt('_ant_multi_level', tostring(bmconf['bitmain-ex-hashrate']))
+                end
             end
 
             -- make next request
@@ -377,171 +381,250 @@ function scanner.doMakeResult(context, response, stat)
 			context:setStepName("end")
 			miner:setStat("login failed")
         else
+            local overclockOption = {
+                ModeInfo = {
+                    {
+                        ModeName = "Normal",
+                        ModeValue = "",
+                        Level = {
+                            Normal = "",
+                        }
+                    }
+                }
+            }
 
-            local obj, pos, err = utils.jsonDecode (response.body)
-            
-            if not (err) then
-                miner:setOpt('antminer.overclock_option', response.body)
-            elseif (string.match(miner:fullTypeStr(), 'Antminer L3')) then
-                miner:setOpt('antminer.overclock_option', [[{
-                    "100M":"100",
-                    "106M":"106",
-                    "112M":"112",
-                    "118M":"118",
-                    "125M":"125",
-                    "131M":"131",
-                    "137M":"137",
-                    "142M":"142",
-                    "148M":"148",
-                    "154M":"154",
-                    "160M":"160",
-                    "166M":"166",
-                    "172M":"172",
-                    "178M":"178",
-                    "184M":"184",
-                    "190M":"190",
-                    "196M":"196",
-                    "200M":"200",
-                    "206M":"206",
-                    "212M":"212",
-                    "217M":"217",
-                    "223M":"223",
-                    "229M":"229",
-                    "235M":"235",
-                    "242M":"242",
-                    "248M":"248",
-                    "254M":"254",
-                    "260M":"260",
-                    "267M":"267",
-                    "273M":"273",
-                    "279M":"279",
-                    "285M":"285",
-                    "294M":"294",
-                    "300M":"300",
-                    "306M":"306",
-                    "312M":"312",
-                    "319M":"319",
-                    "325M":"325",
-                    "331M":"331",
-                    "338M":"338",
-                    "344M":"344",
-                    "350M":"350",
-                    "353M":"353",
-                    "356M":"356",
-                    "359M":"359",
-                    "362M":"362",
-                    "366M":"366",
-                    "369M":"369",
-                    "375M":"375",
-                    "378M":"378",
-                    "381M":"381",
-                    "384M":"384",
-                    "387M":"387",
-                    "391M":"391",
-                    "394M":"394",
-                    "397M":"397",
-                    "400M":"400",
-                    "406M":"406",
-                    "412M":"412",
-                    "419M":"419",
-                    "425M":"425",
-                    "431M":"431",
-                    "437M":"437",
-                    "438M":"438",
-                    "444M":"444",
-                    "450M":"450",
-                    "456M":"456",
-                    "462M":"462",
-                    "469M":"469",
-                    "475M":"475",
-                    "481M":"481",
-                    "487M":"487",
-                    "494M":"494",
-                    "500M":"500",
-                    "506M":"506",
-                    "512M":"512",
-                    "519M":"519",
-                    "525M":"525",
-                    "531M":"531",
-                    "537M":"537",
-                    "544M":"544",
-                    "550M":"550",
-                    "556M":"556",
-                    "562M":"562",
-                    "569M":"569",
-                    "575M":"575",
-                    "581M":"581",
-                    "587M":"587",
-                    "588M":"588",
-                    "594M":"594",
-                    "600M":"600",
-                    "606M":"606",
-                    "612M":"612",
-                    "619M":"619",
-                    "625M":"625",
-                    "631M":"631",
-                    "637M":"637",
-                    "638M":"638",
-                    "644M":"644",
-                    "650M":"650"
-                }]])
+            if (string.match(miner:fullTypeStr(), 'Antminer L3')) then
+                overclockOption = {
+                    ModeInfo = {
+                        {
+                            ModeName = "Normal",
+                            ModeValue = "",
+                            Level = {
+                                ["100M"] = "100",
+                                ["106M"] = "106",
+                                ["112M"] = "112",
+                                ["118M"] = "118",
+                                ["125M"] = "125",
+                                ["131M"] = "131",
+                                ["137M"] = "137",
+                                ["142M"] = "142",
+                                ["148M"] = "148",
+                                ["154M"] = "154",
+                                ["160M"] = "160",
+                                ["166M"] = "166",
+                                ["172M"] = "172",
+                                ["178M"] = "178",
+                                ["184M"] = "184",
+                                ["190M"] = "190",
+                                ["196M"] = "196",
+                                ["200M"] = "200",
+                                ["206M"] = "206",
+                                ["212M"] = "212",
+                                ["217M"] = "217",
+                                ["223M"] = "223",
+                                ["229M"] = "229",
+                                ["235M"] = "235",
+                                ["242M"] = "242",
+                                ["248M"] = "248",
+                                ["254M"] = "254",
+                                ["260M"] = "260",
+                                ["267M"] = "267",
+                                ["273M"] = "273",
+                                ["279M"] = "279",
+                                ["285M"] = "285",
+                                ["294M"] = "294",
+                                ["300M"] = "300",
+                                ["306M"] = "306",
+                                ["312M"] = "312",
+                                ["319M"] = "319",
+                                ["325M"] = "325",
+                                ["331M"] = "331",
+                                ["338M"] = "338",
+                                ["344M"] = "344",
+                                ["350M"] = "350",
+                                ["353M"] = "353",
+                                ["356M"] = "356",
+                                ["359M"] = "359",
+                                ["362M"] = "362",
+                                ["366M"] = "366",
+                                ["369M"] = "369",
+                                ["375M"] = "375",
+                                ["378M"] = "378",
+                                ["381M"] = "381",
+                                ["384M"] = "384",
+                                ["387M"] = "387",
+                                ["391M"] = "391",
+                                ["394M"] = "394",
+                                ["397M"] = "397",
+                                ["400M"] = "400",
+                                ["406M"] = "406",
+                                ["412M"] = "412",
+                                ["419M"] = "419",
+                                ["425M"] = "425",
+                                ["431M"] = "431",
+                                ["437M"] = "437",
+                                ["438M"] = "438",
+                                ["444M"] = "444",
+                                ["450M"] = "450",
+                                ["456M"] = "456",
+                                ["462M"] = "462",
+                                ["469M"] = "469",
+                                ["475M"] = "475",
+                                ["481M"] = "481",
+                                ["487M"] = "487",
+                                ["494M"] = "494",
+                                ["500M"] = "500",
+                                ["506M"] = "506",
+                                ["512M"] = "512",
+                                ["519M"] = "519",
+                                ["525M"] = "525",
+                                ["531M"] = "531",
+                                ["537M"] = "537",
+                                ["544M"] = "544",
+                                ["550M"] = "550",
+                                ["556M"] = "556",
+                                ["562M"] = "562",
+                                ["569M"] = "569",
+                                ["575M"] = "575",
+                                ["581M"] = "581",
+                                ["587M"] = "587",
+                                ["588M"] = "588",
+                                ["594M"] = "594",
+                                ["600M"] = "600",
+                                ["606M"] = "606",
+                                ["612M"] = "612",
+                                ["619M"] = "619",
+                                ["625M"] = "625",
+                                ["631M"] = "631",
+                                ["637M"] = "637",
+                                ["638M"] = "638",
+                                ["644M"] = "644",
+                                ["650M"] = "650",
+                            }
+                        }
+                    }
+                }
                 miner:setOpt('antminer.overclock_to_freq', "true")
             elseif (string.match(miner:fullTypeStr(), 'Antminer L5')) then
-                miner:setOpt('antminer.overclock_option', [[{
-                    "(450MHz) Normal Power":"450",
-                    "(400MHz) Low Power":"400",
-                    "(350MHz) Ultra Low Power":"350"
-                }]])
+                overclockOption = {
+                    ModeInfo = {
+                        {
+                            ModeName = "Normal",
+                            ModeValue = "",
+                            Level = {
+                                ["(450MHz) Normal Power"] = "450",
+                                ["(400MHz) Low Power"] = "400",
+                                ["(350MHz) Ultra Low Power"] = "350"
+                            }
+                        }
+                    }
+                }
                 miner:setOpt('antminer.overclock_to_freq', "true")
             elseif (string.match(miner:fullTypeStr(), 'Antminer S17 Pro')) then
-                miner:setOpt('antminer.overclock_option', [[{
-                    "Low Power":"0",
-                    "Normal":"1",
-                    "High Performance":"2"
-                }]])
-                miner:setOpt('antminer.overclock_to_work_mode', "true")
+                overclockOption = {
+                    ModeInfo = {
+                        {
+                            ModeName = "Low Power",
+                            ModeValue = "0",
+                            Level = {
+                                Normal = "0"
+                            }
+                        },
+                        {
+                            ModeName = "Normal",
+                            ModeValue = "1",
+                            Level = {
+                                Normal = "0"
+                            }
+                        },
+                        {
+                            ModeName = "High Performance",
+                            ModeValue = "2",
+                            Level = {
+                                Normal = "0"
+                            }
+                        },
+                        {
+                            ModeName = "Sleep Mode",
+                            ModeValue = "254",
+                            Level = {
+                                Normal = "0"
+                            }
+                        }
+                    }
+                }
             elseif (string.match(miner:fullTypeStr(), 'Antminer [ST]17e')) then
-                miner:setOpt('antminer.overclock_option', [[{
-                    "Normal":"0"
-                }]])
-                miner:setOpt('antminer.overclock_to_work_mode', "true")
+                overclockOption = {
+                    ModeInfo = {
+                        {
+                            ModeName = "Normal",
+                            ModeValue = "0",
+                            Level = {
+                                Normal = "0"
+                            }
+                        }
+                    }
+                }
             elseif (string.match(miner:fullTypeStr(), 'Antminer S17')) then
-                miner:setOpt('antminer.overclock_option', [[{
-                    "Low Power":"1",
-                    "Normal":"2"
-                }]])
-                miner:setOpt('antminer.overclock_to_work_mode', "true")
+                overclockOption = {
+                    ModeInfo = {
+                        {
+                            ModeName = "Low Power",
+                            ModeValue = "1",
+                            Level = {
+                                Normal ="0"
+                            }
+                        },
+                        {
+                            ModeName = "Normal",
+                            ModeValue = "2",
+                            Level = {
+                                Normal ="0"
+                            }
+                        }
+                    }
+                }
             end
 
-            -- get the name of current working mode
-            local options, _, optionErr = utils.jsonDecode (miner:opt('antminer.overclock_option'))
-            if not (optionErr) then
-                local workingModeValue = ''
-                local workingModeName = ''
-
-                if (miner:opt("antminer.overclock_to_freq") == "true") then
-                    workingModeValue = miner:opt("_ant_freq")
-                elseif (miner:opt("antminer.overclock_to_work_mode") == "true") then
-                    workingModeValue = miner:opt("_ant_work_mode")
+            local obj, pos, err = utils.jsonDecode (response.body)
+            if not (err) and type(obj) == 'table' then
+                if type(obj.ModeInfo) == 'table' then
+                    overclockOption = obj
                 else
-                    workingModeValue = miner:opt("_ant_multi_level")
-                end
-
-                for k, v in pairs(options) do
-                    if (tostring(v) == workingModeValue) then
-                        workingModeName = k
-                        break
+                    for _, mode in pairs(overclockOption.ModeInfo) do
+                        mode.Level = obj
                     end
                 end
+            end
 
-                miner:setOpt('antminer.overclock_working_mode', workingModeName)
+            miner:setOpt('antminer.overclock_option', utils.jsonEncode(overclockOption))
+
+            -- get the name of current working mode
+            local workingModes = {}
+            local levelNames = {}
+            for _, mode in ipairs(overclockOption.ModeInfo) do
+                workingModes[mode.ModeValue] = mode.ModeName
+                for k, v in pairs(mode.Level) do
+                    levelNames[v] = k
+                end
+            end
+
+            local workingMode = workingModes[miner:opt("_ant_work_mode")] or ""
+
+            local levelKey = (miner:opt("antminer.overclock_to_freq") == "true") and "_ant_freq" or "_ant_multi_level"
+            local levelName = levelNames[miner:opt(levelKey)] or ""
+            if levelName ~= workingMode then
+                workingMode = utils.append(workingMode, levelName)
+            end
+            
+            if (miner:opt("_ant_disable_asic_boost") == "false") then
+                workingMode = utils.append(workingMode, 'LPM')
             end
             if (miner:opt("_ant_disable_asic_boost") == "false") then
-                miner:setOpt('antminer.overclock_working_mode', utils.append(miner:opt('antminer.overclock_working_mode'), 'LPM'))
+                workingMode = utils.append(workingMode, 'Enhanced LPM')
             end
-            if (miner:opt("_ant_disable_asic_boost") == "false") then
-                miner:setOpt('antminer.overclock_working_mode', utils.append(miner:opt('antminer.overclock_working_mode'), 'Enhanced LPM'))
-            end
+
+            miner:setOpt('antminer.overclock_working_mode', workingMode)
 
             -- make next request
             if (miner:opt('skipGetMinerStat') == 'true') then

@@ -97,7 +97,7 @@ function configurator.doMakeResult(context, response, stat)
                 "_ant_asic_boost",
                 "_ant_low_vol_freq",
                 "_ant_economic_mode",
-                "_ant_multi_level"
+                "_ant_multi_level",
             }
             
             -- Auto detecting the order of keys.
@@ -190,38 +190,58 @@ function configurator.doMakeResult(context, response, stat)
                 if (bmconf['bitmain-work-mode'] ~= nil) then
                     formParams._ant_work_mode = bmconf['bitmain-work-mode']
                 end
+
+                if (bmconf['bitmain-ex-hashrate'] ~= nil) then
+                    formParams._ant_multi_level = bmconf['bitmain-ex-hashrate']
+                end
             end
 
             -- Custom values of params
+            local activeWorkingModeName = ''
+            local activeLevelName = ''
             if (miner:opt("config.antminer.overclockWorkingMode") ~= "") then
-                local options, _, optionErr = utils.jsonDecode (miner:opt('antminer.overclock_option'))
+
                 local workingModeName = miner:opt("config.antminer.overclockWorkingMode")
-                local workingModeValue = nil
+                local workingMode = nil
 
+                local options, _, optionErr = utils.jsonDecode (miner:opt('antminer.overclock_option'))
                 if not (optionErr) then
-                    workingModeValue = options[workingModeName]
+                    for _, mode in ipairs(options.ModeInfo) do
+                        if mode.ModeName == workingModeName then
+                            workingMode = mode
+                            formParams._ant_work_mode = mode.ModeValue
+                            activeWorkingModeName = workingModeName
+                            break
+                        end
+                    end
                 end
 
-                if (workingModeValue ~= nil) then
-                    formParams._ant_multi_level = workingModeValue
+                local levelName = miner:opt("config.antminer.overclockLevelName")
+                local levelValue = nil
+
+                if (workingMode ~= nil) then
+                    levelValue = workingMode.Level[levelName]
                     
-                    if (miner:opt("antminer.overclock_to_freq") == "true") then
-                        formParams._ant_freq = formParams._ant_multi_level
+                    if levelValue ~= nil then
+                        if (miner:opt("antminer.overclock_to_freq") == "true") then
+                            formParams._ant_freq = levelValue
+                        else
+                            formParams._ant_multi_level = levelValue
+                        end
+                        activeLevelName = levelName
                     end
-
-                    if (miner:opt("antminer.overclock_to_work_mode") == "true") then
-                        formParams._ant_work_mode = formParams._ant_multi_level
-                    end
-
-                    miner:setOpt('antminer.overclock_working_mode', workingModeName)
                 end
+            end
+
+            if activeLevelName ~= activeWorkingModeName then
+                activeWorkingModeName = utils.append(activeWorkingModeName, activeLevelName)
             end
 
             if (miner:opt("config.antminer.asicBoost") ~= "") then
                 if (miner:opt("config.antminer.asicBoost") == "true") then
                     -- it should be named "_ant_disable_low_vol_freq"
                     formParams._ant_asic_boost = "false"
-                    miner:setOpt('antminer.overclock_working_mode', utils.append(miner:opt('antminer.overclock_working_mode'), 'LPM'))
+                    activeWorkingModeName = utils.append(activeWorkingModeName, 'LPM')
                 else
                     formParams._ant_asic_boost = "true"
                 end
@@ -231,11 +251,13 @@ function configurator.doMakeResult(context, response, stat)
                 if (miner:opt("config.antminer.lowPowerMode") == "true") then
                     -- it should be named "_ant_disable_low_vol_freq"
                     formParams._ant_low_vol_freq = "false"
-                    miner:setOpt('antminer.overclock_working_mode', utils.append(miner:opt('antminer.overclock_working_mode'), 'Enhanced LPM'))
+                    activeWorkingModeName = utils.append(activeWorkingModeName, 'Enhanced LPM')
                 else
                     formParams._ant_low_vol_freq = "true"
                 end
             end
+
+            miner:setOpt('antminer.overclock_working_mode', activeWorkingModeName)
 
             if (miner:opt("config.antminer.economicMode") ~= "") then
                 formParams._ant_economic_mode = miner:opt("config.antminer.economicMode")
