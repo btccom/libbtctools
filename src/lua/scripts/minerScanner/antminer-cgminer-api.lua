@@ -117,11 +117,11 @@ local parseMinerStats = function(jsonStr, miner, stat)
                 end
 
                 if (opts['Mode'] ~= nil) then
-                    miner:setOpt('_ant_work_mode', opts['Mode'])
+                    miner:setOpt('_ant_work_mode', tostring(opts['Mode']))
                 end
 
                 if (opts['Ex Hash Rate'] ~= nil) then
-                    miner:setOpt('_ant_multi_level', opts['Ex Hash Rate'])
+                    miner:setOpt('_ant_multi_level', tostring(opts['Ex Hash Rate']))
                 end
             end
         end
