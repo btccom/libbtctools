@@ -6,6 +6,12 @@ function utils.append(str, new, sep)
     str = str or ""
     new = new or ""
     sep = sep or ", "
+    if str == "Normal" and #new > 0 then
+        return new
+    end
+    if #str > 0 and new == "Normal" then
+        return str
+    end
     if #str > 0 and #new > 0 then
         str = str .. sep
     end
