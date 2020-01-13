@@ -523,7 +523,7 @@ function scanner.doMakeResult(context, response, stat)
                     }
                 }
                 miner:setOpt('antminer.overclock_to_freq', "true")
-            elseif (string.match(miner:fullTypeStr(), 'Antminer S17 Pro')) then
+            elseif (miner:fullTypeStr() == 'Antminer S17 Pro') then
                 overclockOption = {
                     ModeInfo = {
                         {
@@ -556,19 +556,7 @@ function scanner.doMakeResult(context, response, stat)
                         }
                     }
                 }
-            elseif (string.match(miner:fullTypeStr(), 'Antminer [ST]17e')) then
-                overclockOption = {
-                    ModeInfo = {
-                        {
-                            ModeName = "Normal",
-                            ModeValue = "0",
-                            Level = {
-                                Normal = "0"
-                            }
-                        }
-                    }
-                }
-            elseif (string.match(miner:fullTypeStr(), 'Antminer S17')) then
+            elseif (miner:fullTypeStr() == 'Antminer S17') then
                 overclockOption = {
                     ModeInfo = {
                         {
