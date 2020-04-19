@@ -49,7 +49,19 @@ function scanner.doMakeRequest(context)
     elseif (step == "getOverclockOption") then
         context:setStepName("parseOverclockOption")
         miner:setStat('read overclock option...')
+    elseif (step == "getOverclockStat") then
+        context:setStepName("parseOverclockStat")
+        miner:setStat('read overclock status...')
 
+        local request = {
+			method = 'GET',
+			host = ip,
+			path = '/result',
+        }
+
+        context:setRequestPort("6060")
+        context:setRequestContent(http.makeRequest(request))
+        context:setRequestSessionTimeout(context:requestSessionTimeout())
 	else
 		context:setStepName("end")
 		miner:setStat("inner error: unknown step name: " .. step)
@@ -181,8 +193,9 @@ function scanner.doMakeResult(context, response, stat)
 		end
         
     elseif (step == "parseMinerStat") then
+        context:setStepName("getOverclockStat")
+
 		if (response.statCode == "401") then
-			context:setStepName("end")
 			miner:setStat("login failed")
         else
             -- S17 has this:
@@ -191,7 +204,6 @@ function scanner.doMakeResult(context, response, stat)
             local stats, pos, err = utils.jsonDecode(body)
             
             if not (err) then
-                context:setStepName("end")
                 miner:setStat("success")
                 
                 if (type(stats.summary) == 'table') then
@@ -275,15 +287,12 @@ function scanner.doMakeResult(context, response, stat)
                 
                 -- scanning finished
                 if (err) then
-                    context:setStepName("end")
                     miner:setStat('failed: ' .. err)
                 else
-                    context:setStepName("end")
                     miner:setStat('success')
                 end
                 
             else
-                context:setStepName("end")
                 miner:setStat("read stat failed")
             end
 		end
@@ -380,8 +389,9 @@ function scanner.doMakeResult(context, response, stat)
 		end
         
     elseif (step == "parseOverclockOption") then
+        context:setStepName("getOverclockStat")
+
 		if (response.statCode == "401") then
-			context:setStepName("end")
 			miner:setStat("login failed")
         else
             local overclockOption = {
@@ -619,7 +629,6 @@ function scanner.doMakeResult(context, response, stat)
 
             -- make next request
             if (miner:opt('skipGetMinerStat') == 'true') then
-                context:setStepName("end")
                 miner:setStat("success")
             else
                 local request = http.parseRequest(context:requestContent())
@@ -632,6 +641,28 @@ function scanner.doMakeResult(context, response, stat)
                 context:setStepName("getMinerStat")
                 context:setRequestContent(requestContent)
             end
+        end
+    elseif (step == "parseOverclockStat") then
+        context:setStepName("end")
+        miner:setStat("success")
+
+        local stats, pos, err = utils.jsonDecode(response.body)
+
+        if not (err) and type(stats) == 'table' then
+            local workingMode = miner:opt('antminer.overclock_working_mode')
+
+            if stats.ex_tuning_stat then
+                workingMode = utils.append(workingMode, 'OC √')
+                if type(stats.ex_hash_rate) == 'number' then
+                    local rate = (stats.ex_hash_rate >= 0) and '+' or ''
+                    rate = rate .. tostring(stats.ex_hash_rate) .. ' GH/s'
+                    workingMode = utils.append(workingMode, rate)
+                end
+            else
+                workingMode = utils.append(workingMode, 'OC tuning...')
+            end
+
+            miner:setOpt('antminer.overclock_working_mode', workingMode)
         end
     else
 		context:setStepName("end")

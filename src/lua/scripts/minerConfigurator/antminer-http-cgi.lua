@@ -98,6 +98,7 @@ function configurator.doMakeResult(context, response, stat)
                 "_ant_low_vol_freq",
                 "_ant_economic_mode",
                 "_ant_multi_level",
+                "_ant_force_tuning",
             }
             
             -- Auto detecting the order of keys.
@@ -137,6 +138,7 @@ function configurator.doMakeResult(context, response, stat)
                 _ant_low_vol_freq = "true", -- true: normal freq; false: low freq
                 _ant_economic_mode = "false", -- not use in AntMiner S9
                 _ant_multi_level = "1", -- for AntMiner S9 overclocking
+                _ant_force_tuning = "false", -- retry overclocking
 
                 -- Other models have these configurations
                 _ant_work_mode = ""
@@ -261,6 +263,10 @@ function configurator.doMakeResult(context, response, stat)
 
             if (miner:opt("config.antminer.economicMode") ~= "") then
                 formParams._ant_economic_mode = miner:opt("config.antminer.economicMode")
+            end
+
+            if (miner:opt("config.antminer.forceTuning") ~= "") then
+                formParams._ant_force_tuning = miner:opt("config.antminer.forceTuning")
             end
             
             request.method = 'POST';
