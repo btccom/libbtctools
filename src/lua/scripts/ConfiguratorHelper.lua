@@ -1,58 +1,27 @@
+utils = require "utils.utils"
+http = require "utils.http"
+date = require "utils.date"
+
+require 'utils.oop'
+require 'HelperBase'
+require 'ExecutorBase'
+require 'configurator.AntminerHttpCgi'
+--require 'configurator.AvalonHttpLuci'
+
+ConfiguratorHelper = oo.class({}, HelperBase)
+
+function ConfiguratorHelper:newExecutor(context)
+    local typeStr = context:miner():typeStr()
+    if _G[typeStr] then
+        return _G[typeStr](self, context)
+    end
+    throw(Exception("Don't support: " .. typeStr))
+end
 
 function makeRequest(context)
-	local _, err = pcall (doMakeRequest, context)
-	
-	if (err) then
-		context:setStepName("end")
-		context:miner():setStat('failed: ' .. err)
-		context:setCanYield(true)
-	end
-	
+    ConfiguratorHelper:makeRequest(context)
 end
 
 function makeResult(context, response, stat)
-	local _, err = pcall (doMakeResult, context, response, stat)
-	
-	if (err) then
-		context:setStepName("end")
-		context:miner():setStat('failed: ' .. err)
-		context:setCanYield(true)
-	end
-end
-
-function doMakeRequest(context)
-	local typeStr = context:miner():typeStr()
-	
-    local success, minerProcessor = pcall (require, "minerConfigurator." .. typeStr)
-    
-    if success then
-		minerProcessor.doMakeRequest(context)
-	else
-        print (minerProcessor)
-		context:setStepName("end")
-		context:miner():setStat("Don't support: " .. typeStr)
-		context:setCanYield(true)
-    end
-end
-
-function doMakeResult(context, response, stat)
-    local typeStr = context:miner():typeStr()
-	
-	if (stat ~= "success") then
-        context:setStepName("end")
-		context:miner():setStat(stat)
-		context:setCanYield(true)
-		return
-    end
-	
-    local success, minerProcessor = pcall (require, "minerConfigurator." .. typeStr)
-    
-    if success then
-		minerProcessor.doMakeResult(context, response, stat)
-	else
-        print (minerProcessor)
-		context:setStepName("end")
-		context:miner():setStat("Don't support: " .. typeStr)
-		context:setCanYield(true)
-    end
+    ConfiguratorHelper:makeResult(context, response, stat)
 end

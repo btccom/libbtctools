@@ -1,91 +1,25 @@
+utils = require "utils.utils"
+http = require "utils.http"
+date = require "utils.date"
+
+require 'utils.oop'
+require 'HelperBase'
+require 'ExecutorBase'
+require 'scanner.HttpAutoDetect'
+require 'scanner.AntminerCgminerApi'
+require 'scanner.AntminerHttpCgi'
+--require 'scanner.AvalonHttpLuci'
+
+ScannerHelper = oo.class({}, HelperBase)
+
+function ScannerHelper:newExecutor(context)
+    return HttpAutoDetect(self, context)
+end
 
 function makeRequest(context)
-	local _, err = pcall (doMakeRequest, context)
-	
-	if (err) then
-		context:setStepName("end")
-		context:miner():setStat('failed: ' .. err)
-		context:setCanYield(true)
-	end
-	
+    ScannerHelper:makeRequest(context)
 end
 
 function makeResult(context, response, stat)
-	local _, err = pcall (doMakeResult, context, response, stat)
-	
-	if (err) then
-		context:setStepName("end")
-		context:miner():setStat('failed: ' .. err)
-		context:setCanYield(true)
-	end
-end
-
-local loadScanner = function(name)
-    return pcall (require, "minerScanner." .. name)
-end
-
-local nextScannerName = function(currentName)
-    local scannerMap = {
-        ["http-auto-detect"] = "antminer-cgminer-api"
-    }
-    
-    return scannerMap[currentName]
-end
-
-local contextRestart = function(context)
-    context:setStepName("begin")
-    context:setCanYield(false)
-end
-
-
-function doMakeRequest(context)
-
-    local miner = context:miner()
-    local scannerName = miner:opt('scannerName')
-    
-    if (scannerName == "") then
-        scannerName = "http-auto-detect"
-        miner:setOpt('scannerName', scannerName)
-    end
-    
-    local success, scanner = loadScanner(scannerName)
-    
-    if (success) then
-        scanner.doMakeRequest(context)
-    else
-        context:setStepName("end")
-		context:miner():setStat('failed: ' .. scanner)
-		context:setCanYield(true)
-    end
-end
-
-function doMakeResult(context, response, stat)
-
-    local miner = context:miner()
-    local scannerName = miner:opt('scannerName')
-    
-    assert(scannerName ~= "", "inner error: scannerName cannot be empty!")
-    
-    local success, scanner = loadScanner(scannerName)
-    
-    if (success) then
-        -- now the scanner will process the no "success" status by itself
-        scanner.doMakeResult(context, response, stat)
-        
-        if (context:stepName() == 'end') and ((miner:typeStr() == 'unknown') or (miner:typeStr() == '')) then
-            scannerName = nextScannerName(scannerName)
-            
-            if (scannerName ~= nil) then
-                miner:setOpt('scannerName', scannerName)
-                contextRestart(context)
-            end
-            
-            return
-        end
-        
-    else
-        context:setStepName("end")
-		context:miner():setStat('failed: ' .. scanner)
-		context:setCanYield(true)
-    end
+    ScannerHelper:makeResult(context, response, stat)
 end

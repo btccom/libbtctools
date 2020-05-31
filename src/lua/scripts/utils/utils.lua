@@ -1,6 +1,6 @@
 local utils = {}
 
-local json = require ("dkjson")
+local json = require ("utils.dkjson")
 
 function utils.append(str, new, sep)
     str = str or ""
@@ -224,6 +224,32 @@ function utils.getFileSize(filePath)
     local size = file:seek("end")
     io.close(file)
     return size
+end
+
+function utils.debugInfo(func, err, context, response, stat)
+    -- debug info
+    print('--------- '..func..' ---------')
+    print('Error:')
+    print('--------------------')
+    print(err)
+    print(debug.traceback('--------------------', 2))
+    print('--------------------')
+    print('Step:', context:stepName())
+    print('IP:', context:miner():ip())
+    print('Host:', context:requestHost()..':'..context:requestPort())
+    if stat then
+        print('Stat:', stat)
+    end
+    print('Request:')
+    print('--------------------')
+    print(context:requestContent())
+    if response then
+        print('--------------------')
+        print('Response:')
+        print('--------------------')
+        print(response)
+    end
+    print('-------------------------------------------')
 end
 
 return utils
