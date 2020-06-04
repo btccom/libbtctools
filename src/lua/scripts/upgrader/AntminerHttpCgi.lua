@@ -24,13 +24,11 @@ function AntminerHttpCgi:getUpgradePath()
 end
 
 function AntminerHttpCgi:getRebootPath(httpBody)
-    if (self:isKeepSettings() or
-        string.find(httpBody, 'onload="f_submit_reboot();"') == nil)
-    then
-		return '/cgi-bin/reboot.cgi'
-	else
-		return '/cgi-bin/reset_conf.cgi'
-	end
+    if self:isKeepSettings() then
+        return '/cgi-bin/reboot.cgi'
+    else
+        return '/cgi-bin/reset_conf.cgi'
+    end
 end
 
 function AntminerHttpCgi:begin()
@@ -114,7 +112,12 @@ function AntminerHttpCgi:doUpgrade(httpResponse, stat)
 	OOLuaHelper.setOpt("upgrader.sendFirmwareStepSize", tostring(stepSize + 1))
 
     local response = self:parseHttpResponse(httpResponse, stat)
-    if (not response) then return end
+    if (not response) then
+        if stat ~= 'success' then
+            self:setStep('end', 'timeout, may succeeded')
+        end
+        return
+    end
 
 	if (response.statCode ~= "200") then
         self:setStep("end", "failed: " .. response.statMsg)
@@ -122,23 +125,44 @@ function AntminerHttpCgi:doUpgrade(httpResponse, stat)
     end
 
 	local result = response.body
-	local pos = string.find(result, "\n")
-	local first = string.sub(result, 1, 1)
-	local rebooting = string.find(result, "Rebooting System ...")
+    local first = string.sub(result, 1, 1)
 
-	if (first ~= "<") then
-		if (pos ~= nil) then
-			result = string.sub(result, 1, pos)
-		end
-        self:setStep("end", "failed: " .. result)
+    if first == '{' then
+        local obj, pos, err = utils.jsonDecode (result)
+        if err or not obj or not obj.stats then
+            err = err or 'unknown result'
+            utils.debugInfo('AntminerHttpCgi:doUpgrade', err, context, httpResponse, stat)
+            self:setStep("end", err .. ': ' .. result)
+            return
+        end
+        local msg = obj.stats or 'unknown'
+        if obj.msg and obj.msg ~= '' then
+            msg = msg .. ': ' .. obj.msg
+        end
+        if obj.stats ~= 'success' then
+            self:setStep("end", msg)
+            return
+        end
+        self:setStep("reboot", msg)
+        return
+    end
+
+    local pos = string.find(result, "\n")
+    local rebooting = string.find(result, "Rebooting System ...")
+
+    if (first ~= "<") then
+        if (pos ~= nil) then
+            result = string.sub(result, 1, pos)
+        end
+        self:setStep("end", result)
         return
     end
 
     if(rebooting == nil) then
-        self:setStep("end", "failed: " .. result)
+        self:setStep("end", result)
+        return
     end
-
-	self:setStep("reboot")
+    self:setStep("reboot", result)
 end
 
 function AntminerHttpCgi:reboot()
