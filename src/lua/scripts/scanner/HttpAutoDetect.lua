@@ -56,5 +56,5 @@ function HttpAutoDetect:detect(response, stat)
     miner:setOpt('httpDetect', 'unknown')
     miner:setTypeStr('unknown')
     miner:setFullTypeStr('')
-    self:setStep('end', stat or 'unknown')
+    self:setStep('end', 'unknown')
 end
