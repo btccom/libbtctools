@@ -53,7 +53,7 @@ function AntminerHttpCgi:auth(httpResponse, stat)
 
     local response = self:parseHttpResponse(httpResponse, stat, false)
     if (not response) then return end
-    if (response.statCode ~= "401") then
+    if (response.statCode ~= "401") and (not self.wait) then
         utils.debugInfo('AntminerHttpCgi:auth', 'statCode ~= 401', context, httpResponse, stat)
         self:setStep('end', 'read config failed')
         return
@@ -73,6 +73,7 @@ end
 function AntminerHttpCgi:waiting()
     self:makeAuthRequest()
     self:setStep("auth", "waiting...")
+    self.wait = true
 end
 
 function AntminerHttpCgi:upgrade()
