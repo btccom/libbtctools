@@ -369,12 +369,16 @@ end
 function AntminerHttpCgi:setMinerConf()
     self:setStep("parseResult", 'update config...')
 
+    -- Because the new miner firmware takes several minutes to
+    -- complete the HTTP response, we should not wait longer.
+    --[[
     -- set a long waiting time of the result
     local timeout = self.context:requestSessionTimeout() * 5
     if (timeout < 10) then
         timeout = 10
     end
     self.context:setRequestSessionTimeout(timeout)
+    ]]
 end
 
 function AntminerHttpCgi:parseResult(httpResponse, stat)
