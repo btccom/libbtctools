@@ -125,13 +125,13 @@ function AntminerHttpCgi:doUpgrade(httpResponse, stat)
         return
     end
 
-	local result = response.body
+	local result = utils.trim(response.body)
     local first = string.sub(result, 1, 1)
 
     if first == '{' then
         local obj, pos, err = utils.jsonDecode (result)
         if err or not obj or not obj.stats then
-            err = err or 'unknown result'
+            err = err or 'unknown JSON result'
             utils.debugInfo('AntminerHttpCgi:doUpgrade', err, context, httpResponse, stat)
             self:setStep("end", err .. ': ' .. result)
             return
@@ -157,6 +157,13 @@ function AntminerHttpCgi:doUpgrade(httpResponse, stat)
         end
         self:setStep("end", result)
         return
+    end
+
+    local msg = string.match(result, '<p>(.*)</p>')
+    if msg then
+        result = utils.trim(msg)
+    else
+        utils.debugInfo('AntminerHttpCgi:doUpgrade', 'unknown xml result', context, httpResponse, stat)
     end
 
     if(rebooting == nil) then
