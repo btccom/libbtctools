@@ -454,6 +454,7 @@ function AntminerHttpCgi:parseOverclockOption(httpResponse, stat)
                 mode.Level = obj
             end
         end
+        miner:setOpt('foundOverclockOption', "true")
     else
         utils.debugInfo('AntminerHttpCgi:parseOverclockOption', err or 'not an object', context, httpResponse, stat)
     end
@@ -649,7 +650,7 @@ function AntminerHttpCgi:parseOverclockStat(httpResponse, stat)
                 rate = rate .. tostring(stats.ex_hash_rate) .. ' GH/s'
                 workingMode = utils.append(workingMode, rate)
             end
-        else
+        elseif miner:opt('foundOverclockOption') == "true" then
             workingMode = utils.append(workingMode, 'OC tuning...')
         end
 
