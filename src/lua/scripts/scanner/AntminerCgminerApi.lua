@@ -81,13 +81,17 @@ function AntminerCgminerApi:parseMinerStats(jsonStr, miner, reqStat)
                     hashrateUnit = ' ksol/s'
 				end
 
-                if (opts['GHS 5s'] ~= nil) then
+                if (opts['RT'] ~= nil) then
+                    miner:setOpt('hashrate_5s', opts['RT']..hashrateUnit)
+                elseif (opts['GHS 5s'] ~= nil) then
                     miner:setOpt('hashrate_5s', opts['GHS 5s']..hashrateUnit)
 				elseif (opts['MHS 5s'] ~= nil) then
 					miner:setOpt('hashrate_5s', opts['MHS 5s']..' MH/s')
                 end
 
-                if (opts['GHS av'] ~= nil) then
+                if (opts['AVG'] ~= nil) then
+                    miner:setOpt('hashrate_avg', opts['AVG']..hashrateUnit)
+                elseif (opts['GHS av'] ~= nil) then
                     miner:setOpt('hashrate_avg', opts['GHS av']..hashrateUnit)
 				elseif (opts['MHS av'] ~= nil) then
 					miner:setOpt('hashrate_avg', opts['MHS av']..' MH/s')
