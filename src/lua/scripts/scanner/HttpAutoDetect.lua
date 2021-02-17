@@ -51,6 +51,15 @@ function HttpAutoDetect:detect(response, stat)
         return
     end
 
+    if (response.statCode == "200" and
+        string.match(response.body,'Lua Configuration Interface')
+        )
+    then
+        miner:setOpt('httpDetect', 'BosHttpLuci')
+        self.parent:setExecutor(self.context, BosHttpLuci(self.parent, self.context))
+        return
+    end
+
     utils.debugInfo('HttpAutoDetect:detect', 'unknown miner', context, response, stat)
 
     miner:setOpt('httpDetect', 'unknown')
