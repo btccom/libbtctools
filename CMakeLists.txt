@@ -194,6 +194,9 @@ include_directories(src ${Boost_INCLUDE_DIRS} ${OPENSSL_INCLUDE_DIR}
 
 set(THIRD_LIBRARIES ${Boost_LIBRARIES} ${OPENSSL_CRYPTO_LIBRARY} ${OPENSSL_SSL_LIBRARY}
                       ${LUA_LIBRARIES} ${CRYPTOPP_LIBRARIES} ${PTHREAD_LIBRARIES})
+if(WIN32)
+  set(THIRD_LIBRARIES ${THIRD_LIBRARIES} crypt32)
+endif()
 
 
 ###################################### Targets ######################################
