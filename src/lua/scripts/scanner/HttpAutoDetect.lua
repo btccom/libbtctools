@@ -23,9 +23,11 @@ function HttpAutoDetect:detect(response, stat)
     local miner = context:miner()
 
     if (stat ~= "success") then
+        miner:setOpt('httpDetect', 'unknown')
         miner:setTypeStr('unknown')
         miner:setFullTypeStr('')
-        self:setStep('end', stat or 'unknown')
+        -- Try cgminer api even if HTTP fails
+        self.parent:setExecutor(self.context, AntminerCgminerApi(self.parent, self.context))
         return
     end
 
@@ -65,5 +67,6 @@ function HttpAutoDetect:detect(response, stat)
     miner:setOpt('httpDetect', 'unknown')
     miner:setTypeStr('unknown')
     miner:setFullTypeStr('')
-    self:setStep('end', 'unknown')
+    -- Try cgminer api even if HTTP fails
+    self.parent:setExecutor(self.context, AntminerCgminerApi(self.parent, self.context))
 end
