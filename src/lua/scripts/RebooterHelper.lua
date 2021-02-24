@@ -6,6 +6,7 @@ require 'utils.oop'
 require 'HelperBase'
 require 'ExecutorBase'
 require 'rebooter.AntminerHttpCgi'
+require 'rebooter.BosHttpLuci'
 
 RebooterHelper = oo.class({}, HelperBase)
 

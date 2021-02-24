@@ -75,3 +75,124 @@ function ExecutorBase:makeAuthRequest(path)
 
     context:setRequestContent(requestContent)
 end
+
+function ExecutorBase:makeBasicHttpReq(request)
+    local context = self.context
+    local miner = context:miner()
+    local ip=miner:ip()
+
+    request.ip=ip
+
+    context:setRequestHost(ip)
+    context:setRequestPort('80')
+    context:setRequestContent(http.makeRequest(request))
+end
+
+function ExecutorBase:makeSessionedHttpReq(request)
+    if request['headers']==nil then
+        request['headers']={}
+    end
+    local context = self.context
+    local miner=context:miner()
+    request['headers']['cookie']=miner:opt('_luci_session')
+    self:makeBasicHttpReq(request)
+end
+
+function ExecutorBase:makeLuciSessionReq(noPswd)
+    local context = self.context
+    local miner = context:miner()
+
+    local pswd_key=miner:opt('settings_pasword_key')
+    local loginPassword = utils.getMinerLoginPassword(pswd_key)
+
+    if loginPassword==nil then
+        utils.debugInfo('ExecutorBase:makeLuciSessionReq', 'Password not found for key '..pswd_key, context, nil, nil)
+        self:setStep('end', 'login failed')
+        return
+    end
+
+    local userName=loginPassword.userName
+    local password=loginPassword.password
+
+    if noPswd==true then
+        password=''
+    end
+    
+    local request = {
+        method = 'POST',
+        path = '/cgi-bin/luci',
+        headers={
+            ['content-type']='application/x-www-form-urlencoded'
+        },
+        body='luci_username='..userName..'&luci_password='..password,
+    }
+
+    self:makeBasicHttpReq(request)
+end
+
+function ExecutorBase:parseLuciSessionReq(httpResponse, stat)
+    local context = self.context
+    local response = self:parseHttpResponse(httpResponse, stat, false)
+
+    if response.statCode~='302' then
+        utils.debugInfo('ExecutorBase:parseSession', 'Bad return code:' .. response.statCode, context, httpResponse, stat)
+        self:setStep('end', 'login failed')
+        return
+    end
+
+    if response['headers']==nil or response['headers']['set-cookie']==nil then
+        utils.debugInfo('ExecutorBase:parseSession', 'Missing set-cookie header', context, httpResponse, stat)
+        self:setStep('end', 'login failed')
+        return
+    end
+
+    local miner=context:miner()
+    miner:setOpt('_luci_session',response['headers']['set-cookie'][1])
+
+    return response
+end
+
+function ExecutorBase:makeLuciTokenReq()
+    local request = {
+        method = 'GET',
+        path = '/cgi-bin/luci/admin/system/reboot',
+    }
+    self:makeSessionedHttpReq(request)
+end
+
+function ExecutorBase:parseLuciTokenReq(httpResponse, stat)
+    local context = self.context
+    local response = self:parseHttpResponse(httpResponse, stat,false)
+    if response.statCode~='200' then
+        utils.debugInfo('ExecutorBase:parseSession', 'Bad return code:'..response.statCode, context, httpResponse, stat)
+        self:setStep('end', 'get token failed')
+        return
+    end
+
+    s,e=string.find(response.body,"token: '")
+    token=string.sub(response.body,e+1,e+32)
+
+    if token=='' or token==nil then
+        utils.debugInfo('ExecutorBase:parseSession', 'Cant find token in body', context, httpResponse, stat)
+        self:setStep('end', 'get token failed')
+        return
+    end
+
+    local miner=context:miner()
+    miner:setOpt('_luci_token',token)
+
+    return response
+end
+
+function ExecutorBase:parseHttpResponseJson(httpResponse,stat)
+    local context = self.context
+    local response = self:parseHttpResponse(httpResponse, stat,false)
+    if (not response) then return end
+    local obj,pos,err = utils.jsonDecode(response.body)
+    if err then
+        utils.debugInfo('parseHttpResponseJson', err, context, httpResponse, stat)
+        self:setStep('end', 'failed :' .. err)
+        return
+    end
+    return obj
+end

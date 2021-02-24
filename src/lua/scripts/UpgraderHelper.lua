@@ -6,6 +6,7 @@ require 'utils.oop'
 require 'HelperBase'
 require 'ExecutorBase'
 require 'upgrader.AntminerHttpCgi'
+require 'upgrader.BosHttpLuci'
 
 UpgraderHelper = oo.class({}, HelperBase)
 
