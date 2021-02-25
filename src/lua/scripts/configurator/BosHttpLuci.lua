@@ -134,6 +134,10 @@ function BosHttpLuci:parseMinerCfg(httpResponse, stat)
         miner:setOpt("_model", obj.data.format.model)
     end
 
+    if (obj.data ~= nil and obj.data.autotuning ~= nil and obj.data.autotuning.enabled) then
+        miner:setOpt("_autotuning_on", "1")
+    end
+
     self:setStep("getMinerMetaCfg", "get miner meta cfg..")
 end
 
@@ -195,6 +199,12 @@ function BosHttpLuci:parseMinerMetaCfg(httpResponse, stat)
     if miner:opt("_model") == "Antminer S9" then
         self.conf.data.hash_chain_global = {
             asic_boost = asic_boost
+        }
+    end
+
+    if miner:opt("_autotuning_on") == "1" then
+        self.conf.data.autotuning = {
+            enabled=true,
         }
     end
 
