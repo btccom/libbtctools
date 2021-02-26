@@ -222,7 +222,7 @@ function BosHttpLuci:parseMinerCfg(httpResponse, stat)
         miner:setOpt("antminer.overclock_working_mode", working_mode)
     end
 
-    self:setStep("getBosInfo", "get bos info..")
+    self:setStep("getBosInfo", "success")
 end
 
 function BosHttpLuci:getBosInfo()
@@ -251,7 +251,7 @@ function BosHttpLuci:parseBosInfo(httpResponse, stat)
         miner:setOpt("firmware_version", obj.version)
     end
 
-    self:setStep("getMinerNetwork", "get miner net..")
+    self:setStep("getMinerNetwork", "success")
 end
 
 function BosHttpLuci:getMinerNetwork()
@@ -280,7 +280,7 @@ function BosHttpLuci:parseMinerNetwork(httpResponse, stat)
         miner:setOpt("mac_address", obj.macaddr)
     end
 
-    self:setStep("getMinerOverview", "get miner stat..")
+    self:setStep("getMinerOverview", "success")
 end
 
 function BosHttpLuci:getMinerOverview()
@@ -313,7 +313,7 @@ function BosHttpLuci:parseMinerOverview(httpResponse, stat)
         miner:setOpt("elapsed", utils.formatTime(obj.uptime, "d :h :m :s "))
     end
 
-    self:setStep("getMinerStat", "get miner stat..")
+    self:setStep("getMinerStat", "success")
 end
 
 function BosHttpLuci:getMinerStat()
