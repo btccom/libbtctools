@@ -103,6 +103,7 @@ function BosHttpLuci:parseReboot(httpResponse, stat)
 
     miner:setOpt("check-reboot-finish-times", "0")
     self:setStep("waitFinish")
+    self:disableRetry()
 end
 
 function BosHttpLuci:waitFinish()

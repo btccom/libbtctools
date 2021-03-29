@@ -6,8 +6,60 @@ function ExecutorBase:__init(parent, context)
         context = context
     }
     obj = oo.rawnew(self, obj)
+    obj:initRetry()
     obj:setStep('begin')
     return obj
+end
+
+function ExecutorBase:initRetry()
+    self.autoRetry = {
+        enable = true,
+        inRetry = false, -- Is it currently retrying
+        limit = 5, -- Maximum number of retries
+        times = 0, -- Number of retries at current
+        delay = 1, -- Wait N seconds and try again
+        originDelay = nil, -- Delay value before retry
+        originStepName = nil -- stepName value before retry
+    }
+end
+
+function ExecutorBase:stopRetry()
+    self.context:setRequestDelayTimeout(self.autoRetry.originDelay)
+    self:initRetry()
+    utils.debugOutput('autoRetry stopped')
+end
+
+function ExecutorBase:enableRetry()
+    self.autoRetry.enable = true
+    utils.debugOutput('autoRetry enabled')
+end
+
+function ExecutorBase:disableRetry()
+    self.autoRetry.enable = false
+    utils.debugOutput('autoRetry disabled')
+end
+
+function ExecutorBase:inRetry()
+    return self.autoRetry.inRetry
+end
+
+function ExecutorBase:retry()
+    if not self.autoRetry.enable or self.autoRetry.times >= self.autoRetry.limit then
+        return false
+    end
+    self.autoRetry.originDelay = self.context:requestDelayTimeout()
+    self.autoRetry.originStepName = self.context:stepName()
+    self.autoRetry.times = self.autoRetry.times + 1
+    self.autoRetry.inRetry = true
+    self.context:setRequestDelayTimeout(self.autoRetry.delay)
+    self:setStep('doRetry', 'retry times: '..self.autoRetry.times)
+    return true
+end
+
+function ExecutorBase:doRetry()
+    print("originStepName:", self.autoRetry.originStepName)
+    self:setStep(self.autoRetry.originStepName, 'retry times: '..self.autoRetry.times)
+    utils.debugOutput('ExecutorBase:doRetry', 'retry times: '..self.autoRetry.times)
 end
 
 function ExecutorBase:setStep(name, stat)

@@ -232,6 +232,13 @@ function utils.debugInfo(func, err)
     print(debug.traceback('--------------------', 2))
 end
 
+function utils.debugOutput(title, msg)
+    print('--------- '..title..' ---------')
+    if msg then
+        print(msg)
+    end
+end
+
 function utils.debugReqInfo(func, context, response, stat)
     print('') -- add an empty line
     print('========= '..func..' =========')

@@ -32,7 +32,17 @@ end
 function HelperBase:makeResult(context, response, stat)
     utils.debugReqInfo('HelperBase:makeResult', context, response, stat)
     try(function()
-        self:getExecutor(context):exec(response, stat)
+        local executor = self:getExecutor(context)
+        if stat ~= "success" and stat ~= "timeout" then
+            if executor:retry() then
+                return
+            end
+        end
+        if executor:inRetry() then
+            -- Retry successfully or give up again
+            executor:stopRetry()
+        end
+        executor:exec(response, stat)
     end):catch(function(ex)
         utils.debugInfo('HelperBase:makeResult', ex:toString())
         -- exit

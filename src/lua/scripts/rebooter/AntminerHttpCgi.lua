@@ -43,6 +43,7 @@ function AntminerHttpCgi:doReboot(httpResponse, stat)
 
     self.context:miner():setOpt('check-reboot-finish-times', '0')
     self:setStep("waitFinish")
+    self:disableRetry()
 end
 
 function AntminerHttpCgi:waitFinish()
