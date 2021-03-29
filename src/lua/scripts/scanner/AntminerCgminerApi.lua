@@ -7,11 +7,7 @@ function AntminerCgminerApi:__init(parent, context)
         context:miner():setTypeStr('AntminerHttpCgi')
     end
 
-    local obj = {
-        parent = parent,
-        context = context
-    }
-    obj = oo.rawnew(self, obj)
+    local obj = ExecutorBase.__init(self, parent, context)
     obj:setStep('begin', 'find antminer')
     return obj
 end

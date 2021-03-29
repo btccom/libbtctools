@@ -1,16 +1,6 @@
 AntminerHttpCgi = oo.class({}, ExecutorBase)
 
 
-function AntminerHttpCgi:__init(parent, context)
-    local obj = {
-        parent = parent,
-        context = context
-    }
-    obj = oo.rawnew(self, obj)
-    obj:setStep('begin')
-    return obj
-end
-
 function AntminerHttpCgi:isKeepSettings()
     return OOLuaHelper.opt("upgrader.keepSettings") ~= "0"
 end

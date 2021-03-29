@@ -28,11 +28,7 @@ function BosHttpLuci:__init(parent, context)
     local miner = context:miner()
     miner:setOpt("settings_pasword_key", "Antminer")
 
-    local obj = {
-        parent = parent,
-        context = context
-    }
-    obj = oo.rawnew(self, obj)
+    local obj = ExecutorBase.__init(self, parent, context)
     obj:setStep("getSession", "get session..")
     return obj
 end

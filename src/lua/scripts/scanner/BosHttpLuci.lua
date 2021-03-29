@@ -38,13 +38,8 @@ function BosHttpLuci:__init(parent, context)
         context:setRequestSessionTimeout(timeout)
     end
 
-    local obj = {
-        parent = parent,
-        context = context,
-        default_power_limit = 0
-    }
-
-    obj = oo.rawnew(self, obj)
+    local obj = ExecutorBase.__init(self, parent, context)
+    obj.default_power_limit = 0
     obj:setStep("checkBos", "check if bos..")
     return obj
 end

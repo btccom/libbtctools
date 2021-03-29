@@ -28,19 +28,14 @@ function BosHttpLuci:__init(parent, context)
     local miner = context:miner()
     miner:setOpt("settings_pasword_key", "Antminer")
 
-    local obj = {
-        parent = parent,
-        context = context,
-        conf = {
-            data = {
-                group = nil,
-                hash_chain_global = nil,
-                autotuning = nil
-            }
+    local obj = ExecutorBase.__init(self, parent, context)
+    obj.conf = {
+        data = {
+            group = nil,
+            hash_chain_global = nil,
+            autotuning = nil
         }
     }
-
-    obj = oo.rawnew(self, obj)
     obj:setStep("getSession", "get session")
     return obj
 end
