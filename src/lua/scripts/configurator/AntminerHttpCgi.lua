@@ -24,7 +24,7 @@ function AntminerHttpCgi:auth(httpResponse, stat)
     local response = self:parseHttpResponse(httpResponse, stat, false)
     if (not response) then return end
     if (response.statCode ~= "401") then
-        utils.debugInfo('AntminerHttpCgi:auth', 'statCode ~= 401', context, httpResponse, stat)
+        utils.debugInfo('AntminerHttpCgi:auth', 'statCode ~= 401')
         self:setStep('end', 'read config failed')
         return
     end
@@ -86,8 +86,7 @@ function AntminerHttpCgi:updateMinerConf(httpResponse, stat)
     if (not err) and (type(newFormKeys) == "table") then
         formKeys = newFormKeys
     else
-        utils.debugInfo('updateMinerConf', 'inexpectant newFormKeys: '..tostring(newFormKeys),
-            self.context, httpResponse, stat)
+        utils.debugInfo('updateMinerConf', 'inexpectant newFormKeys: '..tostring(newFormKeys))
     end
 
     -- All known form params from Antminer S4 to S9
@@ -173,7 +172,7 @@ function AntminerHttpCgi:updateMinerConf(httpResponse, stat)
             end
         end
     else
-        utils.debugInfo('updateMinerConf', 'cannot find bmconfJsonStr', self.context, httpResponse, stat)
+        utils.debugInfo('updateMinerConf', 'cannot find bmconfJsonStr')
     end
 
     -- Custom values of params
@@ -384,14 +383,14 @@ function AntminerHttpCgi:parseResult(httpResponse, stat)
 
     local result = utils.trimAll(response.body)
     if result == '' then
-        utils.debugInfo('parseResult', 'may succeeded', self.context, httpResponse, stat)
+        utils.debugInfo('parseResult', 'may succeeded')
         self:setStep('end', stat)
         return
     end
 
     -- got a HTML result
     if string.sub(result, 1, 1) == '<' then
-        utils.debugInfo('parseResult', 'got a HTML result', self.context, httpResponse, stat)
+        utils.debugInfo('parseResult', 'got a HTML result')
 
         local title = string.match(result, '<title>%s*(.*)%s*</title>')
         if title and title ~= '' then

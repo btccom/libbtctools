@@ -149,7 +149,7 @@ function BosHttpLuci:parseUploadFile(httpResponse, stat)
     local response = self:parseHttpResponse(httpResponse, stat)
 
     if (response.statCode ~= "200") then
-        utils.debugInfo("BosHttpLuci:parseUploadFile", "statCode ~= 200", context, httpResponse, stat)
+        utils.debugInfo("BosHttpLuci:parseUploadFile", "statCode ~= 200")
         self:setStep("end", "perform reboot failed")
         return
     end
@@ -159,7 +159,7 @@ function BosHttpLuci:parseUploadFile(httpResponse, stat)
     s = string.find(response.body, formatErr)
 
     if (s ~= nil) then
-        utils.debugInfo("BosHttpLuci:parseUploadFile", "format err", context, httpResponse, stat)
+        utils.debugInfo("BosHttpLuci:parseUploadFile", "format err")
         self:setStep("end", formatErr)
         return
     end

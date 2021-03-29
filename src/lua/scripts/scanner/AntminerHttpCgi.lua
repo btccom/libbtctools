@@ -44,7 +44,7 @@ function AntminerHttpCgi:auth(httpResponse, stat)
     local response = self:parseHttpResponse(httpResponse, stat, false)
     if (not response) then return end
     if (response.statCode ~= "401") then
-        utils.debugInfo('AntminerHttpCgi:auth', 'statCode ~= 401', context, httpResponse, stat)
+        utils.debugInfo('AntminerHttpCgi:auth', 'statCode ~= 401')
         self:setStep('end', 'read config failed')
         return
     end
@@ -97,7 +97,7 @@ function AntminerHttpCgi:parseMinerConf(httpResponse, stat)
                 pool3:setPasswd(pools[3].pass)
             end
         else
-            utils.debugInfo('AntminerHttpCgi:parseMinerConf', 'empty pools', context, httpResponse, stat)
+            utils.debugInfo('AntminerHttpCgi:parseMinerConf', 'empty pools')
         end
 
         if (bmconf['bitmain-nobeeper'] ~= nil) then
@@ -166,7 +166,7 @@ function AntminerHttpCgi:parseMinerFullType(httpResponse, stat)
 
     local obj, pos, err = utils.jsonDecode (response.body)
     if err then
-        utils.debugInfo('AntminerHttpCgi:parseMinerFullType', err, context, httpResponse, stat)
+        utils.debugInfo('AntminerHttpCgi:parseMinerFullType', err)
         self:setStep("end", "read type failed: " .. err)
         return
     end
@@ -232,7 +232,7 @@ function AntminerHttpCgi:parseMinerFullType(httpResponse, stat)
 
         self:setStep('getOverclockOption', 'success')
     else
-        utils.debugInfo('AntminerHttpCgi:parseMinerFullType', 'not an object', context, httpResponse, stat)
+        utils.debugInfo('AntminerHttpCgi:parseMinerFullType', 'not an object')
     end
 end
 
@@ -452,7 +452,7 @@ function AntminerHttpCgi:parseOverclockOption(httpResponse, stat)
         end
         miner:setOpt('foundOverclockOption', "true")
     else
-        utils.debugInfo('AntminerHttpCgi:parseOverclockOption', err or 'not an object', context, httpResponse, stat)
+        utils.debugInfo('AntminerHttpCgi:parseOverclockOption', err or 'not an object')
     end
 
     miner:setOpt('antminer.overclock_option', utils.jsonEncode(overclockOption))
@@ -514,7 +514,7 @@ function AntminerHttpCgi:parseMinerStat(httpResponse, stat)
     local body = string.gsub(response.body, ',GHS 30m=', '","ghs30m":"')
     local stats, pos, err = utils.jsonDecode(body)
     if err then
-        utils.debugInfo('AntminerHttpCgi:parseMinerStat', err, context, httpResponse, stat)
+        utils.debugInfo('AntminerHttpCgi:parseMinerStat', err)
         self:setStep('end', 'read stat failed')
         return
     end
@@ -545,7 +545,7 @@ function AntminerHttpCgi:parseMinerStat(httpResponse, stat)
 			miner:setOpt('hashrate_avg', summary.mhsav .. ' MH/s')
         end
     else
-        utils.debugInfo('AntminerHttpCgi:parseMinerStat', 'missing hashrate', context, httpResponse, stat)
+        utils.debugInfo('AntminerHttpCgi:parseMinerStat', 'missing hashrate')
     end
 
 	if (type(stats.devs) == 'table' and type(stats.devs[1]) == 'table') then
@@ -598,7 +598,7 @@ function AntminerHttpCgi:parseMinerStat(httpResponse, stat)
 			miner:setOpt('fan_speed', table.concat(fan, ' / '))
 		end
     else
-        utils.debugInfo('AntminerHttpCgi:parseMinerStat', 'missing devs', context, httpResponse, stat)
+        utils.debugInfo('AntminerHttpCgi:parseMinerStat', 'missing devs')
     end
 
     self:setStep('getOverclockStat', 'success')
@@ -630,7 +630,7 @@ function AntminerHttpCgi:parseOverclockStat(httpResponse, stat)
 
     local ok, response = pcall(http.parseResponse, httpResponse)
     if not ok then
-        utils.debugInfo('AntminerHttpCgi:parseOverclockStat', response, context, httpResponse, stat)
+        utils.debugInfo('AntminerHttpCgi:parseOverclockStat', response)
         return
     end
 
@@ -652,6 +652,6 @@ function AntminerHttpCgi:parseOverclockStat(httpResponse, stat)
 
         miner:setOpt('antminer.overclock_working_mode', workingMode)
     else
-        utils.debugInfo('AntminerHttpCgi:parseOverclockStat', err or 'not an object', context, httpResponse, stat)
+        utils.debugInfo('AntminerHttpCgi:parseOverclockStat', err or 'not an object')
     end
 end

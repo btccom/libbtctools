@@ -24,7 +24,7 @@ function AntminerHttpCgi:auth(httpResponse, stat)
     local response = self:parseHttpResponse(httpResponse, stat, false)
     if (not response) then return end
     if (response.statCode ~= "401") then
-        utils.debugInfo('AntminerHttpCgi:auth', 'statCode ~= 401', context, httpResponse, stat)
+        utils.debugInfo('AntminerHttpCgi:auth', 'statCode ~= 401')
         self:setStep('end', 'read config failed')
         return
     end

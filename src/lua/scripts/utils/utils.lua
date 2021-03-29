@@ -226,30 +226,27 @@ function utils.getFileSize(filePath)
     return size
 end
 
-function utils.debugInfo(func, err, context, response, stat)
-    -- debug info
+function utils.debugInfo(func, err)
     print('--------- '..func..' ---------')
-    print('Error:')
-    print('--------------------')
-    print(err)
+    print('Error:', err)
     print(debug.traceback('--------------------', 2))
-    print('--------------------')
-    print('Step:', context:stepName())
+end
+
+function utils.debugReqInfo(func, context, response, stat)
+    print('') -- add an empty line
+    print('========= '..func..' =========')
     print('IP:', context:miner():ip())
     print('Host:', context:requestHost()..':'..context:requestPort())
+    print('Step:', context:stepName())
     if stat then
         print('Stat:', stat)
     end
-    print('Request:')
-    print('--------------------')
+    print('--------- Request ---------')
     print(context:requestContent())
     if response then
-        print('--------------------')
-        print('Response:')
-        print('--------------------')
+        print('--------- Response ---------')
         print(response)
     end
-    print('-------------------------------------------')
 end
 
 return utils

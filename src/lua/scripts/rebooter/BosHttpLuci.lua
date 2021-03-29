@@ -96,7 +96,7 @@ function BosHttpLuci:parseReboot(httpResponse, stat)
     local response = self:parseHttpResponse(httpResponse, stat, false)
 
     if (response.statCode ~= "200") then
-        utils.debugInfo("BosHttpLuci:parseReboot", "statCode ~= 200", context, httpResponse, stat)
+        utils.debugInfo("BosHttpLuci:parseReboot", "statCode ~= 200")
         self:setStep("end", "perform reboot failed")
         return
     end

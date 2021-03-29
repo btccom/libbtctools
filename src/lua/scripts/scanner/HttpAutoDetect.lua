@@ -62,7 +62,7 @@ function HttpAutoDetect:detect(response, stat)
         return
     end
 
-    utils.debugInfo('HttpAutoDetect:detect', 'unknown miner', context, response, stat)
+    utils.debugInfo('HttpAutoDetect:detect', 'unknown miner')
 
     miner:setOpt('httpDetect', 'unknown')
     miner:setTypeStr('unknown')

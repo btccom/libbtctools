@@ -61,7 +61,7 @@ function BosHttpLuci:parseCheckBos(httpResponse, stat)
     end
 
     if (not string.match(response.body, "Braiins")) then
-        utils.debugInfo("BosHttpLuci:parseCheckBos", "It is not a BOS", context, httpResponse, stat)
+        utils.debugInfo("BosHttpLuci:parseCheckBos", "It is not a BOS")
         self:setStep("end", "It is not a BOS")
         return
     end

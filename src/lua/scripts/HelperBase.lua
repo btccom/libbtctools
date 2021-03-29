@@ -21,7 +21,7 @@ function HelperBase:makeRequest(context)
     try(function()
         self:getExecutor(context):exec()
     end):catch(function(ex)
-        utils.debugInfo('makeRequest', ex:toString(), context)
+        utils.debugInfo('HelperBase:makeRequest', ex:toString())
         -- exit
         context:miner():setStat('failed:' .. context:stepName() .. ':' .. ex.message)
 		context:setCanYield(true)
@@ -30,10 +30,11 @@ function HelperBase:makeRequest(context)
 end
 
 function HelperBase:makeResult(context, response, stat)
+    utils.debugReqInfo('HelperBase:makeResult', context, response, stat)
     try(function()
         self:getExecutor(context):exec(response, stat)
     end):catch(function(ex)
-        utils.debugInfo('ScannerHelper:makeResult', ex:toString(), context, response, stat)
+        utils.debugInfo('HelperBase:makeResult', ex:toString())
         -- exit
 		context:miner():setStat('failed:' .. context:stepName() .. ':' .. ex.message)
 		context:setCanYield(true)

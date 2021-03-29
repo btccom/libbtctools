@@ -44,7 +44,7 @@ function AntminerHttpCgi:auth(httpResponse, stat)
     local response = self:parseHttpResponse(httpResponse, stat, false)
     if (not response) then return end
     if (response.statCode ~= "401") and (not self.wait) then
-        utils.debugInfo('AntminerHttpCgi:auth', 'statCode ~= 401', context, httpResponse, stat)
+        utils.debugInfo('AntminerHttpCgi:auth', 'statCode ~= 401')
         self:setStep('end', 'read config failed')
         return
     end
@@ -122,7 +122,7 @@ function AntminerHttpCgi:doUpgrade(httpResponse, stat)
         local obj, pos, err = utils.jsonDecode (result)
         if err or not obj or not obj.stats then
             err = err or 'unknown JSON result'
-            utils.debugInfo('AntminerHttpCgi:doUpgrade', err, context, httpResponse, stat)
+            utils.debugInfo('AntminerHttpCgi:doUpgrade', err)
             self:setStep("end", err .. ': ' .. result)
             return
         end
@@ -153,7 +153,7 @@ function AntminerHttpCgi:doUpgrade(httpResponse, stat)
     if msg then
         result = utils.trim(msg)
     else
-        utils.debugInfo('AntminerHttpCgi:doUpgrade', 'unknown xml result', context, httpResponse, stat)
+        utils.debugInfo('AntminerHttpCgi:doUpgrade', 'unknown xml result')
     end
 
     if(rebooting == nil) then

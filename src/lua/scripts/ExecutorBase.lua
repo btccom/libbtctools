@@ -32,12 +32,12 @@ function ExecutorBase:parseHttpResponse(httpResponse, stat, loginCheck)
 
     local ok, response = pcall(http.parseResponse, httpResponse)
     if not ok then
-        utils.debugInfo('parseHttpResponse', response, self.context, httpResponse, stat)
+        utils.debugInfo('parseHttpResponse', response)
         self:setStep('end', 'failed: ' .. self.context:stepName() .. ': ' .. response)
         return
     end
     if (loginCheck ~= false and response.statCode == "401") then
-        utils.debugInfo('parseHttpResponse', 'login failed', self.context, httpResponse, stat)
+        utils.debugInfo('parseHttpResponse', 'login failed')
         self:setStep("end", 'login failed')
         return
     end
@@ -68,7 +68,7 @@ function ExecutorBase:makeAuthRequest(path)
     local requestContent, err = http.makeAuthRequest(request, self.response, loginPassword.userName, loginPassword.password)
 
     if (err) then
-        utils.debugInfo('makeAuthRequest', err, context, self.httpResponse, self.stat)
+        utils.debugInfo('makeAuthRequest', err)
         self:setStep('end', 'failed: ' .. err)
         return
     end
@@ -106,7 +106,7 @@ function ExecutorBase:makeLuciSessionReq(noPswd)
     local loginPassword = utils.getMinerLoginPassword(pswd_key)
 
     if loginPassword==nil then
-        utils.debugInfo('ExecutorBase:makeLuciSessionReq', 'Password not found for key '..pswd_key, context, nil, nil)
+        utils.debugInfo('ExecutorBase:makeLuciSessionReq', 'Password not found for key '..pswd_key)
         self:setStep('end', 'login failed')
         return
     end
@@ -135,13 +135,13 @@ function ExecutorBase:parseLuciSessionReq(httpResponse, stat)
     local response = self:parseHttpResponse(httpResponse, stat, false)
 
     if response.statCode~='302' then
-        utils.debugInfo('ExecutorBase:parseSession', 'Bad return code:' .. response.statCode, context, httpResponse, stat)
+        utils.debugInfo('ExecutorBase:parseSession', 'Bad return code:' .. response.statCode)
         self:setStep('end', 'login failed')
         return
     end
 
     if response['headers']==nil or response['headers']['set-cookie']==nil then
-        utils.debugInfo('ExecutorBase:parseSession', 'Missing set-cookie header', context, httpResponse, stat)
+        utils.debugInfo('ExecutorBase:parseSession', 'Missing set-cookie header')
         self:setStep('end', 'login failed')
         return
     end
@@ -164,7 +164,7 @@ function ExecutorBase:parseLuciTokenReq(httpResponse, stat)
     local context = self.context
     local response = self:parseHttpResponse(httpResponse, stat,false)
     if response.statCode~='200' then
-        utils.debugInfo('ExecutorBase:parseSession', 'Bad return code:'..response.statCode, context, httpResponse, stat)
+        utils.debugInfo('ExecutorBase:parseSession', 'Bad return code:'..response.statCode)
         self:setStep('end', 'get token failed')
         return
     end
@@ -173,7 +173,7 @@ function ExecutorBase:parseLuciTokenReq(httpResponse, stat)
     token=string.sub(response.body,e+1,e+32)
 
     if token=='' or token==nil then
-        utils.debugInfo('ExecutorBase:parseSession', 'Cant find token in body', context, httpResponse, stat)
+        utils.debugInfo('ExecutorBase:parseSession', 'Cant find token in body')
         self:setStep('end', 'get token failed')
         return
     end
@@ -190,7 +190,7 @@ function ExecutorBase:parseHttpResponseJson(httpResponse,stat)
     if (not response) then return end
     local obj,pos,err = utils.jsonDecode(response.body)
     if err then
-        utils.debugInfo('parseHttpResponseJson', err, context, httpResponse, stat)
+        utils.debugInfo('parseHttpResponseJson', err)
         self:setStep('end', 'failed :' .. err)
         return
     end
