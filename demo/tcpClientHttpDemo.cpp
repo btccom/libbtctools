@@ -30,9 +30,9 @@ int main(int argc, char* argv[])
 		{
 			{
 				Request *req = new Request;
-				req->host_ = "tls://chain.api.btc.com";
+				req->host_ = "tls://www.baidu.com";
 				req->port_ = "443";
-				req->content_ = "GET /v3/block/latest HTTP/1.0\r\nHost: chain.api.btc.com\r\n\r\n";
+				req->content_ = "GET / HTTP/1.0\r\nHost: www.baidu.com\r\n\r\n";
 				req->usrdata_ = req;
 				req->session_timeout_ = 15;
 				req->delay_timeout_ = 0;
@@ -42,9 +42,9 @@ int main(int argc, char* argv[])
 
 			{
 				Request *req = new Request;
-				req->host_ = "ssl://chain.api.btc.com";
+				req->host_ = "ssl://www.bing.com";
 				req->port_ = "443";
-				req->content_ = "GET /v3/block/latest HTTP/1.0\r\nHost: chain.api.btc.com\r\n\r\n";
+				req->content_ = "GET / HTTP/1.0\r\nHost: www.bing.com\r\n\r\n";
 				req->usrdata_ = req;
 				req->session_timeout_ = 15;
 				req->delay_timeout_ = 0;

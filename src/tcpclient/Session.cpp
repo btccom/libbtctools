@@ -125,7 +125,7 @@ namespace btctools
 				});
 			}
 			else if (scheme == "ssl" || scheme == "tls") {
-				boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
+				boost::asio::ssl::context ctx(boost::asio::ssl::context::tls_client);
 				socketSSL_ = new boost::asio::ssl::stream<boost::asio::ip::tcp::socket>(io_service_, ctx);
 				socketSSL_->set_verify_mode(boost::asio::ssl::verify_none);
 
