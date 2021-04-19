@@ -70,8 +70,8 @@ function WhatsMinerHttpsLuci:getToken()
 end
 
 function WhatsMinerHttpsLuci:parseToken(httpResponse, stat)
-    local response = self:parseLuciTokenReq(httpResponse, stat)
-    if (not response) then
+    local token = self:parseLuciTokenReq(httpResponse, stat)
+    if (not token) then
         return
     end
     self:setStep("callReboot", "rebooting...")

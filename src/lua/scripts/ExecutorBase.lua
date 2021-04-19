@@ -216,16 +216,16 @@ function ExecutorBase:parseLuciTokenReq(httpResponse, stat)
     local context = self.context
     local response = self:parseHttpResponse(httpResponse, stat,false)
     if response.statCode~='200' then
-        utils.debugInfo('ExecutorBase:parseSession', 'Bad return code:'..response.statCode)
+        utils.debugInfo('ExecutorBase:parseLuciTokenReq', 'Bad return code:'..response.statCode)
         self:setStep('end', 'get token failed')
         return
     end
 
-    s,e=string.find(response.body,"token: '")
-    token=string.sub(response.body,e+1,e+32)
+    local token = string.match(response.body, "token:%s*'([^']-)'")
+               or string.match(response.body, 'token:%s*"([^"]-)"')
 
     if token=='' or token==nil then
-        utils.debugInfo('ExecutorBase:parseSession', 'Cant find token in body')
+        utils.debugInfo('ExecutorBase:parseLuciTokenReq', 'Cant find token in body')
         self:setStep('end', 'get token failed')
         return
     end
@@ -233,7 +233,7 @@ function ExecutorBase:parseLuciTokenReq(httpResponse, stat)
     local miner=context:miner()
     miner:setOpt('_luci_token',token)
 
-    return response
+    return token
 end
 
 function ExecutorBase:parseHttpResponseJson(httpResponse,stat)
