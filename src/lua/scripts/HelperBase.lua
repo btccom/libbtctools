@@ -33,7 +33,7 @@ function HelperBase:makeResult(context, response, stat)
     utils.debugReqInfo('HelperBase:makeResult', context, response, stat)
     try(function()
         local executor = self:getExecutor(context)
-        if stat ~= "success" and stat ~= "timeout" then
+        if stat ~= "success" and stat ~= "timeout" and stat ~= "stream truncated" then
             if executor:retry() then
                 return
             end

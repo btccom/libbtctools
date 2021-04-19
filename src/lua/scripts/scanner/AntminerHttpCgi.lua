@@ -3,7 +3,7 @@ AntminerHttpCgi = oo.class({}, ExecutorBase)
 
 function AntminerHttpCgi:__init(parent, context)
     if context:miner():opt('minerTypeFound') ~= 'true' then
-        context:miner():setFullTypeStr('Antminer *') -- used for utils.getMinerLoginPassword()
+        context:miner():setFullTypeStr('Antminer') -- used for utils.getMinerLoginPassword()
         context:miner():setTypeStr('AntminerHttpCgi')
     end
 
