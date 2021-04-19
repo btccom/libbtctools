@@ -128,7 +128,7 @@ function WhatsMinerHttpsLuci:getMinerNetwork()
         path = "/cgi-bin/luci/admin/network/iface_status/lan",
     }
 
-    self:setStep("parseMinerNetwork", "read network...")
+    self:setStep("parseMinerNetwork", "get network info...")
     self:makeSessionedHttpReq(request)
 end
 

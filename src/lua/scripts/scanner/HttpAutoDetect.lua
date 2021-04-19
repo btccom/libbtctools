@@ -67,7 +67,11 @@ function HttpAutoDetect:detect(response, stat)
         string.match(response.headers['location'][1], '^https://')
         )
     then
-        self:setStep('detectHttps')
+        -- detectHttps is too slow so skip it. Currently only WhatsMiner uses https.
+        --self:setStep('detectHttps')
+        
+        miner:setOpt('httpDetect', 'WhatsMinerHttpsLuci')
+        self.parent:setExecutor(self.context, GenericCgminerApi(self.parent, self.context))
         return
     end
 
