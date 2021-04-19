@@ -50,7 +50,7 @@ function WhatsMinerHttpsLuci:__init(parent, context)
 end
 
 function WhatsMinerHttpsLuci:getSession()
-    self:setStep("parseSession", "get session...")
+    self:setStep("parseSession", "login...")
     self:makeLuciSessionReq()
 end
 
@@ -64,7 +64,7 @@ function WhatsMinerHttpsLuci:parseSession(httpResponse, stat)
 end
 
 function WhatsMinerHttpsLuci:getNoPswdSession()
-    self:setStep("parseNoPswdSession", "get session...")
+    self:setStep("parseNoPswdSession", "login without pwd...")
     self:makeLuciSessionReq(true)
 end
 
