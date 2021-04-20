@@ -29,7 +29,7 @@ function BosHttpLuci:__init(parent, context)
     miner:setOpt("settings_pasword_key", "Antminer")
 
     local obj = ExecutorBase.__init(self, parent, context)
-    obj:setStep("getSession", "get session")
+    obj:setStep("getSession")
     return obj
 end
 
@@ -193,7 +193,7 @@ function BosHttpLuci:runUpgrade()
 
     self:setFormDataRequest(request, fields)
     self:makeSessionedHttpReq(request)
-    self:setStep("parseRunUpgrade", "upgrade...")
+    self:setStep("parseRunUpgrade", "upgrading...")
 end
 
 function BosHttpLuci:parseRunUpgrade(httpResponse, stat)
