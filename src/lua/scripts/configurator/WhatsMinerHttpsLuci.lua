@@ -156,6 +156,67 @@ function WhatsMinerHttpsLuci:parseSetMinerConf(httpResponse, stat)
         return
     end
 
+    if (miner:opt("config.antminer.overclockWorkingMode") ~= "") then
+
+        local workingModeName = miner:opt("config.antminer.overclockWorkingMode")
+        local workingMode = nil
+
+        local options, _, optionErr = utils.jsonDecode (miner:opt('antminer.overclock_option'))
+        if not (optionErr) then
+            for _, mode in ipairs(options.ModeInfo) do
+                if mode.ModeName == workingModeName then
+                    workingMode = mode
+                    break
+                end
+            end
+        end
+
+        if workingMode ~= nil and workingMode.ModeValue ~= miner:opt('whatsminer.power_mode') then
+            miner:setOpt('whatsminer.new_power_mode', workingMode.ModeValue)
+            self:setStep("setPowerMode")
+            return
+        end
+    end
+
+    self:setStep("restartCGMiner")
+end
+
+function WhatsMinerHttpsLuci:setPowerMode()
+    local context = self.context
+    local miner = context:miner()
+    local pool1, pool2, pool3 = miner:pool1(), miner:pool2(), miner:pool3()
+
+    local formParams = {
+        ["token"] = miner:opt("_luci_token"),
+        ["cbi.submit"] = "1",
+        ["cbi.apply"] = "1",
+        ["cbid.cgminer.default.miner_type"] = miner:opt('whatsminer.new_power_mode'),
+    }
+
+    local request = {
+        method = "POST",
+        path = "/cgi-bin/luci/admin/network/cgminer/power",
+        headers = {
+            ["content-type"] = "application/x-www-form-urlencoded"
+        },
+        body = utils.makeUrlQueryString(formParams)
+    }
+
+    self:makeSessionedHttpReq(request)
+    self:setStep("parseSetPowerMode", "set power mode...")
+end
+
+function WhatsMinerHttpsLuci:parseSetPowerMode(httpResponse, stat)
+    local context = self.context
+    local miner = context:miner()
+    local response = self:parseHttpResponse(httpResponse, stat, false)
+
+    if (response.statCode ~= "200") then
+        utils.debugInfo("WhatsMinerHttpsLuci:parseSetPowerMode", "statCode ~= 200")
+        self:setStep("restartCGMiner", "set power mode failed: "..httpResponse)
+        return
+    end
+
     self:setStep("restartCGMiner")
 end
 
