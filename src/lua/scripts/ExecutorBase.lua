@@ -12,10 +12,11 @@ function ExecutorBase:__init(parent, context)
 end
 
 function ExecutorBase:initRetry()
+    local autoRetryTimes = tonumber(OOLuaHelper.opt("network.autoRetryTimes")) or 2
     self.autoRetry = {
         enable = true,
         inRetry = false, -- Is it currently retrying
-        limit = 5, -- Maximum number of retries
+        limit = autoRetryTimes, -- Maximum number of retries
         times = 0, -- Number of retries at current
         delay = 1, -- Wait N seconds and try again
         originDelay = nil, -- Delay value before retry
