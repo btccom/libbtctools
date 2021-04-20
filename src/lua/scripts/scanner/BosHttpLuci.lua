@@ -70,8 +70,8 @@ function BosHttpLuci:parseCheckBos(httpResponse, stat)
 end
 
 function BosHttpLuci:getSession()
-    self:makeLuciSessionReq()
     self:setStep("parseSession", "parse session..")
+    self:makeLuciSessionReq()
 end
 
 function BosHttpLuci:parseSession(httpResponse, stat)

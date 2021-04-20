@@ -159,7 +159,7 @@ function ExecutorBase:makeLuciSessionReq(noPswd)
 
     if loginPassword==nil then
         utils.debugInfo('ExecutorBase:makeLuciSessionReq', 'Password not found for key '..pswd_key)
-        self:setStep('end', 'login failed')
+        self:setStep('end', 'require password')
         return
     end
 
