@@ -48,7 +48,7 @@ function HttpAutoDetect:detect(response, stat)
         string.match(response.body, '/luci/avalon/'))
     then
         miner:setOpt('httpDetect', 'AvalonHttpLuci')
-        self.parent:setExecutor(self.context, AvalonHttpLuci(self.parent, self.context))
+        self.parent:setExecutor(self.context, GenericCgminerApi(self.parent, self.context))
         return
     end
 
