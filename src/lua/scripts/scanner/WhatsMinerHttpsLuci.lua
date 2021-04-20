@@ -32,6 +32,7 @@ function WhatsMinerHttpsLuci:__init(parent, context)
     end
     miner:setTypeStr("WhatsMinerHttpsLuci")
     miner:setOpt("settings_pasword_key", "WhatsMiner")
+    miner:setOpt("upgrader.disabled", "true")
 
     context:setRequestHost("tls://"..ip)
     context:setRequestPort("443")
