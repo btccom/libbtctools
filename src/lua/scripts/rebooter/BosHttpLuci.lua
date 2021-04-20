@@ -29,27 +29,27 @@ function BosHttpLuci:__init(parent, context)
     miner:setOpt("settings_pasword_key", "Antminer")
 
     local obj = ExecutorBase.__init(self, parent, context)
-    obj:setStep("getSession", "get session..")
+    obj:setStep("getSession")
     return obj
 end
 
 function BosHttpLuci:getSession()
-    self:setStep("parseSession", "parse session..")
+    self:setStep("parseSession", "login...")
     self:makeLuciSessionReq()
 end
 
 function BosHttpLuci:parseSession(httpResponse, stat)
     local response = self:parseLuciSessionReq(httpResponse, stat)
     if (not response) then
-        self:setStep("getNoPswdSession", "parse session..")
+        self:setStep("getNoPswdSession")
     else
-        self:setStep("getToken", "get luci token..")
+        self:setStep("getToken")
     end
 end
 
 function BosHttpLuci:getNoPswdSession()
     self:makeLuciSessionReq(true)
-    self:setStep("parseNoPswdSession", "parse session..")
+    self:setStep("parseNoPswdSession", "login without pwd...")
 end
 
 function BosHttpLuci:parseNoPswdSession(httpResponse, stat)
@@ -57,12 +57,12 @@ function BosHttpLuci:parseNoPswdSession(httpResponse, stat)
     if (not response) then
         return
     end
-    self:setStep("getToken", "get luci token..")
+    self:setStep("getToken")
 end
 
 function BosHttpLuci:getToken()
     self:makeLuciTokenReq()
-    self:setStep("parseToken", "parse luci token..")
+    self:setStep("parseToken", "get token...")
 end
 
 function BosHttpLuci:parseToken(httpResponse, stat)
@@ -70,7 +70,7 @@ function BosHttpLuci:parseToken(httpResponse, stat)
     if (not token) then
         return
     end
-    self:setStep("callReboot", "call reboot..")
+    self:setStep("callReboot")
 end
 
 function BosHttpLuci:callReboot()
@@ -87,7 +87,7 @@ function BosHttpLuci:callReboot()
     }
 
     self:makeSessionedHttpReq(request)
-    self:setStep("parseReboot", "parse reboot")
+    self:setStep("parseReboot", "rebooting...")
 end
 
 function BosHttpLuci:parseReboot(httpResponse, stat)
@@ -117,7 +117,7 @@ function BosHttpLuci:waitFinish()
     }
 
     self:makeBasicHttpReq(request)
-    self:setStep("doWaitFinish", "wait finish..")
+    self:setStep("doWaitFinish", "wait finish...")
 end
 
 function BosHttpLuci:doWaitFinish(httpResponse, stat)

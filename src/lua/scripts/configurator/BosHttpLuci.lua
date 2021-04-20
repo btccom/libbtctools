@@ -36,27 +36,27 @@ function BosHttpLuci:__init(parent, context)
             autotuning = nil
         }
     }
-    obj:setStep("getSession", "get session")
+    obj:setStep("getSession")
     return obj
 end
 
 function BosHttpLuci:getSession()
-    self:setStep("parseSession", "parse session..")
+    self:setStep("parseSession", "login...")
     self:makeLuciSessionReq()
 end
 
 function BosHttpLuci:parseSession(httpResponse, stat)
     local response = self:parseLuciSessionReq(httpResponse, stat)
     if (not response) then
-        self:setStep("getNoPswdSession", "parse session..")
+        self:setStep("getNoPswdSession")
     else
-        self:setStep("getMinerCfg", "get miner cfg..")
+        self:setStep("getMinerCfg")
     end
 end
 
 function BosHttpLuci:getNoPswdSession()
     self:makeLuciSessionReq(true)
-    self:setStep("parseNoPswdSession", "parse session..")
+    self:setStep("parseNoPswdSession", "login without pwd...")
 end
 
 function BosHttpLuci:parseNoPswdSession(httpResponse, stat)
@@ -64,7 +64,7 @@ function BosHttpLuci:parseNoPswdSession(httpResponse, stat)
     if (not response) then
         return
     end
-    self:setStep("getMinerCfg", "get miner cfg..")
+    self:setStep("getMinerCfg")
 end
 
 function BosHttpLuci:getMinerCfg()
@@ -77,7 +77,7 @@ function BosHttpLuci:getMinerCfg()
     }
 
     self:makeSessionedHttpReq(request)
-    self:setStep("parseMinerCfg", "parse miner cfg..")
+    self:setStep("parseMinerCfg", "get cfg...")
 end
 
 function BosHttpLuci:parseMinerCfg(httpResponse, stat)
@@ -133,7 +133,7 @@ function BosHttpLuci:parseMinerCfg(httpResponse, stat)
         miner:setOpt("_autotuning_on", "1")
     end
 
-    self:setStep("getMinerMetaCfg", "get miner meta cfg..")
+    self:setStep("getMinerMetaCfg")
 end
 
 function BosHttpLuci:getMinerMetaCfg()
@@ -146,7 +146,7 @@ function BosHttpLuci:getMinerMetaCfg()
     }
 
     self:makeSessionedHttpReq(request)
-    self:setStep("parseMinerMetaCfg", "parse miner cfg..")
+    self:setStep("parseMinerMetaCfg", "get meta cfg...")
 end
 
 function BosHttpLuci:parseMinerMetaCfg(httpResponse, stat)
@@ -210,7 +210,7 @@ function BosHttpLuci:parseMinerMetaCfg(httpResponse, stat)
         }
     end
 
-    self:setStep("saveMinerConf", "parse save cfg..")
+    self:setStep("saveMinerConf")
 end
 
 function BosHttpLuci:saveMinerConf()
@@ -224,7 +224,7 @@ function BosHttpLuci:saveMinerConf()
     }
 
     self:makeSessionedHttpReq(request)
-    self:setStep("parseSaveResult", "parse save cfg..")
+    self:setStep("parseSaveResult", "save cfg...")
 end
 
 function BosHttpLuci:parseSaveResult(httpResponse, stat)
@@ -234,7 +234,7 @@ function BosHttpLuci:parseSaveResult(httpResponse, stat)
         self:setStep("end", "failed: " .. response.statMsg)
         return
     end
-    self:setStep("applyMinerConf", "apply miner cfg..")
+    self:setStep("applyMinerConf")
 end
 
 function BosHttpLuci:applyMinerConf()
@@ -244,7 +244,7 @@ function BosHttpLuci:applyMinerConf()
     }
 
     self:makeSessionedHttpReq(request)
-    self:setStep("parseApplyResult", "parse apply cfg..")
+    self:setStep("parseApplyResult", "apply cfg...")
 end
 
 function BosHttpLuci:parseApplyResult(httpResponse, stat)

@@ -41,22 +41,22 @@ function BosHttpLuci:isKeepSettings()
 end
 
 function BosHttpLuci:getSession()
-    self:setStep("parseSession", "parse session..")
+    self:setStep("parseSession", "login...")
     self:makeLuciSessionReq()
 end
 
 function BosHttpLuci:parseSession(httpResponse, stat)
     local response = self:parseLuciSessionReq(httpResponse, stat)
     if (not response) then
-        self:setStep("getNoPswdSession", "parse session..")
+        self:setStep("getNoPswdSession")
     else
-        self:setStep("getToken", "get luci token..")
+        self:setStep("getToken")
     end
 end
 
 function BosHttpLuci:getNoPswdSession()
     self:makeLuciSessionReq(true)
-    self:setStep("parseNoPswdSession", "parse session..")
+    self:setStep("parseNoPswdSession", "login without pwd...")
 end
 
 function BosHttpLuci:parseNoPswdSession(httpResponse, stat)
@@ -64,12 +64,12 @@ function BosHttpLuci:parseNoPswdSession(httpResponse, stat)
     if (not response) then
         return
     end
-    self:setStep("getToken", "get luci token..")
+    self:setStep("getToken")
 end
 
 function BosHttpLuci:getToken()
     self:makeLuciTokenReq()
-    self:setStep("parseToken", "get luci token..")
+    self:setStep("parseToken", "get token...")
 end
 
 function BosHttpLuci:parseToken(httpResponse, stat)
@@ -77,7 +77,7 @@ function BosHttpLuci:parseToken(httpResponse, stat)
     if (not token) then
         return
     end
-    self:setStep("uploadFile", "parse token..")
+    self:setStep("uploadFile")
 end
 
 function BosHttpLuci:setFormDataRequest(request, fields)
@@ -141,7 +141,7 @@ function BosHttpLuci:uploadFile()
     OOLuaHelper.setOpt("upgrader.sendFirmwareStepSize", tostring(stepSize - 1))
 
     self:makeSessionedHttpReq(request)
-    self:setStep("parseUploadFile", "upload file..")
+    self:setStep("parseUploadFile", "upload file...")
 end
 
 function BosHttpLuci:parseUploadFile(httpResponse, stat)
@@ -165,7 +165,7 @@ function BosHttpLuci:parseUploadFile(httpResponse, stat)
     end
 
     context:clearFileUpload()
-    self:setStep("runUpgrade", "run upgrade..")
+    self:setStep("runUpgrade")
 end
 
 function BosHttpLuci:runUpgrade()
@@ -193,7 +193,7 @@ function BosHttpLuci:runUpgrade()
 
     self:setFormDataRequest(request, fields)
     self:makeSessionedHttpReq(request)
-    self:setStep("parseRunUpgrade", "parse upgrade..")
+    self:setStep("parseRunUpgrade", "upgrade...")
 end
 
 function BosHttpLuci:parseRunUpgrade(httpResponse, stat)
@@ -220,7 +220,7 @@ function BosHttpLuci:waitFinish()
     }
 
     self:makeBasicHttpReq(request)
-    self:setStep("runWaitFinish", "wait finish..")
+    self:setStep("runWaitFinish", "wait finish...")
 end
 
 function BosHttpLuci:runWaitFinish(httpResponse, stat)
