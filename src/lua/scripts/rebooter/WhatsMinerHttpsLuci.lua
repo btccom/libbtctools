@@ -2,6 +2,7 @@
 MIT License
 
 Copyright (c) 2021 Braiins Systems s.r.o.
+Copyright (c) 2021 BTC.COM.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -99,7 +100,7 @@ function WhatsMinerHttpsLuci:parseReboot(httpResponse, stat)
     local miner = context:miner()
     local response = self:parseHttpResponse(httpResponse, stat, false)
 
-    if (response.statCode ~= "200") then
+    if (response and response.statCode ~= "200") then
         utils.debugInfo("WhatsMinerHttpsLuci:parseReboot", "statCode ~= 200")
         self:setStep("end", "perform reboot failed")
         return
