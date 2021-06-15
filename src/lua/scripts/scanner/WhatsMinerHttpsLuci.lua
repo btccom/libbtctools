@@ -2,6 +2,7 @@
 MIT License
 
 Copyright (c) 2021 Braiins Systems s.r.o.
+Copyright (c) 2021 BTC.COM.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -27,10 +28,6 @@ WhatsMinerHttpsLuci = oo.class({}, ExecutorBase)
 function WhatsMinerHttpsLuci:__init(parent, context)
     local miner = context:miner()
     local ip = miner:ip()
-    if context:miner():opt('minerTypeFound') ~= 'true' then
-        miner:setFullTypeStr("WhatsMiner")
-    end
-    miner:setTypeStr("WhatsMinerHttpsLuci")
     miner:setOpt("settings_pasword_key", "WhatsMiner")
     miner:setOpt("upgrader.disabled", "true")
 
@@ -56,12 +53,35 @@ function WhatsMinerHttpsLuci:getSession()
 end
 
 function WhatsMinerHttpsLuci:parseSession(httpResponse, stat)
+    local miner = self.context:miner()
     local response = self:parseLuciSessionReq(httpResponse, stat)
+
     if (not response) then
+        -- Since https detection is skipped, 
+        -- it may not be a WhatsMiner but any device with https service enabled.
+        if miner:opt('minerTypeFound') ~= 'true' 
+            and not string.match(httpResponse, 'WhatsMiner')
+        then
+            utils.debugInfo('WhatsMinerHttpsLuci:parseSession', 'Not a WhatsMiner')
+
+            miner:setOpt('httpDetect', 'unknown')
+            miner:setTypeStr('unknown')
+            miner:setFullTypeStr('')
+
+            self:setStep("end", "unknown device")
+            return
+        end
+
         self:setStep("getNoPswdSession")
     else
         self:setStep("getMinerStat")
     end
+
+    -- Set them only after confirming that the device is a WhatsMiner.
+    if miner:opt('minerTypeFound') ~= 'true' then
+        miner:setFullTypeStr("WhatsMiner")
+    end
+    miner:setTypeStr("WhatsMinerHttpsLuci")
 end
 
 function WhatsMinerHttpsLuci:getNoPswdSession()
