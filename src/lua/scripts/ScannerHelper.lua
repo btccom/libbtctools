@@ -10,7 +10,7 @@ require 'scanner.GenericCgminerApi'
 require 'scanner.AntminerHttpCgi'
 require 'scanner.BosHttpLuci'
 require 'scanner.WhatsMinerHttpsLuci'
---require 'scanner.AvalonHttpLuci'
+require 'scanner.AvalonHttpLuci'
 
 ScannerHelper = oo.class({}, HelperBase)
 

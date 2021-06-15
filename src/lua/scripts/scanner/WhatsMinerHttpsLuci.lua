@@ -119,7 +119,7 @@ function WhatsMinerHttpsLuci:parseMinerStat(httpResponse, stat)
         local hardware = string.match(response.body, '<td[^>]*>%s*Hostname%s*</td>%s*<td>%s*([^<]-)%s*</td>') or 
                          string.match(response.body, '<td[^>]*>%s*主机名%s*</td>%s*<td>%s*([^<]-)%s*</td>');
 
-        local firmware = string.match(response.body, '<td[^>]*>%s*Firmware Version%s*</td>%s*<td>%s*([^<]-)%s*</td>') or 
+        local firmware = string.match(response.body, '<td[^>]*>%s*Firmware%s*Version%s*</td>%s*<td>%s*([^<]-)%s*</td>') or 
                          string.match(response.body, '<td[^>]*>%s*固件版本%s*</td>%s*<td>%s*([^<]-)%s*</td>');
         
         local software = string.match(response.body, '<td[^>]*>%s*CGMiner%s*Version%s*</td>%s*<td>%s*([^<]-)%s*</td>') or 

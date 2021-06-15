@@ -75,7 +75,7 @@ function HttpAutoDetect:detect(response, stat)
         return
     end
 
-    utils.debugInfo('HttpAutoDetect:detect', 'unknown miner')
+    utils.debugInfo('HttpAutoDetect:detect', 'unknown device')
 
     miner:setOpt('httpDetect', 'unknown')
     miner:setTypeStr('unknown')
@@ -126,7 +126,7 @@ function HttpAutoDetect:doDetectHttps(response, stat)
         return
     end
 
-    utils.debugInfo('HttpAutoDetect:doDetectHttps', 'unknown miner')
+    utils.debugInfo('HttpAutoDetect:doDetectHttps', 'unknown device')
 
     miner:setOpt('httpDetect', 'unknown')
     miner:setTypeStr('unknown')
