@@ -8,6 +8,7 @@ require 'ExecutorBase'
 require 'rebooter.AntminerHttpCgi'
 require 'rebooter.BosHttpLuci'
 require 'rebooter.WhatsMinerHttpsLuci'
+require 'rebooter.AvalonHttpLuci'
 
 RebooterHelper = oo.class({}, HelperBase)
 
