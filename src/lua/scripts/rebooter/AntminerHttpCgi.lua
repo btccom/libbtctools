@@ -39,7 +39,10 @@ end
 
 function AntminerHttpCgi:doReboot(httpResponse, stat)
     local response = self:parseHttpResponse(httpResponse, stat)
-    if (response and response.statCode == "401") then return end
+    if (response and response.statCode == "401") then
+        self:setStep("end", 'login failed')
+        return
+    end
 
     self.context:miner():setOpt('check-reboot-finish-times', '0')
     self:setStep("waitFinish")
