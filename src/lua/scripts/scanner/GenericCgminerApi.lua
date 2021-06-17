@@ -50,7 +50,7 @@ function GenericCgminerApi:parseStats(response, stat)
     end
 
     self:doParseStats(response, miner)
-    self:setStep('findPools')
+    self:setStep('findPools', 'success')
 end
 
 function GenericCgminerApi:doParseStats(jsonStr, miner)
