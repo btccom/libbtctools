@@ -187,6 +187,12 @@ function ExecutorBase:parseLuciSessionReq(httpResponse, stat)
     local context = self.context
     local response = self:parseHttpResponse(httpResponse, stat, false)
 
+    if not response then
+        utils.debugInfo('ExecutorBase:parseSession', 'No response from miner')
+        self:setStep('end', stat)
+        return
+    end
+
     if response.statCode~='302' then
         utils.debugInfo('ExecutorBase:parseSession', 'Bad return code:' .. response.statCode)
         self:setStep('end', 'login failed')
