@@ -33,6 +33,8 @@ function WhatsMinerHttpsLuci:__init(parent, context)
     context:setRequestPort("443")
 
     local obj = ExecutorBase.__init(self, parent, context)
+    obj.program = MiningProgram()
+    obj.program:WhatsMinerDefault(miner:opt("miningProgram"))
     obj:setStep("getSession")
     return obj
 end
@@ -47,6 +49,7 @@ function WhatsMinerHttpsLuci:parseSession(httpResponse, stat)
     if (not response) then
         self:setStep("getNoPswdSession")
     else
+        self.program:reset()
         self:setStep("getToken")
     end
 end
@@ -61,6 +64,7 @@ function WhatsMinerHttpsLuci:parseNoPswdSession(httpResponse, stat)
     if (not response) then
         return
     end
+    self.program:reset()
     self:setStep("getToken")
 end
 
@@ -72,7 +76,7 @@ end
 function WhatsMinerHttpsLuci:makeLuciConfigTokenReq()
     local request = {
         method = 'GET',
-        path = '/cgi-bin/luci/admin/network/cgminer',
+        path = '/cgi-bin/luci/admin/network/'..self.program:getNext(),
     }
     self:makeSessionedHttpReq(request)
 end
@@ -88,7 +92,12 @@ end
 function WhatsMinerHttpsLuci:parseLuciConfigTokenReq(httpResponse, stat)
     local context = self.context
     local response = self:parseHttpResponse(httpResponse, stat,false)
-    if response.statCode~='200' then
+    -- Some WhatsMiners use btminer instead of cgminer, and the path is different.
+    if response.statCode == '404' and self.program:hasNext() then
+        self:setStep("getToken")
+        return
+    end
+    if response.statCode ~= '200' then
         utils.debugInfo('WhatsMinerHttpsLuci:parseLuciConfigTokenReq', 'Bad return code:'..response.statCode)
         self:setStep('end', 'get token failed')
         return
@@ -134,7 +143,7 @@ function WhatsMinerHttpsLuci:setMinerConf()
 
     local request = {
         method = "POST",
-        path = "/cgi-bin/luci/admin/network/cgminer",
+        path = "/cgi-bin/luci/admin/network/"..self.program:getCurrent(),
         headers = {
             ["content-type"] = "application/x-www-form-urlencoded"
         },
@@ -173,11 +182,13 @@ function WhatsMinerHttpsLuci:parseSetMinerConf(httpResponse, stat)
 
         if workingMode ~= nil and workingMode.ModeValue ~= miner:opt('whatsminer.power_mode') then
             miner:setOpt('whatsminer.new_power_mode', workingMode.ModeValue)
+            self.program:reset()
             self:setStep("setPowerMode")
             return
         end
     end
 
+    self.program:reset()
     self:setStep("restartCGMiner")
 end
 
@@ -190,12 +201,12 @@ function WhatsMinerHttpsLuci:setPowerMode()
         ["token"] = miner:opt("_luci_token"),
         ["cbi.submit"] = "1",
         ["cbi.apply"] = "1",
-        ["cbid.cgminer.default.miner_type"] = miner:opt('whatsminer.new_power_mode'),
+        ["cbid."..self.program:getNext()..".default.miner_type"] = miner:opt('whatsminer.new_power_mode'),
     }
 
     local request = {
         method = "POST",
-        path = "/cgi-bin/luci/admin/network/cgminer/power",
+        path = "/cgi-bin/luci/admin/network/"..self.program:getCurrent().."/power",
         headers = {
             ["content-type"] = "application/x-www-form-urlencoded"
         },
@@ -211,19 +222,27 @@ function WhatsMinerHttpsLuci:parseSetPowerMode(httpResponse, stat)
     local miner = context:miner()
     local response = self:parseHttpResponse(httpResponse, stat, false)
 
+    -- Some WhatsMiners use btminer instead of cgminer, and the path is different.
+    if response.statCode == '404' and self.program:hasNext() then
+        self:setStep("setPowerMode")
+        return
+    end
+
     if (response.statCode ~= "200") then
         utils.debugInfo("WhatsMinerHttpsLuci:parseSetPowerMode", "statCode ~= 200")
+        self.program:reset()
         self:setStep("restartCGMiner", "set power mode failed: "..httpResponse)
         return
     end
 
+    self.program:reset()
     self:setStep("restartCGMiner")
 end
 
 function WhatsMinerHttpsLuci:restartCGMiner()
     local request = {
         method = 'GET',
-        path = '/cgi-bin/luci/admin/status/cgminerstatus/restart',
+        path = '/cgi-bin/luci/admin/status/'..self.program:getNext()..'status/restart',
     }
     self:makeSessionedHttpReq(request)
     self:setStep("parseRestartCGMiner", "restart cgminer...")
@@ -233,6 +252,12 @@ function WhatsMinerHttpsLuci:parseRestartCGMiner(httpResponse, stat)
     local context = self.context
     local miner = context:miner()
     local response = self:parseHttpResponse(httpResponse, stat, false)
+
+    -- Some WhatsMiners use btminer instead of cgminer, and the path is different.
+    if response.statCode == '404' and self.program:hasNext() then
+        self:setStep("restartCGMiner")
+        return
+    end
 
     if (response.statCode ~= "302") then
         utils.debugInfo("WhatsMinerHttpsLuci:parseRestartCGMiner", "statCode ~= 200")

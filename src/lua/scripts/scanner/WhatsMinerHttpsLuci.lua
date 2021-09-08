@@ -30,6 +30,7 @@ function WhatsMinerHttpsLuci:__init(parent, context)
     local ip = miner:ip()
     miner:setOpt("settings_pasword_key", "WhatsMiner")
     miner:setOpt("upgrader.disabled", "true")
+    miner:setOpt("miningProgram", "cgminer")
 
     context:setRequestHost("tls://"..ip)
     context:setRequestPort("443")
@@ -43,6 +44,8 @@ function WhatsMinerHttpsLuci:__init(parent, context)
     end
 
     local obj = ExecutorBase.__init(self, parent, context)
+    obj.program = MiningProgram()
+    obj.program:WhatsMinerDefault(miner:opt("miningProgram"))
     obj:setStep("getSession")
     return obj
 end
@@ -122,8 +125,10 @@ function WhatsMinerHttpsLuci:parseMinerStat(httpResponse, stat)
         local firmware = string.match(response.body, '<td[^>]*>%s*Firmware%s*Version%s*</td>%s*<td>%s*([^<]-)%s*</td>') or 
                          string.match(response.body, '<td[^>]*>%s*固件版本%s*</td>%s*<td>%s*([^<]-)%s*</td>');
         
-        local software = string.match(response.body, '<td[^>]*>%s*CGMiner%s*Version%s*</td>%s*<td>%s*([^<]-)%s*</td>') or 
-                         string.match(response.body, '<td[^>]*>%s*CGMiner%s*版本%s*</td>%s*<td>%s*([^<]-)%s*</td>');
+        local miningProgram, minerVersion = string.match(response.body, '<td[^>]*>%s*(%w*Miner)%s*Version%s*</td>%s*<td>%s*([^<]-)%s*</td>')
+        if not miningProgram then
+            miningProgram, minerVersion = string.match(response.body, '<td[^>]*>%s*(%w*Miner)%s*版本%s*</td>%s*<td>%s*([^<]-)%s*</td>');
+        end
 
         if model ~= nil and model ~= "" then
             context:miner():setFullTypeStr(model)
@@ -135,8 +140,13 @@ function WhatsMinerHttpsLuci:parseMinerStat(httpResponse, stat)
         if firmware ~= nil and firmware ~= "" then
             miner:setOpt('firmware_version', firmware)
         end
-        if software ~= nil and software ~= "" then
-            miner:setOpt('software_version', "cgminer "..software)
+        if miningProgram ~= nil and miningProgram ~= "" then
+            miningProgram = string.lower(miningProgram)
+            minerVersion = minerVersion or "*"
+            miner:setOpt('software_version', miningProgram.." "..minerVersion)
+
+            miner:setOpt("miningProgram", miningProgram)
+            self.program:setBestProgram(miningProgram)
         end
     end
 
@@ -169,13 +179,14 @@ function WhatsMinerHttpsLuci:parseMinerNetwork(httpResponse, stat)
             miner:setOpt("mac_address", obj.macaddr)
         end
     end
+    self.program:reset()
     self:setStep("getMinerPool", "success")
 end
 
 function WhatsMinerHttpsLuci:getMinerPool()
     local request = {
         method = "GET",
-        path = "/cgi-bin/luci/admin/network/cgminer",
+        path = "/cgi-bin/luci/admin/network/"..self.program:getNext(),
     }
 
     self:setStep("parseMinerPool", "find pools...")
@@ -188,6 +199,11 @@ function WhatsMinerHttpsLuci:parseMinerPool(httpResponse, stat)
 
     local response = self:parseHttpResponse(httpResponse, stat)
     if (response) then
+        -- Some WhatsMiners use btminer instead of cgminer, and the path is different.
+        if response.statCode == '404' and self.program:hasNext() then
+            self:setStep("getMinerPool")
+            return
+        end
         local pool1url = string.match(response.body, 'name="cbid%.pools%.default%.pool1url"[^>]-%s+value="%s*([^"]-)%s*"') or ""
         local pool2url = string.match(response.body, 'name="cbid%.pools%.default%.pool2url"[^>]-%s+value="%s*([^"]-)%s*"') or ""
         local pool3url = string.match(response.body, 'name="cbid%.pools%.default%.pool3url"[^>]-%s+value="%s*([^"]-)%s*"') or ""
@@ -214,13 +230,14 @@ function WhatsMinerHttpsLuci:parseMinerPool(httpResponse, stat)
         pool3:setPasswd(pool3pw)
     end
 
+    self.program:reset()
     self:setStep("getPowerMode", "success")
 end
 
 function WhatsMinerHttpsLuci:getPowerMode()
     local request = {
         method = "GET",
-        path = "/cgi-bin/luci/admin/network/cgminer/power",
+        path = "/cgi-bin/luci/admin/network/"..self.program:getNext().."/power",
     }
 
     self:setStep("parsePowerMode", "read power mode...")
@@ -233,8 +250,13 @@ function WhatsMinerHttpsLuci:parsePowerMode(httpResponse, stat)
 
     local response = self:parseHttpResponse(httpResponse, stat)
     if (response) then
+        -- Some WhatsMiners use btminer instead of cgminer, and the path is different.
+        if response.statCode == '404' and self.program:hasNext() then
+            self:setStep("getPowerMode")
+            return
+        end
         local overclockOption = { ModeInfo = {} }
-        local options = string.gmatch(response.body, 'name="cbid%.cgminer%.default%.miner_type"%s+value="%s*([^"]-)%s*"%s*([^%s]-)%s*/>%s*([^<]-)%s*</label>')
+        local options = string.gmatch(response.body, 'name="cbid%.'..self.program:getCurrent()..'%.default%.miner_type"%s+value="%s*([^"]-)%s*"%s*([^%s]-)%s*/>%s*([^<]-)%s*</label>')
         local optionLocales = {
             ["低"] = "Low",
             ["正常"] = "Normal",
@@ -263,6 +285,7 @@ function WhatsMinerHttpsLuci:parsePowerMode(httpResponse, stat)
 
     -- try to find hashrate
     if miner:opt("hashrate_5s") == "" and miner:opt("hashrate_avg") == "" then
+        self.program:reset()
         self:setStep('getHashrate')
         return
     end
@@ -271,7 +294,7 @@ end
 function WhatsMinerHttpsLuci:getHashrate()
     local request = {
         method = "GET",
-        path = "/cgi-bin/luci/admin/status/cgminerstatus",
+        path = "/cgi-bin/luci/admin/status/"..self.getNext().."status",
     }
 
     self:setStep("parseHashrate", "read hashrate...")
@@ -283,6 +306,11 @@ function WhatsMinerHttpsLuci:parseHashrate(httpResponse, stat)
     local miner = context:miner()
 
     local response = self:parseHttpResponse(httpResponse, stat)
+    -- Some WhatsMiners use btminer instead of cgminer, and the path is different.
+    if response.statCode == '404' and self.program:hasNext() then
+        self:setStep("getHashrate")
+        return
+    end
     if (response) then
         local unit = string.match(response.body, '<th class="cbi%-section%-table%-cell">%s*([^<]-)Sav%s*</th>') or 'H'
         local mhs5s = string.match(response.body, '<input type="hidden" id="cbid%.table%.4%.mhs5s" value="%s*([^"]-)%s*" />')

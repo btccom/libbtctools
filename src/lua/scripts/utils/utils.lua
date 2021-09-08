@@ -2,6 +2,40 @@ local utils = {}
 
 local json = require ("utils.dkjson")
 
+local function deepCopy(orig)
+    local orig_type = type(orig)
+    local copy
+    if orig_type == 'table' then
+        copy = {}
+        for orig_key, orig_value in next, orig, nil do
+            copy[deepCopy(orig_key)] = deepCopy(orig_value)
+        end
+        setmetatable(copy, deepCopy(getmetatable(orig)))
+    else -- number, string, boolean, etc
+        copy = orig
+    end
+    return copy
+end
+
+utils.deepCopy = deepCopy
+
+function utils.contains(t, value)
+    for _, v in pairs(t) do
+      if v == value then
+        return true
+      end
+    end
+    return false
+end
+
+function utils.removeByValue(t, value)
+    for k, v in pairs(t) do
+        if v == value then
+            return table.remove(t, k)
+        end
+    end
+end
+
 function utils.append(str, new, sep)
     str = str or ""
     new = new or ""

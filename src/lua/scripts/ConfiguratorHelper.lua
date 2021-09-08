@@ -5,6 +5,7 @@ date = require "utils.date"
 require 'utils.oop'
 require 'HelperBase'
 require 'ExecutorBase'
+require 'MiningProgram'
 require 'configurator.AntminerHttpCgi'
 require 'configurator.BosHttpLuci'
 require 'configurator.WhatsMinerHttpsLuci'
