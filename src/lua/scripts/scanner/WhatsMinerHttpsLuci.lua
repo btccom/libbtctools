@@ -145,6 +145,9 @@ function WhatsMinerHttpsLuci:parseMinerStat(httpResponse, stat)
             minerVersion = minerVersion or "*"
             miner:setOpt('software_version', miningProgram.." "..minerVersion)
 
+            if miningProgram == "miner" then
+                miningProgram = "btminer"
+            end
             miner:setOpt("miningProgram", miningProgram)
             self.program:setBestProgram(miningProgram)
         end
