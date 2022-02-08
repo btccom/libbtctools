@@ -8,6 +8,7 @@ require 'ExecutorBase'
 require 'MiningProgram'
 require 'upgrader.AntminerHttpCgi'
 require 'upgrader.BosHttpLuci'
+require 'upgrader.AnthillOS'
 
 UpgraderHelper = oo.class({}, HelperBase)
 

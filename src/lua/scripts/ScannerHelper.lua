@@ -13,6 +13,7 @@ require 'scanner.BosHttpLuci'
 require 'scanner.WhatsMinerHttpsLuci'
 require 'scanner.AvalonHttpLuci'
 require 'scanner.AvalonDeviceCgi'
+require 'scanner.AnthillOS'
 
 ScannerHelper = oo.class({}, HelperBase)
 

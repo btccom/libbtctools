@@ -11,6 +11,7 @@ require 'rebooter.BosHttpLuci'
 require 'rebooter.WhatsMinerHttpsLuci'
 require 'rebooter.AvalonHttpLuci'
 require 'rebooter.AvalonDeviceCgi'
+require 'rebooter.AnthillOS'
 
 RebooterHelper = oo.class({}, HelperBase)
 
