@@ -1,3 +1,5 @@
+require 'utils.log'
+
 utils = require "utils.utils"
 http = require "utils.http"
 date = require "utils.date"
