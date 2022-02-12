@@ -1,6 +1,6 @@
-AvalonHttpLuci = oo.class({}, ExecutorBase)
+AvalonDeviceCgi = oo.class({}, ExecutorBase)
 
-function AvalonHttpLuci:begin()
+function AvalonDeviceCgi:begin()
     local context = self.context
     local miner = context:miner()
     local ip = miner:ip()
@@ -14,8 +14,8 @@ function AvalonHttpLuci:begin()
     local request = {
         method = 'POST',
         host = ip,
-        path = '/cgi-bin/luci/avalon/page/index',
-        body = 'username='..loginPassword.userName..'&password='..loginPassword.password,
+        path = '/login.cgi',
+        body = 'username='..loginPassword.userName..'&passwd='..loginPassword.password,
         headers = {
             ['Content-Type'] = 'application/x-www-form-urlencoded'
         }
@@ -28,49 +28,43 @@ function AvalonHttpLuci:begin()
     self:setStep("doLogin", "login...")
 end
 
-function AvalonHttpLuci:doLogin(response, stat)
+function AvalonDeviceCgi:doLogin(response, stat)
     response = http.parseResponse(response)
-    if (response.statCode ~= "302") then
-        self:setStep("end", "login failed")
-        return
-    end
-
-    local cookie = response.headers['set-cookie']
-    local url = response.headers['location']
-
-    if type(cookie) ~= 'table' or cookie[1] == nil
-        or type(url) ~= 'table' or url[1] == nil
+    if (response.statCode ~= "200" or
+        not string.match(response.body, "get_minerinfo.cgi"))
     then
         self:setStep("end", "login failed")
         return
     end
 
-    self.cookie = string.gsub(cookie[1], ';.*', '')
-    self.stok = string.match(url[1], '/;stok=([^/]*)/')
-
     self:setStep("reboot", "success")
 end
 
-function AvalonHttpLuci:makeLuciRequest(apiPath)
+function AvalonDeviceCgi:reboot()
+    local context = self.context
+    local miner = context:miner()
+    local ip = miner:ip()
+
     local request = {
-        method = 'GET',
-        host = self.context:miner():ip(),
-        path = '/cgi-bin/luci/;stok=' .. self.stok .. apiPath,
+        method = 'POST',
+        host = ip,
+        path = '/reboot_btn.cgi',
+        body = '',
         headers = {
-            ['Cookie'] = self.cookie
+            ['Content-Length'] = 0,
         }
     }
-    self.context:setRequestContent(http.makeRequest(request))
-end
-
-function AvalonHttpLuci:reboot()
-    self:makeLuciRequest('/admin/system/reboot?reboot=1')
+    context:setRequestContent(http.makeRequest(request))
     self:setStep('doReboot', 'rebooting...')
 end
 
-function AvalonHttpLuci:doReboot(response, stat)
-    if not string.match(response, 'setTimeout') then
-        self:setStep('end', 'perform reboot failed')
+function AvalonDeviceCgi:doReboot(response, stat)
+    local context = self.context
+    local miner = context:miner()
+    response = http.parseResponse(response)
+
+    if not string.match(response.body, 'device reboot...') then
+        self:setStep("end", "perform reboot failed")
         return
     end
 
@@ -79,14 +73,24 @@ function AvalonHttpLuci:doReboot(response, stat)
     self:disableRetry()
 end
 
-function AvalonHttpLuci:waitFinish()
-    self.context:setRequestDelayTimeout(5)
-    self.context:setRequestSessionTimeout(5)
-    self:makeLuciRequest('/cgi-bin/luci')
+function AvalonDeviceCgi:waitFinish()
+    local context = self.context
+    local miner = context:miner()
+    local ip = miner:ip()
+
+    local request = {
+        method = 'GET',
+        host = ip,
+        path = '/',
+    }
+    context:setRequestContent(http.makeRequest(request))
+    context:setRequestDelayTimeout(5)
+    context:setRequestSessionTimeout(5)
+
     self:setStep("doWaitFinish", 'wait finish...')
 end
 
-function AvalonHttpLuci:doWaitFinish(httpResponse, stat)
+function AvalonDeviceCgi:doWaitFinish(response, stat)
     local miner = self.context:miner()
 
     if (stat == 'success') then

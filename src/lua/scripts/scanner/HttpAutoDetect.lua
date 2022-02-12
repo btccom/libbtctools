@@ -75,6 +75,15 @@ function HttpAutoDetect:detect(response, stat)
         return
     end
 
+    if (response.statCode == "200" and
+        string.match(response.body, 'Avalon Device') and
+        string.match(response.body, 'login.cgi'))
+    then
+        miner:setOpt('httpDetect', 'AvalonDeviceCgi')
+        self.parent:setExecutor(self.context, GenericCgminerApi(self.parent, self.context))
+        return
+    end
+
     utils.debugInfo('HttpAutoDetect:detect', 'unknown device')
 
     miner:setOpt('httpDetect', 'unknown')

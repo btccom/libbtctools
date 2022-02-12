@@ -10,6 +10,7 @@ require 'configurator.AntminerHttpCgi'
 require 'configurator.BosHttpLuci'
 require 'configurator.WhatsMinerHttpsLuci'
 require 'configurator.AvalonHttpLuci'
+require 'configurator.AvalonDeviceCgi'
 
 ConfiguratorHelper = oo.class({}, HelperBase)
 

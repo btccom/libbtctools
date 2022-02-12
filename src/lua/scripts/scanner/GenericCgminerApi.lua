@@ -63,7 +63,7 @@ function GenericCgminerApi:doParseStats(jsonStr, miner)
         local status = obj.status
         local stat = obj.STATS
 
-        if (type(stat) == "table" and type(stat[1]) == "table" and type(stat[1].Type) == "string") then
+        if (type(stat) == "table" and type(stat[1]) == "table" and type(stat[1].Type) == "string" and stat[1].Type ~= "") then
             fullTypeStr = stat[1].Type
             miner:setOpt('minerTypeFound', 'true')
         elseif type(obj.Description) == "string" and string.match(obj.Description, "whatsminer") then
@@ -95,6 +95,58 @@ function GenericCgminerApi:doParseStats(jsonStr, miner)
                 end
             end
 
+        end
+
+        -- for Avalon 10
+        if (type(stat) == "table" and type(stat[1]) == "table") then
+            local opts = stat[1]
+            if (opts['MM ID0'] ~= nil) then
+                miner:setOpt('avalon_found_mm_id0', 'true')
+                local data = opts['MM ID0']
+                do
+                    local iter = string.gmatch(data, '%f[%a]Fan[0-9]+%[([^%]]+)%]')
+                    local fan = {}
+                    while true do
+                        local speed = iter()
+                        if speed == nil then
+                            break
+                        end
+                        table.insert(fan, speed)
+                    end
+                    if #fan > 0 then
+                        miner:setOpt('fan_speed', table.concat(fan, ' / '))
+                    end
+                end
+
+                do
+                    local temp = string.match(data, '%f[%a]MTavg%[([^%]]+)%]')
+                    if temp ~= nil and temp ~= "" then
+                        miner:setOpt('temperature', string.gsub(temp, ' ', ' / '))
+                    end
+                end
+
+                do
+                    local version = string.match(data, '%f[%a]Ver%[([^%]]+)%]')
+                    if version ~= nil and version ~= "" then
+                        miner:setOpt('firmware_version', version)
+                    end
+                end
+
+                do
+                    local version = string.match(data, '%f[%a]DNA%[([^%]]+)%]')
+                    if version ~= nil and version ~= "" then
+                        miner:setOpt('hardware_version', version)
+                    end
+                end
+
+                do
+                    local mode = string.match(data, '%f[%a]WORKMODE%[([^%]]+)%]')
+                    if mode ~= nil and mode ~= "" then
+                        miner:setOpt('avalon.overclock_working_mode', mode)
+                        miner:setOpt('antminer.overclock_working_mode', 'Mode ' .. mode)
+                    end
+                end
+            end
         end
 
         -- find more infos
@@ -138,23 +190,23 @@ function GenericCgminerApi:doParseStats(jsonStr, miner)
 
                     i = i + 1
                 end
-
-                miner:setOpt('temperature', table.concat(temp, ' / '))
+                if #temp > 0 then
+                    miner:setOpt('temperature', table.concat(temp, ' / '))
+                end
             end
 
             if (opts['fan1'] ~= nil) then
                 local fan = {}
                 local i = 1
-
                 while (opts['fan'..i] ~= nil) do
                     if (opts['fan'..i] > 0) then
                         table.insert(fan, opts['fan'..i])
                     end
-
                     i = i + 1
                 end
-
-                miner:setOpt('fan_speed', table.concat(fan, ' / '))
+                if #fan > 0 then
+                    miner:setOpt('fan_speed', table.concat(fan, ' / '))
+                end
             end
 
             if (opts['Elapsed'] ~= nil) then
@@ -274,14 +326,34 @@ function GenericCgminerApi:doParseMinerType(jsonStr, miner)
         if type(dev) == "table" and type(dev[1]) == "table" then
             dev = dev[1]
 
-            if (dev['Model'] ~= nil) then
+            if (dev['Model'] ~= nil and dev['Model'] ~= "") then
                 local model = dev['Model']
                 if miner:opt('httpDetect') == "WhatsMinerHttpsLuci" then
                     miner:setFullTypeStr("WhatsMiner "..model)
+                    miner:setOpt('minerTypeFound', 'true')
                 else
                     local sep = (miner:fullTypeStr() == '' and '' or ' ')
                     miner:setFullTypeStr(miner:fullTypeStr()..sep..model)
+                    miner:setOpt('minerTypeFound', 'true')
                 end
+            end
+
+            if dev['Name'] ~= nil and dev['Name'] ~= "" and miner:opt('minerTypeFound') ~= 'true' then
+                local model = dev['Name']
+                if dev['Driver'] ~= nil and dev['Driver'] ~= "" then
+                    model = model .. ' (' .. dev['Driver'] .. ')'
+                end
+
+                if string.match(model, 'avalon') and miner:opt('httpDetect') ~= 'AvalonHttpLuci' then
+                    -- Example: 1246-N-85-21100123_456789a_bcdef01
+                    local version = string.gsub(miner:opt('firmware_version'), '[-_][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]+', '')
+                    model = 'AvalonMiner '..version
+                    miner:setTypeStr("AvalonDeviceCgi")
+                    miner:setOpt("upgrader.disabled", "true")
+                end
+
+                miner:setFullTypeStr(model)
+                miner:setOpt('minerTypeFound', 'true')
             end
         end
     end
@@ -324,10 +396,27 @@ function GenericCgminerApi:doParseSummary(jsonStr, miner)
                 miner:setOpt('elapsed', utils.formatTime(summary['Elapsed'], 'd :h :m :s '))
             end
 
-            if summary['MHS 5s'] ~= nil then
-                local hashrate = tonumber(summary['MHS 5s'])
+            function getHashrateName(summary)
+                local names = {
+                    'MHS 1m',
+                    'MHS 30s',
+                    'MHS 5s',
+                    'MHS 5m',
+                    'MHS 15m',
+                }
+                for i = 1, #names do
+                    if summary[names[i]] ~= nil then
+                        return names[i]
+                    end
+                end
+                return names[0]
+            end
+
+            local mhsName = getHashrateName(summary)
+            if summary[mhsName] ~= nil then
+                local hashrate = tonumber(summary[mhsName])
                 if hashrate < 1000 and hashrate > 0 then
-                    miner:setOpt('hashrate_5s', summary['MHS 5s']..' MH/s')
+                    miner:setOpt('hashrate_5s', summary[mhsName]..' MH/s')
                 else
                     miner:setOpt('hashrate_5s', string.format("%.2f", hashrate / 1000)..' GH/s')
                 end
@@ -389,7 +478,9 @@ function GenericCgminerApi:doParseSummary(jsonStr, miner)
                 table.insert(temp, summary['Chip Temp Max'])
             end
             ]]
-            miner:setOpt("temperature", table.concat(temp, ' / '))
+            if #temp > 0 then
+                miner:setOpt("temperature", table.concat(temp, ' / '))
+            end
 
             -- fan speed
             local fan = {}
@@ -399,7 +490,9 @@ function GenericCgminerApi:doParseSummary(jsonStr, miner)
             if summary['Fan Speed Out'] ~= nil then
                 table.insert(fan, summary['Fan Speed Out'])
             end
-            miner:setOpt('fan_speed', table.concat(fan, ' / '))
+            if #fan > 0 then
+                miner:setOpt('fan_speed', table.concat(fan, ' / '))
+            end
         end
     end
 end
@@ -434,11 +527,15 @@ function GenericCgminerApi:doParseTemperature(jsonStr, miner)
         if type(devs) == "table" and type(devs[1]) == "table" then
             local temp = {}
             for _, chip in ipairs(devs) do
-                if type(chip) == "table" and chip.Temperature ~= nil then
+                if type(chip) == "table" and chip.Temperature ~= nil
+                    and chip.Temperature > -100 -- we got -273.00 with Avalon 10
+                then
                     table.insert(temp, chip.Temperature)
                 end
             end
-            miner:setOpt("temperature", table.concat(temp, ' / '))
+            if #temp > 0 then
+                miner:setOpt("temperature", table.concat(temp, ' / '))
+            end
         end
     end
 end
