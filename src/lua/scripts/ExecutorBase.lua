@@ -255,3 +255,65 @@ function ExecutorBase:parseHttpResponseJson(httpResponse,stat)
     end
     return obj
 end
+
+function ExecutorBase:makeAnthillSessionReq()
+    local context = self.context
+    local miner = context:miner()
+
+    local loginPassword = utils.getMinerLoginPassword('AnthillOS')
+
+    if (loginPassword == nil) then
+        loginPassword = utils.getMinerLoginPassword('VnishOS')
+    end
+
+    if (loginPassword == nil) then
+        self:setStep('end', 'no password specified')
+        return
+    end
+
+    if (loginPassword.password == nil) then
+        self:setStep('end', 'require password')
+        return
+    end
+
+    local request = {
+        method = 'POST',
+        path = '/api/v1/unlock',
+        headers = {
+            ['content-type']='application/json; charset=utf-8'
+        },
+        body = '{"pw": "'..loginPassword.password..'"}'
+    }
+
+    self:makeBasicHttpReq(request);
+end
+
+function ExecutorBase:parseAnthillSessionReq(httpResponse, stat)
+    local context = self.context
+    local response = self:parseHttpResponse(httpResponse, stat)
+
+    if not response then
+        utils.debugInfo('ExecutorBase:parseSession', 'No response from miner')
+        self:setStep('end', stat)
+        return
+    end
+
+    if response.statCode ~= '200' then
+        utils.debugInfo('ExecutorBase:parseSession', 'Bad return code' .. response.statCode)
+        self:setStep('end', 'login failed')
+        return
+    end
+
+    local miner = context:miner()
+    local obj = utils.jsonDecode(response.body)
+
+    if (type(obj) ~= 'table') then
+        utils.debugInfo('ExecutorBase:parseSession', 'invalid response format')
+        self:setStep('end', 'invalid response format')
+        return
+    end
+
+    miner:setOpt('anthill_token', obj.token)
+
+    return response
+end

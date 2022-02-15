@@ -11,6 +11,7 @@ require 'configurator.BosHttpLuci'
 require 'configurator.WhatsMinerHttpsLuci'
 require 'configurator.AvalonHttpLuci'
 require 'configurator.AvalonDeviceCgi'
+require 'configurator.AnthillOS'
 
 ConfiguratorHelper = oo.class({}, HelperBase)
 

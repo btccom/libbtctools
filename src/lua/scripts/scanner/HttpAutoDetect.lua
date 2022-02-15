@@ -61,6 +61,14 @@ function HttpAutoDetect:detect(response, stat)
         return
     end
 
+    if (response.statCode == "200" and
+        string.match(response.body, 'AnthillOS'))
+    then
+        miner:setOpt('httpDetect', 'AnthillOS')
+        self.parent:setExecutor(self.context, AnthillOS(self.parent, self.context))
+        return
+    end
+
     if (response.statCode == "307" and
         response.headers['location'] and
         response.headers['location'][1] and
