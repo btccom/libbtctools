@@ -1,3 +1,4 @@
+local clock = os.clock
 local utils = {}
 
 local json = require ("utils.dkjson")
@@ -161,6 +162,11 @@ function utils.formatTime(secs, format)
 	end
 	
 	return time_str 
+end
+
+function utils.sleep(n)
+    local t0 = clock()
+    while clock() - t0 <= n do end
 end
 
 function utils.print(data, showMetatable, lastCount)

@@ -127,7 +127,7 @@ function AvalonDeviceCgi:reboot()
     local request = {
         method = 'POST',
         host = ip,
-        path = '/reboot_btn.cgi',
+        path = '/reboot.cgi',
         body = '',
         headers = {
             ['Content-Length'] = 0,
@@ -137,16 +137,8 @@ function AvalonDeviceCgi:reboot()
     self:setStep('doReboot', 'rebooting...')
 end
 
-function AvalonDeviceCgi:doReboot(response, stat)
-    local context = self.context
-    local miner = context:miner()
-    response = http.parseResponse(response)
-
-    if not string.match(response.body, 'device reboot...') then
-        self:setStep("end", "perform reboot failed")
-        return
-    end
-
+function AvalonDeviceCgi:doReboot()
+    utils.sleep(20)
     self.context:miner():setOpt('check-reboot-finish-times', '0')
     self:setStep("waitFinish")
     self:disableRetry()
