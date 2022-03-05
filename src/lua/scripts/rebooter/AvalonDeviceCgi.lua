@@ -4,7 +4,7 @@ function AvalonDeviceCgi:begin()
     local context = self.context
     local miner = context:miner()
     local ip = miner:ip()
-    local loginPassword = utils.getMinerLoginPassword(miner:fullTypeStr())
+    local loginPassword = utils.getMinerLoginPassword(miner:typeStr())
 
     if (loginPassword == nil) then
         self:setStep("end", "require password")
