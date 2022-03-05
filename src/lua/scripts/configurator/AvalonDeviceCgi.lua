@@ -138,7 +138,7 @@ function AvalonDeviceCgi:reboot()
 end
 
 function AvalonDeviceCgi:doReboot()
-    utils.sleep(20)
+    self.context:setRequestDelayTimeout(20)
     self.context:miner():setOpt('check-reboot-finish-times', '0')
     self:setStep("waitFinish")
     self:disableRetry()
@@ -155,7 +155,6 @@ function AvalonDeviceCgi:waitFinish()
         path = '/',
     }
     context:setRequestContent(http.makeRequest(request))
-    context:setRequestDelayTimeout(5)
     context:setRequestSessionTimeout(5)
 
     self:setStep("doWaitFinish", 'wait finish...')
@@ -177,4 +176,5 @@ function AvalonDeviceCgi:doWaitFinish(response, stat)
 
     miner:setOpt('check-reboot-finish-times', tostring(times + 1))
     self:setStep('waitFinish', 'not finish')
+    self.context:setRequestDelayTimeout(5)
 end

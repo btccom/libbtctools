@@ -164,11 +164,6 @@ function utils.formatTime(secs, format)
 	return time_str 
 end
 
-function utils.sleep(n)
-    local t0 = clock()
-    while clock() - t0 <= n do end
-end
-
 function utils.print(data, showMetatable, lastCount)
     if type(data) ~= "table" then
         --Value
