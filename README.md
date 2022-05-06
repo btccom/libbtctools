@@ -80,11 +80,15 @@ make install
 
 # Build on Windows
 
-### install CMake
+### Install Visual Studio
+
+See https://visualstudio.microsoft.com/ for more details.
+
+### Install CMake
 
 See https://cmake.org/download/ for more details.
 
-### install vcpkg
+### Install vcpkg
 
 See https://github.com/Microsoft/vcpkg/ for more details.
 
