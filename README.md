@@ -65,7 +65,7 @@ Tips: install `lua-5.1` instead of `luajit-2.0`. The demo will segmentation faul
 
 The command will be:
 ```bash
-brew install boost openssl lua@5.1 cryptopp
+brew install cmake boost openssl lua@5.1 cryptopp
 
 # static library
 cmake -DCMAKE_INSTALL_PREFIX=/opt/btctools -DBTCTOOLS__LIB_TYPE=STATIC -DBTCTOOLS__LUA_TYPE=NORMAL ..
@@ -79,6 +79,10 @@ make install
 ```
 
 # Build on Windows
+
+### install CMake
+
+See https://cmake.org/download/ for more details.
 
 ### install vcpkg
 
