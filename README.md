@@ -131,7 +131,7 @@ Example output for `.\vcpkg integrate install`:
 ```
 md build.32
 cd build.32
-cmake -DCMAKE_BUILD_TYPE=Release -A win32 -DCMAKE_TOOLCHAIN_FILE=G:/work/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x86-windows-static -DBTCTOOLS__STATIC_LINKING_VC_LIB=ON -DBTCTOOLS__LIB_TYPE=STATIC -DCMAKE_INSTALL_PREFIX=%appdata%\lib32\btctools ..
+cmake -DCMAKE_BUILD_TYPE=Release -A win32 -DCMAKE_TOOLCHAIN_FILE=G:/work/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x86-windows-static -DBTCTOOLS__STATIC_LINKING_VC_LIB=ON -DBTCTOOLS__LIB_TYPE=STATIC -DCMAKE_INSTALL_PREFIX=G:\work\lib32\btctools ..
 start libbtctools.sln
 ```
 
@@ -139,10 +139,12 @@ start libbtctools.sln
 ```
 md build.64
 cd build.64
-cmake -DCMAKE_BUILD_TYPE=Release -A x64 -DCMAKE_TOOLCHAIN_FILE=G:/work/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-static -DBTCTOOLS__STATIC_LINKING_VC_LIB=ON -DBTCTOOLS__LIB_TYPE=STATIC -DCMAKE_INSTALL_PREFIX=%appdata%\lib64\btctools ..
+cmake -DCMAKE_BUILD_TYPE=Release -A x64 -DCMAKE_TOOLCHAIN_FILE=G:/work/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-static -DBTCTOOLS__STATIC_LINKING_VC_LIB=ON -DBTCTOOLS__LIB_TYPE=STATIC -DCMAKE_INSTALL_PREFIX=G:\work\lib64\btctools ..
 start libbtctools.sln
 ```
 
 Replace `G:/work/vcpkg/scripts/buildsystems/vcpkg.cmake` to your `vcpkg.cmake` path.
+
+Replace `G:\work\lib[32|64]\btctools` to the install path what you want.
 
 Select **Release** instead of the default **Debug** in the build type drop-down box, then build the **INSTALL** project to install.
