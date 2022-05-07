@@ -82,6 +82,8 @@ make install
 
 ### Install Visual Studio
 
+Please install the C/C++ Development Kit with Visual Studio.
+
 See https://visualstudio.microsoft.com/ for more details.
 
 ### Install CMake
