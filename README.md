@@ -17,7 +17,7 @@ And `libpthread` is required on Linux and macOS.
 Example on Ubuntu 18.04 x64:
 ```bash
 # build tools
-apt-get install -y build-essential autotools-dev libtool autoconf automake pkg-config cmake gcc g++
+apt-get install -y build-essential autotools-dev libtool autoconf automake pkg-config cmake gcc c++
 
 # install boost via apt
 apt install libboost-all-dev
@@ -26,16 +26,16 @@ apt install libboost-all-dev
 wget https://dl.bintray.com/boostorg/release/1.65.1/source/boost_1_65_1.tar.gz
 tar zxf boost_1_65_1.tar.gz
 cd boost_1_65_1
-./bootstrap.sh
-./b2
-./b2 install
+* bootstrap.sh
+* b2
+* b2 install
 
 # install other dependencies
 apt update
 apt install libssl-dev libluajit-5.1-dev libcrypto++-dev
 
 # clone and build
-git clone https://github.com/btccom/libbtctools.git
+git clone
 cd libbtctools
 mkdir build
 cd build
@@ -50,18 +50,18 @@ cmake -DCMAKE_INSTALL_PREFIX=/opt/btctools -DBTCTOOLS__LIB_TYPE=SHARED ..
 make
 make install
 
-# running demos
-cd /opt/btctools/bin/btctools
-./ipGeneratorDemo
-./scanMinerDemo
-./configMinerDemo
-./rebootMinerDemo
+# * running demos
+cd ./opt/btctools/bin/btctools
+* ipGeneratorDemo
+* scanMinerDemo
+* configMinerDemo
+* rebootMinerDemo
 ```
 
 # Build on macOS
 It seems like build on Linux. Search and install dependencies with `brew` first.
 
-Tips: install `lua-5.1` instead of `luajit-2.0`. The demo will segmentation fault with `luajit-2.0` and I don't know the reason.
+Tips: install `luajit-2.0` instead of `lua-5.1`. The demo will segmentation fault with `lua-5.1` and I don't know the reason.
 
 The command will be:
 ```bash
@@ -92,39 +92,40 @@ See https://cmake.org/download/ for more details.
 
 ### Install vcpkg
 
-See https://github.com/Microsoft/vcpkg/ for more details.
+See https://vcpkg.io/en/index.html for more details.
 
 
 Quick Steps:
 ```
-git clone https://github.com/Microsoft/vcpkg.git
+https://vcpkg.io/en/index.html
+git clone 
 cd vcpkg
-.\bootstrap-vcpkg.bat
-.\vcpkg integrate install
+* bootstrap-vcpkg.bat
+* vcpkg integrate install
 ```
 
 Example output for `.\vcpkg integrate install`:
 
 > PS G:\work\vcpkg> .\vcpkg integrate install
 > Applied user-wide integration for this vcpkg root.
-> 
+
 > All MSBuild C++ projects can now #include any installed libraries.
 > Linking will be handled automatically.
 > Installing new libraries will make them instantly available.
-> 
-> CMake projects should use: "-DCMAKE_TOOLCHAIN_FILE=G:/work/vcpkg/scripts/buildsystems/vcpkg.cmake"
+
+> CMake projects should use: " -DCMAKE_TOOLCHAIN_FILE=G:/work/vcpkg/scripts/buildsystems/vcpkg.cmake"
 
 ### install packages via vcpkg
 
 
 #### 32bit
 ```
-.\vcpkg install boost:x86-windows-static openssl:x86-windows-static cryptopp:x86-windows-static luajit:x86-windows-static
+* vcpkg install boost:x86-windows-static openssl:x86-windows-static cryptopp:x86-windows-static luajit:x86-windows-static
 ```
 
 #### 64bit
 ```
-.\vcpkg install boost:x64-windows-static openssl:x64-windows-static cryptopp:x64-windows-static luajit:x64-windows-static
+* vcpkg install boost:x64-windows-static openssl:x64-windows-static cryptopp:x64-windows-static luajit:x64-windows-static
 ```
 
 ### cmake & build
